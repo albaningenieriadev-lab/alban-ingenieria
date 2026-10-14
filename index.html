@@ -262,9 +262,18 @@ header .max-w-7xl {
         <i class="fas fa-magic mr-2"></i> Visualizador
       </button>
 
-      <div id="currentCategoryDisplay" class="ml-auto text-sm text-gray-400">
-        <i class="fas fa-filter mr-2"></i>Mostrando: <span class="text-alban-yellow font-bold">Todos los productos</span>
-      </div>
+      <div class="flex items-center gap-3 flex-wrap">
+  <div class="flex items-center gap-2">
+    <i class="fas fa-store text-alban-yellow"></i>
+    <select id="sucursalFilter" class="bg-alban-black border border-gray-700 text-white rounded-lg px-3 py-1.5 text-sm focus:border-alban-yellow focus:outline-none">
+      <option value="all">Todas las sucursales</option>
+    </select>
+  </div>
+  <div class="flex items-center gap-2">
+    <i class="fas fa-filter text-alban-yellow"></i>
+    Mostrando: <span id="filterLabel" class="text-alban-yellow font-bold">Todos los productos</span>
+  </div>
+</div>
     </div>
   </div>
 </nav>
@@ -856,35 +865,63 @@ let products = [];
 // Función para cargar productos desde la base de datos
 async function loadProducts() {
   try {
-    const { data, error } = await supabase
+    // 1. Cargar productos
+    const { data: productosData, error: errorProductos } = await supabase
       .from('productos')
       .select('*')
       .eq('activo', true)
       .order('orden', { ascending: true });
     
-    if (error) {
-      console.error('Error de Supabase:', error);
-      throw error;
-    }
+    if (errorProductos) throw errorProductos;
     
-    products = data.map(p => ({
-      id: p.id,
-      nombre: p.nombre_comercial,
-      categoria: p.categoria,
-      tipo_ambiente: p.tipo_ambiente,
-      imagen_url: 'imagenes/productos/' + p.imagen_url,
-      precio: p.precio,
-      sku: p.sku,
-      subcategoria: p.subcategoria || 'all',
-      descripcion: 'Material de alta calidad de Alban Ingeniería.',
-      medidas: p.medidas || 'Consultar ficha técnica',
-      tipo_producto: p.tipo || 'producto',
-      color: '#808080'
-    }));
+    // 2. Cargar inventario
+    const { data: inventarioData, error: errorInventario } = await supabase
+      .from('inventario')
+      .select('producto_id, sucursal_id, stock, disponible')
+      .eq('disponible', true);
     
-    console.log(`✅ ${products.length} productos cargados desde Supabase`);
+    if (errorInventario) throw errorInventario;
     
-    // Renderizar el catálogo
+    // 3. Organizar inventario por producto
+    const inventarioPorProducto = {};
+    inventarioData.forEach(inv => {
+      if (!inventarioPorProducto[inv.producto_id]) {
+        inventarioPorProducto[inv.producto_id] = {};
+      }
+      inventarioPorProducto[inv.producto_id][inv.sucursal_id] = inv.stock;
+    });
+    
+    // 4. Transformar productos con su inventario
+    products = productosData.map(p => {
+      const inventario = inventarioPorProducto[p.id] || {};
+      
+      // Calcular stock total
+      let stockTotal = 0;
+      sucursales.forEach(s => {
+        stockTotal += (inventario[s.id] || 0);
+      });
+      
+      return {
+        id: p.id,
+        nombre: p.nombre_comercial,
+        categoria: p.categoria,
+        tipo_ambiente: p.tipo_ambiente,
+        imagen_url: 'imagenes/productos/' + p.imagen_url,
+        precio: p.precio,
+        sku: p.sku,
+        subcategoria: p.subcategoria || 'all',
+        descripcion: 'Material de alta calidad de Alban Ingeniería.',
+        medidas: p.medidas || 'Consultar ficha técnica',
+        tipo_producto: p.tipo || 'producto',
+        color: '#808080',
+        inventario: inventario,
+        stockTotal: stockTotal
+      };
+    });
+    
+    console.log(`✅ ${products.length} productos cargados con inventario`);
+    
+    // Renderizar
     renderProducts(products);
     
   } catch (error) {
@@ -892,6 +929,56 @@ async function loadProducts() {
     alert('Error al cargar el catálogo. Por favor, recarga la página.');
   }
 }
+// ==========================================
+// FILTRO DE INVENTARIO POR SUCURSAL
+// ==========================================
+let sucursalFiltro = 'all';
+
+function poblarFiltroSucursal() {
+  const selector = document.getElementById('sucursalFilter');
+  if (!selector) return;
+  
+  selector.innerHTML = '<option value="all">Todas las sucursales</option>';
+  
+  sucursales.forEach(s => {
+    const option = document.createElement('option');
+    option.value = s.id;
+    option.textContent = s.nombre.replace('Alban Sucursal ', '');
+    selector.appendChild(option);
+  });
+  
+  selector.addEventListener('change', function() {
+    sucursalFiltro = this.value;
+    applyFilters();
+  });
+}
+
+// Modifica applyFilters para incluir el filtro de sucursal
+function applyFilters() {
+  var filtered = products.slice();
+  
+  // Filtro por categoría
+  if (currentFilter.categoria !== 'all') {
+    filtered = filtered.filter(p => p.categoria === currentFilter.categoria);
+  }
+  
+  // Filtro por ambiente
+  if (currentFilter.ambiente && currentFilter.ambiente !== 'all') {
+    filtered = filtered.filter(p => p.tipo_ambiente === currentFilter.ambiente);
+  }
+  
+  // Filtro por sucursal (stock)
+  if (sucursalFiltro !== 'all') {
+    const sucursalId = parseInt(sucursalFiltro);
+    filtered = filtered.filter(p => {
+      const stock = p.inventario[sucursalId] || 0;
+      return stock > 0;
+    });
+  }
+  
+  renderProducts(filtered);
+}
+
 // ==========================================
 // CARGAR SUCURSALES DESDE SUPABASE
 // ==========================================
@@ -1108,6 +1195,27 @@ imgDiv.addEventListener('click', function(e) {
       skuTag.textContent = product.sku;
       imgDiv.appendChild(img);
       imgDiv.appendChild(skuTag);
+      // Badge de stock
+var stockBadge = document.createElement('div');
+stockBadge.className = 'absolute top-2 right-2 px-2 py-1 rounded text-[9px] font-bold';
+
+if (sucursalFiltro !== 'all') {
+  const stock = product.inventario[parseInt(sucursalFiltro)] || 0;
+  if (stock > 100) {
+    stockBadge.className += ' bg-green-500/90 text-white';
+    stockBadge.textContent = stock + ' m² disp.';
+  } else if (stock > 0) {
+    stockBadge.className += ' bg-yellow-500/90 text-black';
+    stockBadge.textContent = stock + ' m² disp.';
+  } else {
+    stockBadge.className += ' bg-red-500/90 text-white';
+    stockBadge.textContent = 'Agotado';
+  }
+} else {
+  stockBadge.className += ' bg-alban-yellow/90 text-alban-black';
+  stockBadge.textContent = product.stockTotal + ' m² total';
+}
+imgDiv.appendChild(stockBadge);
       var infoDiv = document.createElement('div');
       infoDiv.className = 'p-3';
       var headerDiv = document.createElement('div');
@@ -1867,7 +1975,31 @@ function openProductDetail(productId) {
   
   document.getElementById('productDetailModal').classList.add('active');
 }
-
+// Mostrar stock por sucursal
+const stockContainer = document.getElementById('detailStockByBranch');
+if (stockContainer && product.inventario) {
+  stockContainer.innerHTML = '';
+  sucursales.forEach(s => {
+    const stock = product.inventario[s.id] || 0;
+    const row = document.createElement('div');
+    row.className = 'flex justify-between items-center bg-alban-black rounded-lg p-2 border border-gray-700';
+    
+    let stockClass = 'text-green-400';
+    let stockText = stock + ' m²';
+    if (stock === 0) {
+      stockClass = 'text-red-400';
+      stockText = 'Agotado';
+    } else if (stock < 50) {
+      stockClass = 'text-yellow-400';
+    }
+    
+    row.innerHTML = `
+      <span class="text-xs text-gray-300"><i class="fas fa-map-marker-alt mr-1 text-alban-yellow"></i>${s.nombre.replace('Alban Sucursal ', '')}</span>
+      <span class="text-xs font-bold ${stockClass}">${stockText}</span>
+    `;
+    stockContainer.appendChild(row);
+  });
+}
 function closeProductDetail() {
   document.getElementById('productDetailModal').classList.remove('active');
 }
@@ -1896,7 +2028,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCart();
      // Poblar selector del formulario de contacto
      //poblarSelectorContacto();
-  
+    poblarFiltroSucursal();
   // Event listener del formulario de contacto
   const contactForm = document.getElementById('contactForm');
   if (contactForm) {
@@ -2214,7 +2346,12 @@ document.addEventListener('keydown', function(e) {
         <span class="text-gray-600">|</span>
         <span>SKU: <span class="text-white font-mono" id="detailProductSku"></span></span>
       </div>
-      <div class="mb-4"><div class="stock-badge"><span class="stock-dot"></span>Disponible en stock (<span id="detailProductStock">1250</span>)</div></div>
+      <div class="mb-4">
+  <p class="text-xs text-gray-400 mb-2 font-semibold">DISPONIBILIDAD POR SUCURSAL:</p>
+  <div id="detailStockByBranch" class="space-y-2">
+    <!-- Se llena dinámicamente -->
+  </div>
+</div>
       <div class="text-gray-300 text-sm leading-relaxed mb-6" id="detailProductDescription"></div>
       <div class="grid grid-cols-2 gap-3 mb-6 text-xs">
         <div class="bg-alban-black rounded-lg p-3 border border-gray-700"><p class="text-gray-400 mb-1"><i class="fas fa-ruler-combined mr-1"></i>Medidas</p><p class="text-white font-semibold" id="detailProductMeasures"></p></div>
