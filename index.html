@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alban Ingeniería | Visualizador Inteligente</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+tailwind.config = { theme: { extend: { colors: { alban: { yellow: '#FFC700', black: '#1a1a1a', dark: '#0a0a0a', card: '#141414' } } } } }
+</script>
+<style>
+.product-card .product-img-container {
+  height: 180px;
+  overflow: hidden;
+  position: relative;
+}
+.product-card .product-img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+.product-card:hover .product-img-container img {
+  transform: scale(1.05);
+}
+    /* MODAL DETALLE PRODUCTO */
+.product-detail-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 150; display: none; align-items: center; justify-content: center; padding: 20px; }
+.product-detail-modal.active { display: flex; }
+.product-detail-content { background: #1a1a1a; border: 1px solid #333; border-radius: 16px; max-width: 900px; width: 100%; max-height: 85vh; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+@media (max-width: 768px) { .product-detail-content { grid-template-columns: 1fr; max-height: 95vh; } }
+.product-detail-image { position: relative; background: #0a0a0a; min-height: 400px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.product-detail-image img { width: 100%; height: 100%; object-fit: cover; }
+.product-detail-close { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; background: rgba(0,0,0,0.7); border: 1px solid #333; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: all 0.2s; }
+.product-detail-close:hover { background: #FFC700; color: #000; }
+.product-detail-info { padding: 32px; overflow-y: auto; }
+.stock-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 20px; color: #22c55e; font-size: 13px; font-weight: 600; }
+.stock-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #e5e7eb; }
+.product-card { transition: all 0.3s; cursor: pointer; }
+.product-card:hover { transform: translateY(-4px); border-color: #FFC700; }
+.chatbot-container { position: fixed; bottom: 100px; right: 20px; width: 380px; max-height: 600px; background: #1a1a1a; border: 1px solid #333; border-radius: 16px; display: none; flex-direction: column; z-index: 50; }
+.chatbot-container.active { display: flex; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; }
+.message { margin-bottom: 12px; padding: 12px 16px; border-radius: 12px; max-width: 80%; }
+.message.bot { background: #2a2a2a; color: #e5e7eb; }
+.message.user { background: #FFC700; color: #0a0a0a; font-weight: 600; margin-left: auto; }
+.whatsapp-float { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: #25d366; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; z-index: 40; text-decoration: none; }
+.quote-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 3px solid #FFC700; padding: 16px; display: none; z-index: 30; }
+.quote-bar.active { display: block; }
+.category-hero { position: relative; overflow: hidden; min-height: 320px; }
+.category-hero img { width: 100%; height: 100%; object-fit: cover; }
+.category-hero .overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.8) 100%); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; display: none; overflow-y: auto; }
+.modal-overlay.active { display: block; }
+.room-option { cursor: pointer; transition: all 0.3s; }
+.room-option:hover { transform: scale(1.02); }
+.room-option.selected { border-color: #FFC700 !important; box-shadow: 0 0 20px rgba(255,199,0,0.3); }
+.upload-zone { border: 2px dashed #FFC700; transition: all 0.3s; cursor: pointer; }
+.upload-zone:hover { background: rgba(255,199,0,0.05); }
+.catalog-item { transition: all 0.2s; }
+.catalog-item:hover { border-color: #FFC700 !important; background: #1a1a1a !important; }
+.catalog-item.applied { border-color: #FFC700 !important; box-shadow: 0 0 10px rgba(255,199,0,0.3); }
+.zone-canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+#mainCanvas { cursor: crosshair; }
+#mainCanvas.detecting { cursor: wait; }
+.screen-code { font-family: 'Courier New', monospace; letter-spacing: 8px; }
+.product-thumbnail { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 2px solid #333; }
+
+/* MEGA MENU - CORREGIDO */
+.mega-menu-wrapper { position: relative; }
+.mega-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 1100px;
+  max-width: 95vw;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-top: 3px solid #FFC700;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+  z-index: 60;
+  display: none;
+  padding: 24px;
+}
+.mega-menu.active { display: block; }
+.mega-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
+.mega-col { min-width: 0; }
+.mega-title {
+  color: #FFC700;
+  font-weight: bold;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #333;
+}
+.mega-title.sub {
+  margin-top: 14px;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.mega-item {
+  color: #d1d5db;
+  font-size: 13px;
+  padding: 5px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mega-item:hover { color: #FFC700; padding-left: 6px; }
+.mega-item.highlight {
+  color: #FFC700;
+  font-weight: bold;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #333;
+}
+/* Header fix */
+header .max-w-7xl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+  header .max-w-7xl {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header class="bg-alban-black shadow-lg sticky top-0 z-40 border-b-2 border-alban-yellow">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+    
+    <!-- LOGO A LA IZQUIERDA -->
+    <div class="flex items-center gap-3 cursor-pointer flex-shrink-0" id="btnHome">
+      <img src="imagenes/logo-alban.png" alt="Alban Ingeniería" class="h-10 w-auto object-contain" onerror="this.style.display='none'">
+      <div>
+        <h1 class="text-xl font-bold text-white leading-tight">ALBAN</h1>
+        <p class="text-xs text-alban-yellow leading-tight">INGENIERÍA S.A DE C.V</p>
+      </div>
+    </div>
+
+    <!-- MENÚ CENTRAL: NOSOTROS -->
+    <div class="flex items-center gap-4">
+      <div class="relative group">
+        <button class="px-4 py-2 text-white hover:text-alban-yellow transition font-semibold flex items-center gap-2">
+          <i class="fas fa-info-circle"></i>
+          <span>Nosotros</span>
+          <i class="fas fa-chevron-down text-xs"></i>
+        </button>
+        <div class="absolute top-full right-0 mt-2 w-56 bg-alban-card border border-gray-700 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+          <a href="#mision" class="block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
+            <i class="fas fa-bullseye mr-2"></i>Misión
+          </a>
+          <a href="#vision" class="block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
+            <i class="fas fa-eye mr-2"></i>Visión
+          </a>
+          <a href="#acerca" class="block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
+            <i class="fas fa-users mr-2"></i>Acerca de nosotros
+          </a>
+          <a href="#sucursales" class="block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
+            <i class="fas fa-map-marker-alt mr-2"></i>Sucursales
+          </a>
+          <a href="#contacto" class="block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition">
+            <i class="fas fa-envelope mr-2"></i>Contacto
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTONES A LA DERECHA -->
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <button id="btnConnectScreen" class="px-4 py-2 bg-purple-600 text-white border border-purple-500 rounded-lg font-semibold text-sm hover:bg-purple-700 whitespace-nowrap">
+        <i class="fas fa-tv mr-2"></i>Conectar Pantalla
+      </button>
+      <button id="btnCotizacion" class="px-4 py-2 bg-alban-yellow text-alban-black rounded-lg font-bold text-sm relative whitespace-nowrap">
+        <i class="fas fa-shopping-cart mr-2"></i>Cotización
+        <span id="cartCount" class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">0</span>
+      </button>
+    </div>
+
+  </div>
+</header>
+<!-- NAV CON MEGA MENU -->
+<nav class="bg-alban-black border-b border-gray-800 sticky top-16 z-30">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex gap-4 py-3 items-center">
+      <div class="mega-menu-wrapper">
+        <button id="btnMegaMenu" class="px-6 py-2 bg-alban-yellow text-alban-black rounded-full font-bold text-sm shadow-md flex items-center gap-2 hover:bg-yellow-400 transition">
+          <i class="fas fa-th-large"></i>
+          <span id="currentCategoryLabel">Catálogo</span>
+          <i class="fas fa-chevron-down text-xs"></i>
+        </button>
+        
+        <div class="mega-menu" id="megaMenu">
+          <div class="mega-menu-grid">
+            <div class="mega-col">
+              <div class="mega-title">Muros y Revestimientos</div>
+              <div class="mega-item" data-cat="Muros y Revestimientos" data-sub="all">Todos</div>
+              <div class="mega-item" data-cat="Muros y Revestimientos" data-sub="lambrin">Lambrín</div>
+              <div class="mega-item" data-cat="Muros y Revestimientos" data-sub="revestimiento">Revestimiento Flexible</div>
+              <div class="mega-item" data-cat="Muros y Revestimientos" data-sub="panel">Panel Adherible</div>
+            </div>
+            
+            <div class="mega-col">
+              <div class="mega-title">Placas y Paneles</div>
+              <div class="mega-item" data-cat="Placas y Paneles" data-sub="all">Todos</div>
+              <div class="mega-item" data-cat="Placas y Paneles" data-sub="marmol">Placa Mármol</div>
+              <div class="mega-item" data-cat="Placas y Paneles" data-sub="madera">Placa Madera</div>
+              <div class="mega-item" data-cat="Placas y Paneles" data-sub="3d">Panel 3D</div>
+              <div class="mega-item" data-cat="Placas y Paneles" data-sub="pvc">Panel PVC</div>
+            </div>
+            
+            <div class="mega-col">
+              <div class="mega-title">Plafones</div>
+              <div class="mega-item" data-cat="Plafones" data-sub="all">Todos los Plafones</div>
+              <div class="mega-title sub">Pisos</div>
+              <div class="mega-item" data-cat="Pisos" data-sub="all">Todos</div>
+              <div class="mega-item" data-cat="Pisos" data-sub="interior">Piso Interior</div>
+              <div class="mega-item" data-cat="Pisos" data-sub="exterior">Piso Exterior</div>
+            </div>
+            
+            <div class="mega-col">
+              <div class="mega-title">Muebles</div>
+              <div class="mega-item" data-cat="Muebles" data-sub="all">Todos los Muebles</div>
+              <div class="mega-title sub">Materiales</div>
+              <div class="mega-item" data-cat="Materiales de Construccion" data-sub="all">Materiales de Construcción</div>
+              <div class="mega-item" data-cat="Exterior" data-sub="all">Exterior</div>
+            </div>
+            
+            <div class="mega-col">
+              <div class="mega-title">Especiales</div>
+              <div class="mega-item" data-cat="Panel Decorativo" data-sub="all">Panel Decorativo</div>
+              <div class="mega-item" data-cat="ALBAN" data-sub="all">ALBAN</div>
+              <div class="mega-item" data-cat="Puertas y Canceles" data-sub="all">Puertas y Canceles</div>
+              <div class="mega-item highlight" data-cat="all" data-sub="all">
+                <i class="fas fa-th-large mr-2"></i>Ver Todo el Catálogo
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="btnVisualizer" class="px-6 py-2 bg-gradient-to-r from-alban-yellow to-yellow-500 text-alban-black rounded-full font-bold text-sm shadow-lg border-2 border-alban-yellow hover:bg-yellow-400 transition">
+        <i class="fas fa-magic mr-2"></i> Visualizador
+      </button>
+
+      <div id="currentCategoryDisplay" class="ml-auto text-sm text-gray-400">
+        <i class="fas fa-filter mr-2"></i>Mostrando: <span class="text-alban-yellow font-bold">Todos los productos</span>
+      </div>
+    </div>
+  </div>
+</nav>
+<!-- MISIÓN -->
+<section id="mision" class="max-w-7xl mx-auto px-4 py-16">
+  <div class="text-center mb-12">
+    <p class="text-alban-yellow text-sm font-bold uppercase tracking-widest mb-2">Nuestra razón de ser</p>
+    <h2 class="text-5xl font-bold text-white mb-6">MISIÓN</h2>
+    <div class="w-24 h-1 bg-alban-yellow mx-auto"></div>
+  </div>
+  <div class="max-w-4xl mx-auto bg-alban-card border border-gray-800 rounded-2xl p-8 md:p-12">
+    <p class="text-gray-300 text-lg leading-relaxed text-center">
+      Ofrecer materiales para construcción, remodelación y acabados premium que combinen <span class="text-alban-yellow font-semibold">calidad, diseño, innovación y durabilidad</span>, brindando soluciones que superen las expectativas de nuestros clientes y contribuyan a crear espacios funcionales, elegantes y excepcionales, respaldados por un servicio confiable y una atención personalizada.
+    </p>
+  </div>
+</section>
+
+<!-- VISIÓN -->
+<section id="vision" class="max-w-7xl mx-auto px-4 py-16 bg-alban-card/30">
+  <div class="text-center mb-12">
+    <p class="text-alban-yellow text-sm font-bold uppercase tracking-widest mb-2">Hacia dónde vamos</p>
+    <h2 class="text-5xl font-bold text-white mb-6">VISIÓN</h2>
+    <div class="w-24 h-1 bg-alban-yellow mx-auto"></div>
+  </div>
+  <div class="max-w-4xl mx-auto bg-alban-card border border-gray-800 rounded-2xl p-8 md:p-12">
+    <p class="text-gray-300 text-lg leading-relaxed text-center">
+      Ser una empresa <span class="text-alban-yellow font-semibold">líder y referente</span> en el mercado de materiales para construcción y remodelación con acabados premium, reconocida por la excelencia de nuestros productos, la innovación en nuestras soluciones y la confianza de nuestros clientes, transformando la manera en que se diseñan, construyen y renuevan los espacios.
+    </p>
+  </div>
+</section>
+
+<!-- ACERCA DE NOSOTROS -->
+<section id="acerca" class="max-w-7xl mx-auto px-4 py-16">
+  <div class="text-center mb-12">
+    <p class="text-alban-yellow text-sm font-bold uppercase tracking-widest mb-2">Quiénes somos</p>
+    <h2 class="text-5xl font-bold text-white mb-6">ACERCA DE NOSOTROS</h2>
+    <div class="w-24 h-1 bg-alban-yellow mx-auto mb-8"></div>
+  </div>
+  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="bg-alban-card border border-gray-800 rounded-2xl p-6 hover:border-alban-yellow transition">
+      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mb-4">
+        <i class="fas fa-award text-3xl text-alban-yellow"></i>
+      </div>
+      <h3 class="text-white font-bold text-lg mb-3">Calidad y excelencia</h3>
+      <p class="text-gray-400 text-sm">Seleccionamos productos que destacan por sus materiales, acabados, estética y durabilidad.</p>
+    </div>
+    <div class="bg-alban-card border border-gray-800 rounded-2xl p-6 hover:border-alban-yellow transition">
+      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mb-4">
+        <i class="fas fa-handshake text-3xl text-alban-yellow"></i>
+      </div>
+      <h3 class="text-white font-bold text-lg mb-3">Confianza y compromiso</h3>
+      <p class="text-gray-400 text-sm">Construimos relaciones duraderas mediante un servicio honesto, profesional y responsable.</p>
+    </div>
+    <div class="bg-alban-card border border-gray-800 rounded-2xl p-6 hover:border-alban-yellow transition">
+      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mb-4">
+        <i class="fas fa-lightbulb text-3xl text-alban-yellow"></i>
+      </div>
+      <h3 class="text-white font-bold text-lg mb-3">Diseño e innovación</h3>
+      <p class="text-gray-400 text-sm">Ofrecemos alternativas que responden a las tendencias actuales de arquitectura, interiorismo y construcción.</p>
+    </div>
+    <div class="bg-alban-card border border-gray-800 rounded-2xl p-6 hover:border-alban-yellow transition">
+      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mb-4">
+        <i class="fas fa-user-tie text-3xl text-alban-yellow"></i>
+      </div>
+      <h3 class="text-white font-bold text-lg mb-3">Atención personalizada</h3>
+      <p class="text-gray-400 text-sm">Acompañamos a cada cliente para encontrar los materiales adecuados para su proyecto, presupuesto y estilo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SUCURSALES -->
+<section id="sucursales" class="max-w-7xl mx-auto px-4 py-16 bg-alban-card/30">
+  <div class="text-center mb-12">
+    <p class="text-alban-yellow text-sm font-bold uppercase tracking-widest mb-2">Visítanos</p>
+    <h2 class="text-5xl font-bold text-white mb-6">NUESTRAS SUCURSALES</h2>
+    <div class="w-24 h-1 bg-alban-yellow mx-auto mb-8"></div>
+    <p class="text-gray-400 max-w-2xl mx-auto">Un showroom con salas de exhibición en cada punto de venta. Ven a tocar el material antes de decidir.</p>
+  </div>
+  <div class="grid md:grid-cols-3 gap-6">
+    <div class="bg-alban-card border border-gray-800 rounded-2xl p-8 hover:border-alban-yellow transition">
+      <h3 class="text-white font-bold text-2xl mb-6">TUXTLA GUTIÉRREZ</h3>
+      <div class="space-y-4">
+        <div class="flex items-start gap-3"><i class="fas fa-map-marker-alt text-alban-yellow mt-1"></i><p class="text-gray-300 text-sm">Libramiento Norte Poniente s/n, Col. Plan de Ayala</p></div>
+        <div class="flex items-center gap-3"><i class="fas fa-phone text-alban-yellow"></i><p class="text-gray-300 text-sm">+52 961 123 4567</p></div>
+        <div class="flex items-center gap-3"><i class="fas fa-clock text-alban-yellow"></i><p class="text-gray-300 text-sm">L-S 8:00-18:00</p></div>
+      </div>
+      <a href="https://maps.google.com/?q=Tuxtla+Gutierrez+Chiapas" target="_blank" class="inline-flex items-center gap-2 mt-6 text-alban-yellow font-bold text-sm hover:gap-3 transition-all">CÓMO LLEGAR <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="bg-alban-card border border-gray-800 rounded-2xl p-8 hover:border-alban-yellow transition">
+      <h3 class="text-white font-bold text-2xl mb-6">TAPACHULA</h3>
+      <div class="space-y-4">
+        <div class="flex items-start gap-3"><i class="fas fa-map-marker-alt text-alban-yellow mt-1"></i><p class="text-gray-300 text-sm">Carretera a Puerto Madero km 3, Col. Centro</p></div>
+        <div class="flex items-center gap-3"><i class="fas fa-phone text-alban-yellow"></i><p class="text-gray-300 text-sm">+52 962 123 4567</p></div>
+        <div class="flex items-center gap-3"><i class="fas fa-clock text-alban-yellow"></i><p class="text-gray-300 text-sm">L-S 8:00-18:00</p></div>
+      </div>
+      <a href="https://maps.google.com/?q=Tapachula+Chiapas" target="_blank" class="inline-flex items-center gap-2 mt-6 text-alban-yellow font-bold text-sm hover:gap-3 transition-all">CÓMO LLEGAR <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="bg-alban-card border border-gray-800 rounded-2xl p-8 hover:border-alban-yellow transition">
+      <h3 class="text-white font-bold text-2xl mb-6">CACOHOATÁN</h3>
+      <div class="space-y-4">
+        <div class="flex items-start gap-3"><i class="fas fa-map-marker-alt text-alban-yellow mt-1"></i><p class="text-gray-300 text-sm">Av. Central 45, Col. Centro</p></div>
+        <div class="flex items-center gap-3"><i class="fas fa-phone text-alban-yellow"></i><p class="text-gray-300 text-sm">+52 962 145 7890</p></div>
+        <div class="flex items-center gap-3"><i class="fas fa-clock text-alban-yellow"></i><p class="text-gray-300 text-sm">L-S 9:00-17:00</p></div>
+      </div>
+      <a href="https://maps.google.com/?q=Cacahoatan+Chiapas" target="_blank" class="inline-flex items-center gap-2 mt-6 text-alban-yellow font-bold text-sm hover:gap-3 transition-all">CÓMO LLEGAR <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACTO -->
+<section id="contacto" class="max-w-7xl mx-auto px-4 py-16">
+  <div class="text-center mb-12">
+    <p class="text-alban-yellow text-sm font-bold uppercase tracking-widest mb-2">Estamos para servirte</p>
+    <h2 class="text-5xl font-bold text-white mb-6">CONTACTO</h2>
+    <div class="w-24 h-1 bg-alban-yellow mx-auto"></div>
+  </div>
+  <div class="max-w-4xl mx-auto grid md:grid-cols-3 gap-6">
+    <div class="bg-alban-card border border-gray-800 rounded-2xl p-6 text-center hover:border-alban-yellow transition">
+      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fab fa-whatsapp text-3xl text-alban-yellow"></i></div>
+      <h3 class="text-white font-bold mb-2">WhatsApp</h3>
+      <p class="text-gray-400 text-sm mb-4">Atención inmediata</p>
+      <a href="https://wa.me/5212345678900" target="_blank" class="text-alban-yellow font-semibold hover:underline">+52 123 456 7890</a>
+    </div>
+    <div class="bg-alban-card border border-gray-800 rounded-2xl p-6 text-center hover:border-alban-yellow transition">
+      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-envelope text-3xl text-alban-yellow"></i></div>
+      <h3 class="text-white font-bold mb-2">Email</h3>
+      <p class="text-gray-400 text-sm mb-4">Respuesta en 24 hrs</p>
+      <a href="mailto:contacto@albaningenieria.com" class="text-alban-yellow font-semibold hover:underline">contacto@albaningenieria.com</a>
+    </div>
+    <div class="bg-alban-card border border-gray-800 rounded-2xl p-6 text-center hover:border-alban-yellow transition">
+      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-phone text-3xl text-alban-yellow"></i></div>
+      <h3 class="text-white font-bold mb-2">Teléfono</h3>
+      <p class="text-gray-400 text-sm mb-4">Lun-Sáb 8:00-18:00</p>
+      <a href="tel:+5212345678900" class="text-alban-yellow font-semibold hover:underline">+52 123 456 7890</a>
+    </div>
+  </div>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 py-6">
+  <div class="category-hero rounded-2xl overflow-hidden border border-gray-800 relative">
+    <img id="heroImage" src="imagenes/categorias/catalogo.jpg" class="w-full h-[320px] object-cover" onerror="this.src='https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600'">
+    <div class="overlay"></div>
+    <div class="absolute bottom-0 left-0 right-0 p-8">
+      <p class="text-alban-yellow text-sm font-bold uppercase tracking-wider mb-2" id="heroLabel">CATÁLOGO COMPLETO</p>
+      <h2 class="text-4xl font-bold text-white mb-2" id="heroTitle">Todos nuestros productos</h2>
+      <p class="text-gray-300 text-lg" id="heroDesc">Más de 240 productos de ingeniería y acabados premium</p>
+    </div>
+  </div>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 py-8 border-t border-gray-800">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-white"><i class="fas fa-th-large mr-3 text-alban-yellow"></i>Catálogo</h2>
+    <span id="productCounter" class="text-sm text-gray-400 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">0 productos</span>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3" id="productGrid"></div>
+</section>
+
+<div class="h-24"></div>
+
+<div class="quote-bar" id="quoteBar">
+  <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+    <div>
+      <p class="font-bold text-white text-lg" id="quoteItems">0 productos</p>
+      <p class="text-sm text-alban-yellow" id="quoteTotal">Sujeto a cotización</p>
+    </div>
+    <div class="flex gap-3">
+      <button id="btnClear" class="px-6 py-3 border border-gray-600 text-gray-300 rounded-lg">Limpiar</button>
+      <button id="btnReviewQuote" class="px-6 py-3 bg-alban-yellow text-alban-black rounded-lg font-bold">
+        <i class="fas fa-clipboard-check mr-2"></i>Revisar
+      </button>
+      <button id="btnWhatsApp" class="px-6 py-3 bg-green-600 text-white rounded-lg font-bold">
+        <i class="fab fa-whatsapp mr-2"></i>Cotizar
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="chatbot-container" id="chatbot">
+  <div class="bg-alban-black text-white p-4 flex justify-between items-center border-b border-gray-800">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-alban-yellow rounded-full flex items-center justify-center text-alban-black font-bold">A</div>
+      <div><h4 class="font-bold">Asistente Alban</h4><p class="text-xs text-green-400">En línea</p></div>
+    </div>
+    <button id="btnCloseChat" class="text-gray-400"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="chat-messages bg-alban-card" id="chatMessages">
+    <div class="message bot">¡Hola! Soy el asistente de Alban Ingeniería. ¿En qué te ayudo?</div>
+  </div>
+  <div class="p-3 border-t border-gray-800 flex gap-2">
+    <input type="text" id="chatInput" placeholder="Escribe..." class="flex-1 bg-alban-black border border-gray-700 text-white rounded-lg px-4 py-2">
+    <button id="btnSendChat" class="px-4 py-2 bg-alban-yellow text-alban-black rounded-lg font-bold"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<a href="https://wa.me/5212345678900" target="_blank" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
+<button id="btnOpenChat" class="fixed bottom-32 right-8 w-14 h-14 bg-alban-black text-alban-yellow rounded-full shadow-xl flex items-center justify-center border-2 border-alban-yellow z-40"><i class="fas fa-robot text-2xl"></i></button>
+
+<!-- MODAL CONECTAR PANTALLA -->
+<div class="modal-overlay" id="screenModal">
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-alban-card rounded-2xl border border-gray-800 p-8">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-white"><i class="fas fa-tv mr-3 text-purple-400"></i>Conectar Pantalla</h2>
+        <button id="btnCloseScreenModal" class="text-gray-400 hover:text-white text-2xl"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="text-center">
+        <div class="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-tablet-alt text-4xl text-white"></i></div>
+        <p class="text-gray-400 mb-6">Genera un código para conectar la pantalla del showroom</p>
+        <button id="btnGenerateCode" class="w-full px-6 py-4 bg-purple-600 text-white rounded-lg font-bold text-lg hover:bg-purple-700 mb-4">
+          <i class="fas fa-key mr-2"></i>Generar Código de Conexión
+        </button>
+        <div id="generatedCode" class="hidden">
+          <p class="text-xs text-gray-400 mb-2">Código de conexión:</p>
+          <p class="screen-code text-6xl font-bold text-purple-400 bg-alban-black py-6 rounded-lg border-2 border-purple-500 mb-4" id="codeDisplay">----</p>
+          <p class="text-sm text-gray-300 mb-4">La pantalla se conectará automáticamente</p>
+          <div id="connectionStatus" class="text-sm"></div>
+        </div>
+      </div>
+      <div class="mt-6 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+        <p class="text-xs text-purple-300"><i class="fas fa-info-circle mr-1"></i> <strong>Instrucciones:</strong> En la pantalla del showroom, abre esta misma página con <code class="bg-alban-black px-2 py-1 rounded">?modo=pantalla</code> al final de la URL.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SELECCIÓN DE ESPACIO -->
+<div class="modal-overlay" id="roomModal">
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-5xl w-full bg-alban-card rounded-2xl border border-gray-800 p-8">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-white"><i class="fas fa-home mr-3 text-alban-yellow"></i>Visualiza tu Espacio</h2>
+        <button id="btnCloseRoomModal" class="text-gray-400 hover:text-white text-2xl"><i class="fas fa-times"></i></button>
+      </div>
+      <p class="text-gray-400 mb-6">Selecciona un espacio o sube tu propia imagen</p>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <div class="room-option bg-alban-black rounded-xl overflow-hidden border-2 border-gray-700 p-3 text-center" data-room="sala">
+  <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=400" class="w-full h-28 object-cover rounded-lg mb-2">
+  <h3 class="text-white font-bold">Sala</h3>
+</div>
+<div class="room-option bg-alban-black rounded-xl overflow-hidden border-2 border-gray-700 p-3 text-center" data-room="cocina">
+  <img src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=400" class="w-full h-28 object-cover rounded-lg mb-2">
+  <h3 class="text-white font-bold">Cocina</h3>
+</div>
+<div class="room-option bg-alban-black rounded-xl overflow-hidden border-2 border-gray-700 p-3 text-center" data-room="bano">
+  <img src="https://images.unsplash.com/photo-1552321554-5fefe6c3e73d?w=400" class="w-full h-28 object-cover rounded-lg mb-2">
+  <h3 class="text-white font-bold">Baño</h3>
+</div>
+<div class="room-option bg-alban-black rounded-xl overflow-hidden border-2 border-gray-700 p-3 text-center" data-room="estudio">
+  <img src="https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=400" class="w-full h-28 object-cover rounded-lg mb-2">
+  <h3 class="text-white font-bold">Estudio</h3>
+</div>
+<div class="room-option bg-alban-black rounded-xl overflow-hidden border-2 border-gray-700 p-3 text-center" data-room="oficina">
+  <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=400" class="w-full h-28 object-cover rounded-lg mb-2">
+  <h3 class="text-white font-bold">Oficina</h3>
+</div>
+<div class="room-option bg-alban-black rounded-xl overflow-hidden border-2 border-gray-700 p-3 text-center" data-room="fachada">
+  <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400" class="w-full h-28 object-cover rounded-lg mb-2">
+  <h3 class="text-white font-bold">Fachada</h3>
+</div>
+      </div>
+      <div class="border-t border-gray-700 pt-6">
+        <p class="text-gray-400 text-center mb-4">¿Tienes una foto de tu espacio?</p>
+        <div class="upload-zone rounded-xl p-6 text-center" id="uploadZone">
+          <i class="fas fa-cloud-upload-alt text-4xl text-alban-yellow mb-3"></i>
+          <p class="text-white font-semibold mb-1">Arrastra tu imagen o haz clic para subir</p>
+          <p class="text-gray-400 text-sm">JPG, PNG (Máx. 10MB)</p>
+          <input type="file" id="imageUpload" accept="image/*" class="hidden">
+        </div>
+        <div id="uploadedPreview" class="hidden mt-4 text-center">
+          <img id="previewImage" class="max-h-48 mx-auto rounded-lg border-2 border-alban-yellow mb-3">
+          <p class="text-green-400 text-sm mb-3"><i class="fas fa-check-circle mr-1"></i>Imagen cargada</p>
+        </div>
+      </div>
+      <div class="mt-6 flex gap-3">
+        <button id="btnCancelRoom" class="flex-1 px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 border border-gray-700 font-semibold">
+          <i class="fas fa-times mr-2"></i>Cancelar
+        </button>
+        <button id="btnStartVisualizer" class="flex-1 px-6 py-3 bg-alban-yellow text-alban-black rounded-lg hover:bg-yellow-400 font-bold text-lg shadow-lg">
+          <i class="fas fa-play mr-2"></i>Iniciar Visualizador
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VISUALIZADOR -->
+<div class="modal-overlay" id="visualizerModal">
+  <div class="h-screen flex flex-col">
+    <div class="bg-alban-black border-b border-alban-yellow p-4 flex justify-between items-center flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-alban-yellow rounded-md flex items-center justify-center text-alban-black font-bold">A</div>
+        <div>
+          <h2 class="text-lg font-bold text-white"><i class="fas fa-magic mr-2 text-alban-yellow"></i>Visualizador Inteligente</h2>
+          <p class="text-xs text-gray-400">Haz clic en una zona para detectarla automáticamente</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="hidden md:flex items-center gap-2 bg-alban-card px-4 py-2 rounded-lg border border-gray-700">
+          <span class="text-xs text-gray-400">Zona:</span>
+          <span class="text-sm font-bold text-alban-yellow truncate max-w-[150px]" id="currentZone">Ninguna</span>
+        </div>
+        <div class="hidden md:flex items-center gap-2 bg-alban-card px-4 py-2 rounded-lg border border-gray-700">
+          <span class="text-xs text-gray-400">Material:</span>
+          <span class="text-sm font-bold text-alban-yellow truncate max-w-[150px]" id="currentMaterial">Ninguno</span>
+        </div>
+        <button id="btnBackToRooms" class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 border border-gray-700 text-sm">
+          <i class="fas fa-arrow-left mr-2"></i>Cambiar
+        </button>
+        <button id="btnCloseVisualizer" class="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 border border-gray-700 text-sm">
+          <i class="fas fa-times mr-2"></i>Cerrar
+        </button>
+      </div>
+    </div>
+    
+    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+      <div class="flex-1 relative bg-black flex items-center justify-center p-4 overflow-hidden">
+        <div class="relative" id="canvasContainer">
+          <canvas id="mainCanvas" class="max-w-full max-h-[calc(100vh-140px)] object-contain rounded-lg shadow-2xl"></canvas>
+          <canvas id="zoneCanvas" class="zone-canvas"></canvas>
+          <div class="absolute top-4 left-4 bg-alban-black/90 backdrop-blur px-4 py-2 rounded-lg border-l-4 border-alban-yellow">
+            <p class="text-xs text-gray-400 uppercase font-bold">Modo:</p>
+            <p class="font-bold text-white" id="modeLabel">🖱️ Haz clic en una zona</p>
+          </div>
+          <div id="zoneIndicator" class="hidden absolute top-4 right-4 bg-green-600/90 backdrop-blur px-4 py-2 rounded-lg">
+            <p class="text-xs text-white uppercase font-bold">Zona detectada:</p>
+            <p class="font-bold text-white text-sm" id="zoneTypeLabel">Pared</p>
+          </div>
+          <div class="absolute bottom-4 left-4 flex gap-2">
+            <button id="btnUndoZone" class="px-4 py-2 bg-alban-black/90 text-white rounded-lg border border-gray-700 text-sm hover:bg-gray-800">
+              <i class="fas fa-undo mr-1"></i>Deshacer zona
+            </button>
+            <button id="btnClearZones" class="px-4 py-2 bg-alban-black/90 text-white rounded-lg border border-gray-700 text-sm hover:bg-gray-800">
+              <i class="fas fa-trash mr-1"></i>Limpiar zonas
+            </button>
+          </div>
+          <div class="absolute bottom-4 right-4 bg-alban-black/90 backdrop-blur px-3 py-2 rounded-lg border border-gray-700">
+            <p class="text-xs text-gray-400 mb-1">Tolerancia de detección:</p>
+            <input type="range" id="toleranceSlider" min="10" max="100" value="40" class="w-32 accent-alban-yellow">
+            <p class="text-xs text-alban-yellow text-right" id="toleranceValue">40</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="w-full lg:w-96 bg-alban-card border-l border-gray-800 flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-gray-800 bg-alban-black flex-shrink-0">
+          <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-th-large mr-2 text-alban-yellow"></i>Catálogo</h3>
+          <p class="text-xs text-gray-400">Selecciona un producto para aplicar su textura</p>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <div class="bg-alban-yellow/10 border border-alban-yellow/30 rounded-lg p-3">
+            <p class="text-xs text-alban-yellow font-bold mb-1"><i class="fas fa-lightbulb mr-1"></i> INSTRUCCIONES</p>
+            <ol class="text-xs text-gray-300 space-y-1 list-decimal list-inside">
+              <li>Haz clic en una zona de la imagen</li>
+              <li>El sistema detectará automáticamente la pared/piso</li>
+              <li>Selecciona un producto del catálogo</li>
+              <li>La textura real se aplicará sobre la zona</li>
+              <li>Usa el botón 🛒 en la zona para agregar al carrito</li>
+            </ol>
+          </div>
+
+          <div>
+            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Zonas detectadas <span id="zoneCount" class="text-alban-yellow">(0)</span></p>
+            <div id="zonesList" class="space-y-2 max-h-40 overflow-y-auto">
+              <p class="text-xs text-gray-500">Haz clic en la imagen para detectar zonas</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Filtrar por categoría</p>
+            <select id="catalogFilter" class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 text-sm focus:border-alban-yellow focus:outline-none">
+              <option value="all">Todas las categorías</option>
+              <option value="Muros y Revestimientos">Muros y Revestimientos</option>
+              <option value="Placas y Paneles">Placas y Paneles</option>
+              <option value="Plafones">Plafones</option>
+              <option value="Pisos">Pisos</option>
+              <option value="Muebles">Muebles</option>
+              <option value="Materiales de Construccion">Materiales</option>
+              <option value="Exterior">Exterior</option>
+              <option value="Panel Decorativo">Panel Decorativo</option>
+              <option value="ALBAN">ALBAN</option>
+              <option value="Puertas y Canceles">Puertas y Canceles</option>
+            </select>
+          </div>
+
+          <div>
+            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Buscar producto</p>
+            <div class="relative">
+              <input type="text" id="catalogSearch" placeholder="Nombre o SKU..." class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 pl-8 text-sm focus:border-alban-yellow focus:outline-none">
+              <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-500 text-xs"></i>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">
+              Productos <span id="catalogCount" class="text-alban-yellow">(0)</span>
+            </p>
+            <div id="visualizerCatalog" class="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+              <p class="text-xs text-gray-500">Cargando productos...</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="p-3 border-t border-gray-800 bg-alban-yellow/5 flex-shrink-0">
+          <p class="text-xs text-alban-yellow font-bold mb-1"><i class="fas fa-info-circle mr-1"></i> TIP</p>
+          <p class="text-xs text-gray-300">Las texturas reales se aplican sobre las zonas detectadas. Usa el botón 🛒 en cada zona para agregar al carrito.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REVISIÓN DE COTIZACIÓN -->
+<div class="modal-overlay" id="quoteReviewModal">
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full bg-alban-card rounded-2xl border border-gray-800 max-h-[90vh] flex flex-col">
+      <div class="p-6 border-b border-gray-800 flex justify-between items-center flex-shrink-0">
+        <h2 class="text-2xl font-bold text-white"><i class="fas fa-clipboard-check mr-2 text-alban-yellow"></i>Revisar Cotización</h2>
+        <button id="btnCloseReview" class="text-gray-400 hover:text-white text-2xl"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-6">
+        <div id="reviewItems" class="space-y-3 mb-6"></div>
+        <div class="border-t border-gray-700 pt-4">
+          <div class="flex justify-between items-center text-xl">
+            <span class="text-alban-yellow font-bold">Total de productos:</span>
+            <span class="text-alban-yellow font-bold text-2xl" id="reviewTotal">0</span>
+          </div>
+        </div>
+        <div class="mt-6 p-4 bg-alban-yellow/10 border border-alban-yellow/30 rounded-lg">
+          <p class="text-xs text-alban-yellow font-bold mb-2"><i class="fas fa-info-circle mr-1"></i> DATOS DEL CLIENTE (opcional)</p>
+          <input type="text" id="clientName" placeholder="Nombre del cliente" class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 mb-2 text-sm focus:border-alban-yellow focus:outline-none">
+          <input type="text" id="clientPhone" placeholder="Teléfono de contacto" class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 mb-2 text-sm focus:border-alban-yellow focus:outline-none">
+          <textarea id="clientNotes" placeholder="Notas adicionales (opcional)" rows="2" class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 text-sm focus:border-alban-yellow focus:outline-none"></textarea>
+        </div>
+      </div>
+      <div class="p-6 border-t border-gray-800 flex gap-3 flex-shrink-0">
+        <button id="btnEditQuote" class="flex-1 px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 border border-gray-700 font-semibold">
+          <i class="fas fa-edit mr-2"></i>Editar
+        </button>
+        <button id="btnConfirmSend" class="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold">
+          <i class="fab fa-whatsapp mr-2"></i>Enviar por WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMACIÓN AL SALIR -->
+<div class="modal-overlay" id="exitConfirmModal">
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-alban-card rounded-2xl border border-gray-800 p-8">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 bg-alban-yellow rounded-full flex items-center justify-center"><i class="fas fa-exclamation-triangle text-alban-black text-xl"></i></div>
+        <h2 class="text-2xl font-bold text-white">¿Guardar cambios?</h2>
+      </div>
+      <p class="text-gray-400 mb-6">Tienes zonas con materiales aplicados. ¿Qué deseas hacer antes de salir?</p>
+      <div class="space-y-3">
+        <button id="btnSaveAndSend" class="w-full px-6 py-4 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 flex items-center gap-3 transition">
+          <i class="fas fa-file-image text-2xl"></i>
+          <div class="text-left flex-1">
+            <div class="text-base">Guardar imagen y enviar cotización</div>
+            <div class="text-xs font-normal text-green-200">Descarga JPG + abre revisión</div>
+          </div>
+        </button>
+        <button id="btnSaveOnly" class="w-full px-6 py-4 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 flex items-center gap-3 transition">
+          <i class="fas fa-download text-2xl"></i>
+          <div class="text-left flex-1">
+            <div class="text-base">Solo guardar imagen</div>
+            <div class="text-xs font-normal text-gray-800">Descargar en formato JPG</div>
+          </div>
+        </button>
+        <button id="btnDiscard" class="w-full px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 border border-gray-700 flex items-center justify-center gap-2 transition">
+          <i class="fas fa-times"></i>Descartar cambios y salir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODO PANTALLA -->
+<div id="screenMode" class="hidden fixed inset-0 bg-black z-[200] flex items-center justify-center">
+  <div class="text-center">
+    <div class="w-32 h-32 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse"><i class="fas fa-tv text-6xl text-white"></i></div>
+    <h2 class="text-4xl font-bold text-white mb-4">Pantalla Alban Ingeniería</h2>
+    <p class="text-gray-400 text-xl mb-6">Esperando conexión desde la tablet...</p>
+    <div id="remoteStatus" class="text-2xl text-purple-400 mb-6">Conectando...</div>
+    <div id="remoteView" class="hidden">
+      <img id="remoteImage" class="max-w-full max-h-[70vh] rounded-lg shadow-2xl border-4 border-purple-500 mx-auto">
+    </div>
+    <button id="btnExitScreen" class="mt-8 px-8 py-4 bg-gray-800 text-white rounded-lg hover:bg-gray-700 text-lg">
+      <i class="fas fa-times mr-2"></i>Salir
+    </button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ==========================================
+// CONFIGURACIÓN DE SUPABASE
+// ==========================================
+const SUPABASE_URL = 'https://xsbquonrasnzouqmifzb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzYnF1b25yYXNuem91cW1pZnpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NzQ0ODUsImV4cCI6MjEwNzU1MDQ4NX0.W5rY9Bp3TCd48H99tcDj9SRrU_mk08bo33JTvRCnISc';
+
+// Inicializar el cliente de Supabase
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Variable global para almacenar los productos
+let products = [];
+
+// Función para cargar productos desde la base de datos
+async function loadProducts() {
+  try {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('*')
+      .eq('activo', true)
+      .order('orden', { ascending: true });
+    
+    if (error) {
+      console.error('Error de Supabase:', error);
+      throw error;
+    }
+    
+    products = data.map(p => ({
+      id: p.id,
+      nombre: p.nombre_comercial,
+      categoria: p.categoria,
+      tipo_ambiente: p.tipo_ambiente,
+      imagen_url: 'imagenes/productos/' + p.imagen_url,
+      precio: p.precio,
+      sku: p.sku,
+      subcategoria: p.subcategoria || 'all',
+      descripcion: 'Material de alta calidad de Alban Ingeniería.',
+      medidas: p.medidas || 'Consultar ficha técnica',
+      tipo_producto: p.tipo || 'producto',
+      color: '#808080'
+    }));
+    
+    console.log(`✅ ${products.length} productos cargados desde Supabase`);
+    
+    // Renderizar el catálogo
+    renderProducts(products);
+    
+  } catch (error) {
+    console.error('Error cargando productos:', error);
+    alert('Error al cargar el catálogo. Por favor, recarga la página.');
+  }
+}  var cart = [];
+  var currentFilter = { categoria: 'all', subcategoria: 'all' };
+  var currentRoom = 'sala';
+  var customImage = null;
+  var currentMaterialColor = null;
+  var currentMaterialName = null;
+  var zones = [];
+  var currentZoneId = null;
+  var imageData = null;
+  var tolerance = 40;
+  var peer = null;
+  var currentConn = null;
+  var myCode = null;
+  var isScreenMode = false;
+  var textureCache = {};
+  var pendingAction = null;
+
+  var categoryImages = {
+    'all': { img: 'imagenes/categorias/catalogo.jpg', label: 'CATÁLOGO COMPLETO', title: 'Todos nuestros productos', desc: 'Más de 240 productos de ingeniería y acabados premium' },
+    'Muros y Revestimientos': { img: 'imagenes/categorias/muros.jpg', label: 'MUROS Y REVESTIMIENTOS', title: 'Transforma tus paredes', desc: 'Lambrines, wall cladding y revestimientos flexibles' },
+    'Placas y Paneles': { img: 'imagenes/categorias/placas.jpg', label: 'PLACAS Y PANELES', title: 'Superficies premium', desc: 'Placas tipo mármol, madera y paneles decorativos 3D' },
+    'Plafones': { img: 'imagenes/categorias/plafones.jpg', label: 'PLAFONES', title: 'Techos con estilo', desc: 'Plafones PVC de diferentes medidas y acabados' },
+    'Pisos': { img: 'imagenes/categorias/pisos.jpg', label: 'PISOS', title: 'Pisos para todo espacio', desc: 'SPC vinílico para interior y deck sintético para exterior' },
+    'Muebles': { img: 'imagenes/categorias/muebles.jpg', label: 'MUEBLES', title: 'Mobiliario funcional', desc: 'Escritorios, sillas, mesas y muebles flotantes' },
+    'Materiales de Construccion': { img: 'imagenes/categorias/materiales.jpg', label: 'MATERIALES DE CONSTRUCCIÓN', title: 'Piedra PU y más', desc: 'Materiales ligeros y resistentes para tu proyecto' },
+    'Exterior': { img: 'imagenes/categorias/exterior.jpg', label: 'EXTERIOR', title: 'Soluciones para exteriores', desc: 'Revestimientos, pisos y mallas para fachadas' },
+    'Panel Decorativo': { img: 'imagenes/categorias/3d.jpg', label: 'PANELES 3D', title: 'Diseño tridimensional', desc: 'Paneles decorativos con texturas y formas únicas' },
+    'ALBAN': { img: 'imagenes/categorias/alban.jpg', label: 'ALBAN INGENIERÍA', title: 'Módulos Prefabricados', desc: 'Soluciones constructivas integrales' },
+    'Puertas y Canceles': { img: 'imagenes/categorias/puertas.jpg', label: 'PUERTAS Y CANCELES', title: 'Accesos y divisiones', desc: 'Escaparates y elementos de cancelería' }
+  };
+
+  var roomBackgrounds = {
+    'sala': 'imagenes/espacios/sala.jpg',
+    'cocina': 'imagenes/espacios/cocina.jpg',
+    'bano': 'imagenes/espacios/bano.jpg',
+    'estudio': 'imagenes/espacios/estudio.jpg',
+    'oficina': 'imagenes/espacios/oficina.jpg',
+    'fachada': 'imagenes/espacios/fachada.jpg'
+  };
+
+  function updateCategoryDisplay() {
+    var display = document.getElementById('currentCategoryDisplay');
+    var catLabel = currentFilter.categoria === 'all' ? 'Todos los productos' : currentFilter.categoria;
+    var subLabel = currentFilter.subcategoria && currentFilter.subcategoria !== 'all' ? ' > ' + currentFilter.subcategoria : '';
+    display.innerHTML = '<i class="fas fa-filter mr-2"></i>Mostrando: <span class="text-alban-yellow font-bold">' + catLabel + subLabel + '</span>';
+  }
+
+  function updateCategoryHero() {
+    var data = categoryImages[currentFilter.categoria] || categoryImages['all'];
+    document.getElementById('heroImage').src = data.img;
+    document.getElementById('heroLabel').textContent = data.label;
+    document.getElementById('heroTitle').textContent = data.title;
+    document.getElementById('heroDesc').textContent = data.desc;
+  }
+
+  function applyFilters() {
+    var filtered = products.slice();
+    if (currentFilter.categoria !== 'all') {
+      filtered = filtered.filter(function(p) { return p.categoria === currentFilter.categoria; });
+    }
+    if (currentFilter.subcategoria && currentFilter.subcategoria !== 'all') {
+      filtered = filtered.filter(function(p) { return p.subcategoria === currentFilter.subcategoria; });
+    }
+    renderProducts(filtered);
+  }
+
+  function renderProducts(list) {
+    var grid = document.getElementById('productGrid');
+    grid.innerHTML = '';
+    var counter = document.getElementById('productCounter');
+    if (counter) counter.textContent = list.length + ' productos';
+    if (list.length === 0) {
+      grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500"><i class="fas fa-box-open text-5xl mb-4 text-alban-yellow/50"></i><p class="text-lg">No hay productos</p></div>';
+      return;
+    }
+    list.forEach(function(product) {
+      var card = document.createElement('div');
+      card.className = 'product-card bg-alban-card rounded-xl shadow-lg overflow-hidden border border-gray-800';
+      var imgDiv = document.createElement('div');
+      imgDiv.className = 'product-img-container cursor-pointer';
+      // Agrega esto justo después:
+imgDiv.addEventListener('click', function(e) {
+  e.stopPropagation(); // Evita que se dispare otro evento
+  openProductDetail(product.id);
+});
+      imgDiv.addEventListener('click', function() { openProductDetail(product.id); });
+      var img = document.createElement('img');
+      img.src = product.imagen_url;
+      img.alt = product.nombre;
+      img.className = 'w-full h-full object-cover transition-transform duration-500 hover:scale-110';
+      img.onerror = function() { this.src = 'https://via.placeholder.com/400x300/1a1a1a/FFC700?text=' + encodeURIComponent(product.sku); };
+      var skuTag = document.createElement('div');
+      skuTag.className = 'absolute top-2 left-2 bg-alban-black/80 backdrop-blur px-2 py-1 rounded text-[9px] text-gray-300 font-mono';
+      skuTag.textContent = product.sku;
+      imgDiv.appendChild(img);
+      imgDiv.appendChild(skuTag);
+      var infoDiv = document.createElement('div');
+      infoDiv.className = 'p-3';
+      var headerDiv = document.createElement('div');
+      headerDiv.className = 'flex justify-between items-start mb-1';
+      var catP = document.createElement('p');
+      catP.className = 'text-[10px] text-alban-yellow uppercase tracking-wider font-bold';
+      catP.textContent = product.categoria;
+      headerDiv.appendChild(catP);
+      var title = document.createElement('h3');
+      title.className = 'font-bold text-white mb-2 text-xs leading-tight min-h-[2rem]';
+      title.textContent = product.nombre.length > 45 ? product.nombre.substring(0, 45) + '...' : product.nombre;
+      title.title = product.nombre;
+      var btnDiv = document.createElement('div');
+      btnDiv.className = 'flex gap-1.5';
+      var btnCot = document.createElement('button');
+      btnCot.className = 'flex-1 px-2 py-2 bg-alban-yellow text-alban-black rounded text-xs hover:bg-yellow-400 transition font-bold';
+      btnCot.innerHTML = '<i class="fas fa-plus mr-1"></i>Cotizar';
+      btnCot.addEventListener('click', function() { addToQuote(product.id); });
+      btnDiv.appendChild(btnCot);
+      infoDiv.appendChild(headerDiv);
+      infoDiv.appendChild(title);
+      infoDiv.appendChild(btnDiv);
+      card.appendChild(imgDiv);
+      card.appendChild(infoDiv);
+      grid.appendChild(card);
+    });
+  }
+
+  function renderVisualizerCatalog(filterCat, searchText) {
+    var container = document.getElementById('visualizerCatalog');
+    var countEl = document.getElementById('catalogCount');
+    container.innerHTML = '';
+    var filtered = products.slice();
+    if (filterCat && filterCat !== 'all') {
+      filtered = filtered.filter(function(p) { return p.categoria === filterCat; });
+    }
+    if (searchText) {
+      var search = searchText.toLowerCase();
+      filtered = filtered.filter(function(p) {
+        return p.nombre.toLowerCase().indexOf(search) !== -1 || p.sku.toLowerCase().indexOf(search) !== -1;
+      });
+    }
+    countEl.textContent = '(' + filtered.length + ')';
+    if (filtered.length === 0) {
+      container.innerHTML = '<p class="text-xs text-gray-500 text-center py-4">No se encontraron productos</p>';
+      return;
+    }
+    var toShow = filtered.slice(0, 50);
+    toShow.forEach(function(p) {
+      var item = document.createElement('div');
+      item.className = 'catalog-item flex items-center gap-3 p-2 bg-alban-black rounded-lg cursor-pointer border border-gray-700';
+      item.innerHTML = 
+        '<img src="' + p.imagen_url + '" class="product-thumbnail" onerror="this.src=\'https://via.placeholder.com/50x50/1a1a1a/FFC700?text=' + encodeURIComponent(p.sku) + '\'" alt="' + p.nombre + '">' +
+        '<div class="flex-1 min-w-0">' +
+          '<p class="text-xs text-white font-semibold truncate">' + p.nombre + '</p>' +
+          '<div class="flex items-center gap-2">' +
+            '<span class="text-[10px] text-gray-400 font-mono">' + p.sku + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<button class="add-to-cart-btn px-3 py-1 bg-alban-yellow text-alban-black rounded text-xs font-bold hover:bg-yellow-400"><i class="fas fa-cart-plus"></i></button>';
+      var addToCartBtn = item.querySelector('.add-to-cart-btn');
+      addToCartBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        addToQuote(p.id);
+        addToCartBtn.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(function() { addToCartBtn.innerHTML = '<i class="fas fa-cart-plus"></i>'; }, 1000);
+      });
+      item.addEventListener('click', function() {
+        if (currentZoneId !== null) {
+          applyMaterialToZone(currentZoneId, p);
+        } else {
+          showNotification('Primero haz clic en una zona de la imagen');
+        }
+        var allItems = container.querySelectorAll('.catalog-item');
+        for (var i = 0; i < allItems.length; i++) { allItems[i].classList.remove('applied'); }
+        item.classList.add('applied');
+      });
+      container.appendChild(item);
+    });
+    if (filtered.length > 50) {
+      var more = document.createElement('p');
+      more.className = 'text-xs text-gray-500 text-center py-2';
+      more.textContent = '... y ' + (filtered.length - 50) + ' productos más. Usa el buscador.';
+      container.appendChild(more);
+    }
+  }
+
+  function openRoomModal() { document.getElementById('roomModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
+  function closeRoomModal() { document.getElementById('roomModal').classList.remove('active'); document.body.style.overflow = ''; }
+
+  function openVisualizer() {
+    closeRoomModal();
+    document.getElementById('visualizerModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    var bgImg = customImage || roomBackgrounds[currentRoom] || roomBackgrounds['sala'];
+    document.getElementById('modeLabel').textContent = '️ Haz clic en una zona';
+    document.getElementById('currentZone').textContent = 'Ninguna';
+    document.getElementById('currentMaterial').textContent = 'Ninguno';
+    zones = [];
+    currentZoneId = null;
+    renderVisualizerCatalog('all', '');
+    document.getElementById('catalogFilter').value = 'all';
+    document.getElementById('catalogSearch').value = '';
+    renderZonesList();
+    loadImageToCanvas(bgImg);
+  }
+
+  function closeVisualizer() {
+    document.getElementById('visualizerModal').classList.remove('active');
+    document.body.style.overflow = '';
+    if (currentConn) { currentConn.close(); currentConn = null; }
+  }
+
+  function loadImageToCanvas(src) {
+    var canvas = document.getElementById('mainCanvas');
+    var ctx = canvas.getContext('2d');
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      var maxW = 1200;
+      var maxH = 800;
+      var w = img.width;
+      var h = img.height;
+      if (w > maxW) { h = h * (maxW / w); w = maxW; }
+      if (h > maxH) { w = w * (maxH / h); h = maxH; }
+      canvas.width = w;
+      canvas.height = h;
+      ctx.drawImage(img, 0, 0, w, h);
+      imageData = ctx.getImageData(0, 0, w, h);
+      var zoneCanvas = document.getElementById('zoneCanvas');
+      zoneCanvas.width = w;
+      zoneCanvas.height = h;
+      zoneCanvas.style.width = w + 'px';
+      zoneCanvas.style.height = h + 'px';
+    };
+    img.onerror = function() {
+      canvas.width = 800;
+      canvas.height = 600;
+      ctx.fillStyle = '#333';
+      ctx.fillRect(0, 0, 800, 600);
+      ctx.fillStyle = '#FFC700';
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Imagen no disponible', 400, 300);
+      imageData = ctx.getImageData(0, 0, 800, 600);
+    };
+    img.src = src;
+  }
+
+  function rgbDistance(r1, g1, b1, r2, g2, b2) {
+    return Math.sqrt(Math.pow(r1-r2, 2) + Math.pow(g1-g2, 2) + Math.pow(b1-b2, 2));
+  }
+
+  function detectZone(startX, startY) {
+    if (!imageData) return null;
+    var w = imageData.width;
+    var h = imageData.height;
+    var data = imageData.data;
+    var startIdx = (startY * w + startX) * 4;
+    var startR = data[startIdx];
+    var startG = data[startIdx + 1];
+    var startB = data[startIdx + 2];
+    var visited = new Uint8Array(w * h);
+    var zone = [];
+    var stack = [[startX, startY]];
+    var tol = tolerance;
+    var count = 0;
+    var maxPixels = w * h * 0.5;
+    while (stack.length > 0 && count < maxPixels) {
+      var pos = stack.pop();
+      var x = pos[0];
+      var y = pos[1];
+      var idx = y * w + x;
+      if (visited[idx]) continue;
+      if (x < 0 || x >= w || y < 0 || y >= h) continue;
+      var pIdx = idx * 4;
+      var r = data[pIdx];
+      var g = data[pIdx + 1];
+      var b = data[pIdx + 2];
+      var dist = rgbDistance(r, g, b, startR, startG, startB);
+      if (dist > tol) continue;
+      visited[idx] = 1;
+      zone.push({ x: x, y: y });
+      count++;
+      stack.push([x+1, y], [x-1, y], [x, y+1], [x, y-1]);
+    }
+    if (zone.length < 100) return null;
+    var minX = w, maxX = 0, minY = h, maxY = 0;
+    for (var i = 0; i < zone.length; i++) {
+      if (zone[i].x < minX) minX = zone[i].x;
+      if (zone[i].x > maxX) maxX = zone[i].x;
+      if (zone[i].y < minY) minY = zone[i].y;
+      if (zone[i].y > maxY) maxY = zone[i].y;
+    }
+    var zoneW = maxX - minX;
+    var zoneH = maxY - minY;
+    var aspectRatio = zoneW / zoneH;
+    var zoneType = 'Zona';
+    if (aspectRatio > 2.5 && zoneH < h * 0.3) zoneType = 'Techo';
+    else if (aspectRatio > 1.5 && zoneH < h * 0.4) zoneType = 'Pared horizontal';
+    else if (zoneH > h * 0.5 && zoneW < w * 0.5) zoneType = 'Pared vertical';
+    else if (zoneH > h * 0.4 && zoneW > w * 0.6) zoneType = 'Piso';
+    else if (zoneW > w * 0.7 && zoneH > h * 0.5) zoneType = 'Pared principal';
+    else if (zone.length < w * h * 0.05) zoneType = 'Objeto pequeño';
+    return {
+      pixels: zone,
+      bounds: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
+      type: zoneType,
+      color: { r: startR, g: startG, b: startB },
+      size: zone.length
+    };
+  }
+
+  function cropProductImage(img) {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imgData.data;
+    var minX = canvas.width, maxX = 0, minY = canvas.height, maxY = 0;
+    var threshold = 235;
+    var found = false;
+    for (var y = 0; y < canvas.height; y++) {
+      for (var x = 0; x < canvas.width; x++) {
+        var idx = (y * canvas.width + x) * 4;
+        var r = data[idx];
+        var g = data[idx + 1];
+        var b = data[idx + 2];
+        if (!(r > threshold && g > threshold && b > threshold)) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+          found = true;
+        }
+      }
+    }
+    if (!found) return img;
+    var margin = 3;
+    minX = Math.max(0, minX - margin);
+    minY = Math.max(0, minY - margin);
+    maxX = Math.min(canvas.width, maxX + margin);
+    maxY = Math.min(canvas.height, maxY + margin);
+    var cropCanvas = document.createElement('canvas');
+    cropCanvas.width = maxX - minX;
+    cropCanvas.height = maxY - minY;
+    var cropCtx = cropCanvas.getContext('2d');
+    cropCtx.drawImage(img, minX, minY, maxX - minX, maxY - minY, 0, 0, maxX - minX, maxY - minY);
+    return cropCanvas;
+  }
+
+  function loadTextureAndApply(zone, product) {
+    if (textureCache[product.imagen_url]) {
+      applyTextureToZone(zone, textureCache[product.imagen_url]);
+      return;
+    }
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      var croppedImg = cropProductImage(img);
+      textureCache[product.imagen_url] = croppedImg;
+      applyTextureToZone(zone, croppedImg);
+    };
+    img.onerror = function() {
+      showNotification('No se pudo cargar la textura: ' + product.nombre);
+    };
+    img.src = product.imagen_url;
+  }
+
+  function applyTextureToZone(zone, textureImg) {
+    var zoneCanvas = document.getElementById('zoneCanvas');
+    var ctx = zoneCanvas.getContext('2d');
+    var w = zoneCanvas.width;
+    var h = zoneCanvas.height;
+    
+    var zoneW = zone.bounds.maxX - zone.bounds.minX + 1;
+    var zoneH = zone.bounds.maxY - zone.bounds.minY + 1;
+    
+    var tempCanvas = document.createElement('canvas');
+    tempCanvas.width = zoneW;
+    tempCanvas.height = zoneH;
+    var tempCtx = tempCanvas.getContext('2d');
+    
+    var pattern = tempCtx.createPattern(textureImg, 'repeat');
+    tempCtx.fillStyle = pattern;
+    tempCtx.fillRect(0, 0, zoneW, zoneH);
+    
+    var patternData = tempCtx.getImageData(0, 0, zoneW, zoneH);
+    var outputData = ctx.createImageData(w, h);
+    var alpha = zone.alpha || 0.7;
+    
+    var pixelSet = {};
+    for (var i = 0; i < zone.pixels.length; i++) {
+      var p = zone.pixels[i];
+      var relX = p.x - zone.bounds.minX;
+      var relY = p.y - zone.bounds.minY;
+      var key = relY * zoneW + relX;
+      pixelSet[key] = true;
+    }
+    
+    for (var y = 0; y < zoneH; y++) {
+      for (var x = 0; x < zoneW; x++) {
+        var relIdx = y * zoneW + x;
+        
+        if (pixelSet[relIdx]) {
+          var absX = x + zone.bounds.minX;
+          var absY = y + zone.bounds.minY;
+          
+          if (absX >= 0 && absX < w && absY >= 0 && absY < h) {
+            var outIdx = (absY * w + absX) * 4;
+            var patIdx = relIdx * 4;
+            
+            outputData.data[outIdx] = patternData.data[patIdx];
+            outputData.data[outIdx + 1] = patternData.data[patIdx + 1];
+            outputData.data[outIdx + 2] = patternData.data[patIdx + 2];
+            outputData.data[outIdx + 3] = Math.floor(alpha * 255);
+          }
+        }
+      }
+    }
+    
+    ctx.putImageData(outputData, 0, 0);
+    
+    ctx.strokeStyle = '#FFC700';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeRect(zone.bounds.minX, zone.bounds.minY, zoneW, zoneH);
+    ctx.setLineDash([]);
+  }
+
+  function applyMaterialToZone(zoneId, product) {
+    var zone = null;
+    for (var i = 0; i < zones.length; i++) {
+      if (zones[i].id === zoneId) { zone = zones[i]; break; }
+    }
+    if (!zone) return;
+    zone.material = { product: product, color: product.color, name: product.nombre, imagen_url: product.imagen_url };
+    zone.alpha = 0.7;
+    currentMaterialColor = product.color;
+    currentMaterialName = product.nombre;
+    document.getElementById('currentMaterial').textContent = product.nombre;
+    loadTextureAndApply(zone, product);
+    renderZonesList();
+    broadcastToScreen();
+    showNotification('Material aplicado: ' + product.nombre);
+  }
+
+  function redrawAllZones() {
+    var zoneCanvas = document.getElementById('zoneCanvas');
+    var ctx = zoneCanvas.getContext('2d');
+    ctx.clearRect(0, 0, zoneCanvas.width, zoneCanvas.height);
+    for (var i = 0; i < zones.length; i++) {
+      var z = zones[i];
+      if (z.material && z.material.imagen_url && textureCache[z.material.imagen_url]) {
+        applyTextureToZone(z, textureCache[z.material.imagen_url]);
+      }
+    }
+    if (currentZoneId !== null) {
+      var current = null;
+      for (var i = 0; i < zones.length; i++) {
+        if (zones[i].id === currentZoneId) { current = zones[i]; break; }
+      }
+      if (current) {
+        ctx.strokeStyle = '#FFC700';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([5, 5]);
+        ctx.strokeRect(current.bounds.minX, current.bounds.minY, current.bounds.maxX - current.bounds.minX, current.bounds.maxY - current.bounds.minY);
+        ctx.setLineDash([]);
+      }
+    }
+  }
+
+  function renderZonesList() {
+    var container = document.getElementById('zonesList');
+    var countEl = document.getElementById('zoneCount');
+    container.innerHTML = '';
+    countEl.textContent = '(' + zones.length + ')';
+    if (zones.length === 0) {
+      container.innerHTML = '<p class="text-xs text-gray-500">Haz clic en la imagen para detectar zonas</p>';
+      return;
+    }
+    zones.forEach(function(z) {
+      var item = document.createElement('div');
+      var isSelected = z.id === currentZoneId;
+      item.className = 'flex items-center gap-2 p-2 rounded-lg cursor-pointer border ' + (isSelected ? 'bg-alban-yellow/20 border-alban-yellow' : 'bg-alban-black border-gray-700 hover:bg-gray-800');
+      var matInfo = z.material ? 
+        '<div class="flex items-center gap-1"><img src="' + z.material.imagen_url + '" class="w-4 h-4 rounded object-cover" onerror="this.style.display=\'none\'"><span class="text-[10px] text-alban-yellow truncate">' + z.material.name + '</span></div>' : 
+        '<span class="text-[10px] text-gray-500">Sin material</span>';
+      item.innerHTML = 
+        '<div class="w-8 h-8 rounded border border-gray-600 flex-shrink-0 flex items-center justify-center text-xs font-bold" style="background-color:' + (z.material ? z.material.color : '#666') + '">' + (zones.indexOf(z) + 1) + '</div>' +
+        '<div class="flex-1 min-w-0">' +
+          '<p class="text-xs text-white font-semibold truncate">' + z.type + '</p>' +
+          matInfo +
+        '</div>';
+      if (z.material && z.material.product) {
+        var cartBtn = document.createElement('button');
+        cartBtn.className = 'px-2 py-1 bg-alban-yellow text-alban-black rounded text-xs font-bold hover:bg-yellow-400 flex-shrink-0';
+        cartBtn.innerHTML = '<i class="fas fa-cart-plus"></i>';
+        cartBtn.title = 'Agregar ' + z.material.name + ' al carrito';
+        cartBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          addToQuote(z.material.product.id);
+          cartBtn.innerHTML = '<i class="fas fa-check"></i>';
+          setTimeout(function() { cartBtn.innerHTML = '<i class="fas fa-cart-plus"></i>'; }, 1500);
+        });
+        item.appendChild(cartBtn);
+      }
+      item.addEventListener('click', function() {
+        currentZoneId = z.id;
+        document.getElementById('currentZone').textContent = z.type;
+        renderZonesList();
+        redrawAllZones();
+      });
+      container.appendChild(item);
+    });
+  }
+
+  function handleCanvasClick(e) {
+    var canvas = document.getElementById('mainCanvas');
+    var rect = canvas.getBoundingClientRect();
+    var scaleX = canvas.width / rect.width;
+    var scaleY = canvas.height / rect.height;
+    var x = Math.floor((e.clientX - rect.left) * scaleX);
+    var y = Math.floor((e.clientY - rect.top) * scaleY);
+    canvas.classList.add('detecting');
+    document.getElementById('modeLabel').textContent = '⏳ Detectando zona...';
+    setTimeout(function() {
+      var zone = detectZone(x, y);
+      canvas.classList.remove('detecting');
+      if (zone) {
+        zone.id = Date.now();
+        zones.push(zone);
+        currentZoneId = zone.id;
+        document.getElementById('currentZone').textContent = zone.type;
+        document.getElementById('zoneTypeLabel').textContent = zone.type;
+        document.getElementById('zoneIndicator').classList.remove('hidden');
+        document.getElementById('modeLabel').textContent = '✓ Zona detectada: ' + zone.type;
+        renderZonesList();
+        redrawAllZones();
+        broadcastToScreen();
+        showNotification('Zona detectada: ' + zone.type);
+      } else {
+        document.getElementById('modeLabel').textContent = '⚠️ Zona muy pequeña. Ajusta la tolerancia.';
+        showNotification('Zona muy pequeña. Ajusta la tolerancia.');
+      }
+    }, 50);
+  }
+
+  function addToQuote(id) {
+    var product = null;
+    for (var i = 0; i < products.length; i++) {
+      if (products[i].id === id) { product = products[i]; break; }
+    }
+    if (!product) return;
+    var existing = null;
+    for (var i = 0; i < cart.length; i++) {
+      if (cart[i].id === id) { existing = cart[i]; break; }
+    }
+    if (existing) { existing.quantity += 1; }
+    else { cart.push({ id: product.id, nombre: product.nombre, precio: product.precio, sku: product.sku, categoria: product.categoria, quantity: 1 }); }
+    saveCart();
+    updateQuoteBar();
+    showNotification(product.nombre.substring(0, 30) + '... agregado al carrito');
+  }
+
+  function updateQuoteBar() {
+    var count = 0;
+    for (var i = 0; i < cart.length; i++) {
+      count += cart[i].quantity;
+    }
+    document.getElementById('cartCount').textContent = count;
+    document.getElementById('quoteItems').textContent = count + ' productos';
+    var bar = document.getElementById('quoteBar');
+    if (count > 0) bar.classList.add('active');
+    else bar.classList.remove('active');
+  }
+
+  function clearQuote() {
+    cart = [];
+    saveCart();
+    updateQuoteBar();
+  }
+
+  function showQuoteReview() {
+    if (cart.length === 0) { 
+      alert('No hay productos en el carrito'); 
+      return; 
+    }
+    var container = document.getElementById('reviewItems');
+    container.innerHTML = '';
+    cart.forEach(function(item, index) {
+      var div = document.createElement('div');
+      div.className = 'flex items-center gap-3 p-3 bg-alban-black rounded-lg border border-gray-700';
+      div.innerHTML = 
+        '<div class="w-10 h-10 bg-alban-yellow rounded-full flex items-center justify-center text-alban-black font-bold flex-shrink-0">' + (index + 1) + '</div>' +
+        '<div class="flex-1 min-w-0">' +
+          '<p class="text-sm text-white font-semibold truncate">' + item.nombre + '</p>' +
+          '<p class="text-xs text-gray-400 font-mono">SKU: ' + item.sku + '</p>' +
+          '<p class="text-xs text-gray-500">' + item.quantity + ' m²</p>' +
+        '</div>' +
+        '<button class="remove-item ml-2 text-red-400 hover:text-red-300 px-2" data-index="' + index + '"><i class="fas fa-trash"></i></button>';
+      container.appendChild(div);
+    });
+    var removeBtns = container.querySelectorAll('.remove-item');
+    removeBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.getAttribute('data-index'));
+        cart.splice(idx, 1);
+        saveCart();
+        updateQuoteBar();
+        showQuoteReview();
+      });
+    });
+    document.getElementById('reviewTotal').textContent = cart.length + ' productos';
+    document.getElementById('quoteReviewModal').classList.add('active');
+  }
+
+  function sendQuoteWhatsApp() {
+    var clientName = document.getElementById('clientName').value.trim();
+    var clientPhone = document.getElementById('clientPhone').value.trim();
+    var clientNotes = document.getElementById('clientNotes').value.trim();
+    var msg = '🏠 *COTIZACIÓN ALBAN INGENIERÍA*\n';
+    msg += '━━━━━━━━━━━━━━━━━━━━\n\n';
+    if (clientName) msg += '👤 *Cliente:* ' + clientName + '\n';
+    if (clientPhone) msg += '📱 *Teléfono:* ' + clientPhone + '\n';
+    if (clientName || clientPhone) msg += '\n';
+    msg += '📋 *PRODUCTOS COTIZADOS:*\n\n';
+    for (var i = 0; i < cart.length; i++) {
+      msg += '✅ *' + cart[i].nombre + '*\n';
+      msg += '   SKU: ' + cart[i].sku + '\n';
+      msg += '   Categoría: ' + cart[i].categoria + '\n';
+      msg += '   Cantidad: ' + cart[i].quantity + ' m²\n\n';
+    }
+    msg += '━━━━━━━━━━━━━━━━━━━━\n';
+    msg += '📞 *Por favor contactarme para cotización personalizada.*\n\n';
+    if (clientNotes) {
+      msg += '📝 *Notas:* ' + clientNotes + '\n\n';
+    }
+    msg += '¡Gracias por su interés en Alban Ingeniería!';
+    window.open('https://wa.me/5212345678900?text=' + encodeURIComponent(msg), '_blank');
+    document.getElementById('clientName').value = '';
+    document.getElementById('clientPhone').value = '';
+    document.getElementById('clientNotes').value = '';
+  }
+
+  function saveImageAsJPG() {
+    var canvas = document.getElementById('mainCanvas');
+    var zoneCanvas = document.getElementById('zoneCanvas');
+    var tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    var ctx = tempCanvas.getContext('2d');
+    ctx.drawImage(canvas, 0, 0);
+    ctx.drawImage(zoneCanvas, 0, 0);
+    var dataUrl = tempCanvas.toDataURL('image/jpeg', 0.92);
+    var link = document.createElement('a');
+    link.download = 'alban-proyecto-' + Date.now() + '.jpg';
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return dataUrl;
+  }
+
+  function showExitConfirmation(action) {
+    pendingAction = action;
+    document.getElementById('exitConfirmModal').classList.add('active');
+  }
+
+  function hideExitConfirmation() {
+    document.getElementById('exitConfirmModal').classList.remove('active');
+    pendingAction = null;
+  }
+
+  function executePendingAction() {
+    if (pendingAction === 'close') {
+      closeVisualizer();
+    } else if (pendingAction === 'change') {
+      closeVisualizer();
+      openRoomModal();
+    }
+    pendingAction = null;
+  }
+
+  function saveCart() {
+    try { localStorage.setItem('alban_cart', JSON.stringify(cart)); } catch(e) {}
+  }
+
+  function loadCart() {
+    try {
+      var saved = localStorage.getItem('alban_cart');
+      if (saved) { cart = JSON.parse(saved); updateQuoteBar(); }
+    } catch(e) {}
+  }
+
+  function toggleChatbot() { document.getElementById('chatbot').classList.toggle('active'); }
+
+  function sendMessage() {
+    var input = document.getElementById('chatInput');
+    var msg = input.value.trim();
+    if (!msg) return;
+    addMessage(msg, 'user');
+    input.value = '';
+    setTimeout(function() {
+      var reply = 'Gracias. Un asesor te contactara por WhatsApp.';
+      var lower = msg.toLowerCase();
+      if (lower.indexOf('precio') !== -1 || lower.indexOf('costo') !== -1) reply = 'Nuestros productos van desde $50 hasta $23,000 por m2. Que categoria te interesa?';
+      else if (lower.indexOf('hola') !== -1 || lower.indexOf('buenas') !== -1) reply = 'Hola! Bienvenido a Alban Ingenieria. En que te ayudo?';
+      else if (lower.indexOf('horario') !== -1) reply = 'Abrimos Lun-Vie 9am-6pm y Sab 10am-2pm.';
+      else if (lower.indexOf('envio') !== -1) reply = 'Hacemos envios a toda la Republica Mexicana.';
+      addMessage(reply, 'bot');
+    }, 600);
+  }
+
+  function addMessage(text, sender) {
+    var container = document.getElementById('chatMessages');
+    var div = document.createElement('div');
+    div.className = 'message ' + sender;
+    div.textContent = text;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function showNotification(text) {
+    var notif = document.createElement('div');
+    notif.className = 'fixed top-20 right-4 bg-alban-yellow text-alban-black px-6 py-3 rounded-lg shadow-2xl z-[200] font-bold';
+    notif.textContent = text;
+    document.body.appendChild(notif);
+    setTimeout(function() { notif.remove(); }, 2500);
+  }
+
+  function generateCode() { return Math.floor(1000 + Math.random() * 9000).toString(); }
+
+  function initPeerAsHost() {
+    if (peer) { peer.destroy(); }
+    myCode = generateCode();
+    var peerId = 'alban-screen-' + myCode;
+    peer = new Peer(peerId, { debug: 2 });
+    peer.on('open', function(id) {
+      document.getElementById('codeDisplay').textContent = myCode;
+      document.getElementById('generatedCode').classList.remove('hidden');
+      document.getElementById('connectionStatus').innerHTML = '<p class="text-green-400"><i class="fas fa-check-circle mr-1"></i>Código generado. La pantalla se conectará automáticamente...</p>';
+    });
+    peer.on('connection', function(conn) {
+      currentConn = conn;
+      conn.on('open', function() {
+        document.getElementById('connectionStatus').innerHTML = '<p class="text-green-400 text-lg"><i class="fas fa-check-circle mr-1"></i>¡Pantalla conectada exitosamente!</p>';
+        showNotification('Pantalla conectada');
+        broadcastToScreen();
+      });
+      conn.on('data', function(data) {
+        if (data.type === 'request-image') broadcastToScreen();
+      });
+    });
+    peer.on('error', function(err) {
+      document.getElementById('connectionStatus').innerHTML = '<p class="text-red-400"><i class="fas fa-exclamation-circle mr-1"></i>Error: ' + err.type + '</p>';
+    });
+  }
+
+  function initPeerAsClient(code) {
+    if (peer) { peer.destroy(); }
+    var peerId = 'alban-client-' + Date.now();
+    var hostId = 'alban-screen-' + code;
+    peer = new Peer(peerId, { debug: 2 });
+    peer.on('open', function() {
+      var conn = peer.connect(hostId, { reliable: true });
+      conn.on('open', function() {
+        currentConn = conn;
+        document.getElementById('remoteStatus').textContent = '✓ Conectado a la tablet';
+        document.getElementById('remoteView').classList.remove('hidden');
+        conn.send({ type: 'request-image' });
+      });
+      conn.on('data', function(data) {
+        if (data.type === 'image-update') document.getElementById('remoteImage').src = data.image;
+      });
+      conn.on('close', function() {
+        document.getElementById('remoteStatus').textContent = 'Desconectado. Esperando reconexión...';
+        document.getElementById('remoteView').classList.add('hidden');
+      });
+    });
+    peer.on('error', function(err) {
+      document.getElementById('remoteStatus').textContent = 'Error de conexión. Reintentando...';
+      setTimeout(function() { initPeerAsClient(code); }, 3000);
+    });
+  }
+
+  function broadcastToScreen() {
+    if (!currentConn || !currentConn.open) return;
+    var canvas = document.getElementById('mainCanvas');
+    var zoneCanvas = document.getElementById('zoneCanvas');
+    var tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    var ctx = tempCanvas.getContext('2d');
+    ctx.drawImage(canvas, 0, 0);
+    ctx.drawImage(zoneCanvas, 0, 0);
+    var dataUrl = tempCanvas.toDataURL('image/jpeg', 0.8);
+    try { currentConn.send({ type: 'image-update', image: dataUrl }); } catch(e) {}
+  }
+
+  function hasAppliedMaterials() {
+    return zones.length > 0 && zones.some(function(z) { return z.material; });
+  }
+function openProductDetail(productId) {
+  var product = null;
+  for (var i = 0; i < products.length; i++) {
+    if (products[i].id === productId) { product = products[i]; break; }
+  }
+  if (!product) return;
+  
+  document.getElementById('detailProductImage').src = product.imagen_url;
+  document.getElementById('detailProductCategory').textContent = product.categoria;
+  document.getElementById('detailProductName').textContent = product.nombre;
+  document.getElementById('detailProductType').textContent = product.tipo_producto || 'Producto';
+  document.getElementById('detailProductSku').textContent = product.sku;
+  document.getElementById('detailProductStock').textContent = Math.floor(Math.random() * 2000 + 500);
+  document.getElementById('detailProductDescription').textContent = product.descripcion || 'Producto de alta calidad de Alban Ingeniería. Ideal para proyectos de remodelación y construcción. Consulta con nuestros asesores para más detalles técnicos.';
+  document.getElementById('detailProductMeasures').textContent = product.medidas || 'Consultar';
+  document.getElementById('detailProductAmbiente').textContent = product.tipo_ambiente || 'General';
+  
+  // Configurar botones
+  document.getElementById('btnAddToCartDetail').onclick = function() {
+    addToQuote(product.id);
+    document.getElementById('productDetailModal').classList.remove('active');
+  };
+  
+  document.getElementById('btnVisualizeProduct').onclick = function() {
+    document.getElementById('productDetailModal').classList.remove('active');
+    openRoomModal();
+    // Guardar el producto para aplicarlo automáticamente
+    window._pendingProduct = product;
+  };
+  
+  document.getElementById('productDetailModal').classList.add('active');
+}
+
+function closeProductDetail() {
+  document.getElementById('productDetailModal').classList.remove('active');
+}
+function resetToHome() {
+  // Resetear filtros
+  currentFilter.categoria = 'all';
+  currentFilter.subcategoria = 'all';
+  
+  // Actualizar UI
+  updateCategoryHero();
+  updateCategoryDisplay();
+  applyFilters();
+  
+  // Resetear label del mega menú
+  document.getElementById('currentCategoryLabel').textContent = 'Catálogo';
+  
+  // Scroll suave al inicio
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.getElementById('btnHome').addEventListener('click', resetToHome);  
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Cargar productos desde Supabase
+    loadProducts();
+    // 2. Inicializar otras funciones (menús, etc.)
+    loadCart();
+
+    var urlParams = new URLSearchParams(window.location.search);
+    isScreenMode = urlParams.get('modo') === 'pantalla';
+    
+    if (isScreenMode) {
+      document.getElementById('screenMode').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      var savedCode = localStorage.getItem('alban_screen_code');
+      if (savedCode) {
+        initPeerAsClient(savedCode);
+      } else {
+        document.getElementById('remoteStatus').textContent = 'Ingresa el código de la tablet';
+        var codeInput = prompt('Ingresa el código de 4 dígitos de la tablet:');
+        if (codeInput && codeInput.length === 4) {
+          localStorage.setItem('alban_screen_code', codeInput);
+          initPeerAsClient(codeInput);
+        }
+      }
+      document.getElementById('btnExitScreen').addEventListener('click', function() {
+        localStorage.removeItem('alban_screen_code');
+        window.location.href = window.location.pathname;
+      });
+      return;
+      
+    }
+    // Scroll suave para el menú Nosotros
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    var target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+// === MODAL DETALLE PRODUCTO ===
+document.getElementById('btnCloseProductDetail').addEventListener('click', closeProductDetail);
+document.getElementById('productDetailModal').addEventListener('click', function(e) {
+  if (e.target === document.getElementById('productDetailModal')) closeProductDetail();
+});
+
+// Cerrar modal con tecla Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (document.getElementById('productDetailModal').classList.contains('active')) {
+      closeProductDetail();
+    }
+  }
+});
+    // MEGA MENU LOGIC
+    var btnMegaMenu = document.getElementById('btnMegaMenu');
+    var megaMenu = document.getElementById('megaMenu');
+    var megaMenuItems = megaMenu.querySelectorAll('.mega-item');
+
+    btnMegaMenu.addEventListener('click', function(e) {
+      e.stopPropagation();
+      megaMenu.classList.toggle('active');
+    });
+
+    megaMenuItems.forEach(function(item) {
+      item.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var categoria = item.getAttribute('data-cat');
+        var subcategoria = item.getAttribute('data-sub');
+        currentFilter.categoria = categoria;
+        currentFilter.subcategoria = subcategoria;
+        applyFilters();
+        updateCategoryHero();
+        updateCategoryDisplay();
+        
+        var label = categoria === 'all' ? 'Catálogo' : categoria;
+        if (subcategoria && subcategoria !== 'all') {
+          label += ' > ' + subcategoria;
+        }
+        document.getElementById('currentCategoryLabel').textContent = label;
+        
+        megaMenu.classList.remove('active');
+      });
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!document.getElementById('megaMenuContainer').contains(e.target)) {
+        megaMenu.classList.remove('active');
+      }
+    });
+
+    updateCategoryHero();
+    renderProducts(products);
+    loadCart();
+
+    document.getElementById('btnConnectScreen').addEventListener('click', function() {
+      document.getElementById('screenModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+    document.getElementById('btnCloseScreenModal').addEventListener('click', function() {
+      document.getElementById('screenModal').classList.remove('active');
+      document.body.style.overflow = '';
+    });
+    document.getElementById('btnGenerateCode').addEventListener('click', initPeerAsHost);
+
+    document.getElementById('btnCotizacion').addEventListener('click', function() { document.getElementById('quoteBar').classList.toggle('active'); });
+    document.getElementById('btnCloseRoomModal').addEventListener('click', closeRoomModal);
+    document.getElementById('btnCancelRoom').addEventListener('click', closeRoomModal);
+    document.getElementById('btnClear').addEventListener('click', clearQuote);
+    document.getElementById('btnOpenChat').addEventListener('click', toggleChatbot);
+    document.getElementById('btnCloseChat').addEventListener('click', toggleChatbot);
+    document.getElementById('btnSendChat').addEventListener('click', sendMessage);
+    document.getElementById('chatInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') sendMessage(); });
+
+    document.getElementById('btnVisualizer').addEventListener('click', openRoomModal);
+
+    document.getElementById('btnReviewQuote').addEventListener('click', function() {
+      showQuoteReview();
+    });
+
+    document.getElementById('btnWhatsApp').addEventListener('click', function() {
+      showQuoteReview();
+    });
+
+    document.getElementById('btnCloseReview').addEventListener('click', function() {
+      document.getElementById('quoteReviewModal').classList.remove('active');
+    });
+    document.getElementById('btnEditQuote').addEventListener('click', function() {
+      document.getElementById('quoteReviewModal').classList.remove('active');
+      document.getElementById('quoteBar').classList.add('active');
+    });
+    document.getElementById('btnConfirmSend').addEventListener('click', function() {
+      sendQuoteWhatsApp();
+      document.getElementById('quoteReviewModal').classList.remove('active');
+      showNotification('Cotización enviada por WhatsApp');
+    });
+
+    document.getElementById('btnBackToRooms').addEventListener('click', function() {
+      if (hasAppliedMaterials()) {
+        showExitConfirmation('change');
+      } else {
+        closeVisualizer();
+        openRoomModal();
+      }
+    });
+
+    document.getElementById('btnCloseVisualizer').addEventListener('click', function() {
+      if (hasAppliedMaterials()) {
+        showExitConfirmation('close');
+      } else {
+        closeVisualizer();
+      }
+    });
+
+    document.getElementById('btnSaveAndSend').addEventListener('click', function() {
+      saveImageAsJPG();
+      hideExitConfirmation();
+      setTimeout(function() {
+        showQuoteReview();
+      }, 500);
+    });
+
+    document.getElementById('btnSaveOnly').addEventListener('click', function() {
+      saveImageAsJPG();
+      hideExitConfirmation();
+      showNotification('Imagen guardada en formato JPG');
+      setTimeout(function() {
+        executePendingAction();
+      }, 500);
+    });
+
+    document.getElementById('btnDiscard').addEventListener('click', function() {
+      hideExitConfirmation();
+      executePendingAction();
+    });
+
+    var roomOptions = document.querySelectorAll('.room-option');
+    var uploadedPreview = document.getElementById('uploadedPreview');
+
+    roomOptions.forEach(function(option) {
+      option.addEventListener('click', function() {
+        roomOptions.forEach(function(o) { o.classList.remove('selected'); });
+        option.classList.add('selected');
+        currentRoom = option.getAttribute('data-room');
+        customImage = null;
+        uploadedPreview.classList.add('hidden');
+        document.getElementById('previewImage').src = '';
+      });
+    });
+
+    var uploadZone = document.getElementById('uploadZone');
+    var imageUpload = document.getElementById('imageUpload');
+    var previewImage = document.getElementById('previewImage');
+
+    uploadZone.addEventListener('click', function() { imageUpload.click(); });
+    uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); uploadZone.style.background = 'rgba(255,199,0,0.1)'; });
+    uploadZone.addEventListener('dragleave', function() { uploadZone.style.background = ''; });
+    uploadZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      uploadZone.style.background = '';
+      var file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) handleImageUpload(file);
+    });
+    imageUpload.addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (file) handleImageUpload(file);
+    });
+
+    function handleImageUpload(file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        previewImage.src = e.target.result;
+        customImage = e.target.result;
+        uploadedPreview.classList.remove('hidden');
+        roomOptions.forEach(function(o) { o.classList.remove('selected'); });
+        currentRoom = 'personalizado';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    document.getElementById('btnStartVisualizer').addEventListener('click', function() {
+      openVisualizer();
+    });
+
+    document.getElementById('mainCanvas').addEventListener('click', handleCanvasClick);
+
+    document.getElementById('toleranceSlider').addEventListener('input', function() {
+      tolerance = parseInt(this.value);
+      document.getElementById('toleranceValue').textContent = tolerance;
+    });
+
+    document.getElementById('btnUndoZone').addEventListener('click', function() {
+      if (zones.length > 0) {
+        zones.pop();
+        currentZoneId = zones.length > 0 ? zones[zones.length - 1].id : null;
+        renderZonesList();
+        redrawAllZones();
+        broadcastToScreen();
+      }
+    });
+
+    document.getElementById('btnClearZones').addEventListener('click', function() {
+      zones = [];
+      currentZoneId = null;
+      document.getElementById('currentZone').textContent = 'Ninguna';
+      document.getElementById('zoneIndicator').classList.add('hidden');
+      renderZonesList();
+      redrawAllZones();
+      broadcastToScreen();
+    });
+
+    document.getElementById('catalogFilter').addEventListener('change', function() {
+      var search = document.getElementById('catalogSearch').value;
+      renderVisualizerCatalog(this.value, search);
+    });
+
+    document.getElementById('catalogSearch').addEventListener('input', function() {
+      var cat = document.getElementById('catalogFilter').value;
+      renderVisualizerCatalog(cat, this.value);
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { 
+        if (document.getElementById('quoteReviewModal').classList.contains('active')) {
+          document.getElementById('quoteReviewModal').classList.remove('active');
+        } else if (document.getElementById('exitConfirmModal').classList.contains('active')) {
+          hideExitConfirmation();
+        } else {
+          megaMenu.classList.remove('active');
+          closeVisualizer(); 
+          closeRoomModal(); 
+          document.getElementById('screenModal').classList.remove('active'); 
+        }
+      }
+    });
+  });
+
+})();
+</script>
+<!-- MODAL DETALLE PRODUCTO -->
+<div class="product-detail-modal" id="productDetailModal">
+  <div class="product-detail-content">
+    <div class="product-detail-image">
+      <button class="product-detail-close" id="btnCloseProductDetail"><i class="fas fa-times"></i></button>
+      <img id="detailProductImage" src="" alt="">
+    </div>
+    <div class="product-detail-info">
+        img src="imagenes/logo-alban.png" alt="Alban Ingeniería" class="h-8 w-auto object-contain mb-3" onerror="this.style.display='none'">
+      <p class="text-xs text-alban-yellow uppercase tracking-wider font-bold mb-2" id="detailProductCategory"></p>
+      <h2 class="text-2xl font-bold text-white mb-3" id="detailProductName"></h2>
+      <div class="flex items-center gap-3 mb-4 text-sm text-gray-400">
+        <span>Tipo: <span class="text-white font-semibold underline" id="detailProductType"></span></span>
+        <span class="text-gray-600">|</span>
+        <span>SKU: <span class="text-white font-mono" id="detailProductSku"></span></span>
+      </div>
+      <div class="mb-4"><div class="stock-badge"><span class="stock-dot"></span>Disponible en stock (<span id="detailProductStock">1250</span>)</div></div>
+      <div class="text-gray-300 text-sm leading-relaxed mb-6" id="detailProductDescription"></div>
+      <div class="grid grid-cols-2 gap-3 mb-6 text-xs">
+        <div class="bg-alban-black rounded-lg p-3 border border-gray-700"><p class="text-gray-400 mb-1"><i class="fas fa-ruler-combined mr-1"></i>Medidas</p><p class="text-white font-semibold" id="detailProductMeasures"></p></div>
+        <div class="bg-alban-black rounded-lg p-3 border border-gray-700"><p class="text-gray-400 mb-1"><i class="fas fa-palette mr-1"></i>Ambiente</p><p class="text-white font-semibold" id="detailProductAmbiente"></p></div>
+      </div>
+      <div class="flex gap-3">
+        <button id="btnAddToCartDetail" class="flex-1 px-6 py-3 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 transition flex items-center justify-center gap-2"><i class="fas fa-cart-plus"></i><span>Agregar al Carrito</span></button>
+        <button id="btnVisualizeProduct" class="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 border border-gray-700 transition flex items-center gap-2"><i class="fas fa-magic"></i><span>Visualizar</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
