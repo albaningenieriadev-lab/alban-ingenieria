@@ -381,24 +381,87 @@ header .max-w-7xl {
     <h2 class="text-5xl font-bold text-white mb-6">CONTACTO</h2>
     <div class="w-24 h-1 bg-alban-yellow mx-auto"></div>
   </div>
-  <div class="max-w-4xl mx-auto grid md:grid-cols-3 gap-6">
+  
+  <div class="max-w-4xl mx-auto grid md:grid-cols-3 gap-6 mb-12">
     <div class="bg-alban-card border border-gray-800 rounded-2xl p-6 text-center hover:border-alban-yellow transition">
-      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fab fa-whatsapp text-3xl text-alban-yellow"></i></div>
+      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fab fa-whatsapp text-3xl text-alban-yellow"></i>
+      </div>
       <h3 class="text-white font-bold mb-2">WhatsApp</h3>
       <p class="text-gray-400 text-sm mb-4">Atención inmediata</p>
-      <a href="https://wa.me/5212345678900" target="_blank" class="text-alban-yellow font-semibold hover:underline">+52 123 456 7890</a>
+      <a href="https://wa.me/5219612439114" target="_blank" class="text-alban-yellow font-semibold hover:underline">+52 961 243 9114</a>
     </div>
+    
     <div class="bg-alban-card border border-gray-800 rounded-2xl p-6 text-center hover:border-alban-yellow transition">
-      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-envelope text-3xl text-alban-yellow"></i></div>
+      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-envelope text-3xl text-alban-yellow"></i>
+      </div>
       <h3 class="text-white font-bold mb-2">Email</h3>
       <p class="text-gray-400 text-sm mb-4">Respuesta en 24 hrs</p>
-      <a href="mailto:contacto@albaningenieria.com" class="text-alban-yellow font-semibold hover:underline">contacto@albaningenieria.com</a>
+      <a href="mailto:operacionalbaningenieria@gmail.com" class="text-alban-yellow font-semibold hover:underline">operacionalbaningenieria@gmail.com</a>
     </div>
+    
     <div class="bg-alban-card border border-gray-800 rounded-2xl p-6 text-center hover:border-alban-yellow transition">
-      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fas fa-phone text-3xl text-alban-yellow"></i></div>
+      <div class="w-16 h-16 bg-alban-yellow/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-phone text-3xl text-alban-yellow"></i>
+      </div>
       <h3 class="text-white font-bold mb-2">Teléfono</h3>
       <p class="text-gray-400 text-sm mb-4">Lun-Sáb 8:00-18:00</p>
-      <a href="tel:+5212345678900" class="text-alban-yellow font-semibold hover:underline">+52 123 456 7890</a>
+      <a href="tel:+529612439114" class="text-alban-yellow font-semibold hover:underline">+52 961 243 9114</a>
+    </div>
+  </div>
+
+  <!-- FORMULARIO DE CONTACTO -->
+  <div class="max-w-2xl mx-auto bg-alban-card border border-gray-800 rounded-2xl p-8">
+    <h3 class="text-2xl font-bold text-white mb-2 text-center">Envíanos un mensaje</h3>
+    <p class="text-gray-400 text-sm text-center mb-6">Te responderemos lo antes posible</p>
+    
+    <form id="contactForm" class="space-y-4">
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1 font-semibold">NOMBRE *</label>
+          <input type="text" id="contactNombre" required 
+                 class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-3 text-sm focus:border-alban-yellow focus:outline-none transition">
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1 font-semibold">TELÉFONO *</label>
+          <input type="tel" id="contactTelefono" required 
+                 class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-3 text-sm focus:border-alban-yellow focus:outline-none transition">
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-xs text-gray-400 mb-1 font-semibold">EMAIL</label>
+        <input type="email" id="contactEmail" 
+               class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-3 text-sm focus:border-alban-yellow focus:outline-none transition">
+      </div>
+      
+      <div>
+        <label class="block text-xs text-gray-400 mb-1 font-semibold">SUCURSAL DE INTERÉS *</label>
+        <select id="contactSucursal" required 
+                class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-3 text-sm focus:border-alban-yellow focus:outline-none transition">
+          <option value="">-- Selecciona una sucursal --</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-xs text-gray-400 mb-1 font-semibold">MENSAJE *</label>
+        <textarea id="contactMensaje" required rows="4" 
+                  class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-3 text-sm focus:border-alban-yellow focus:outline-none transition resize-none"></textarea>
+      </div>
+      
+      <button type="submit" id="btnEnviarContacto" 
+              class="w-full px-6 py-3 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 transition flex items-center justify-center gap-2">
+        <i class="fas fa-paper-plane"></i>
+        <span>Enviar mensaje</span>
+      </button>
+    </form>
+    
+    <!-- Mensaje de éxito (oculto por defecto) -->
+    <div id="contactSuccess" class="hidden mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-lg text-center">
+      <i class="fas fa-check-circle text-green-500 text-2xl mb-2"></i>
+      <p class="text-green-400 font-semibold">¡Mensaje enviado con éxito!</p>
+      <p class="text-gray-400 text-sm">Te contactaremos pronto.</p>
     </div>
   </div>
 </section>
@@ -853,6 +916,82 @@ async function loadSucursales() {
     
   } catch (error) {
     console.error('Error cargando sucursales:', error);
+  }
+}
+// ==========================================
+// FORMULARIO DE CONTACTO
+// ==========================================
+
+function poblarSelectorContacto() {
+  const selector = document.getElementById('contactSucursal');
+  if (!selector) return;
+  
+  selector.innerHTML = '<option value="">-- Selecciona una sucursal --</option>';
+  
+  sucursales.forEach(sucursal => {
+    const option = document.createElement('option');
+    option.value = sucursal.id;
+    option.textContent = sucursal.nombre.replace('Alban Sucursal ', '');
+    selector.appendChild(option);
+  });
+}
+
+async function enviarContacto(event) {
+  event.preventDefault();
+  
+  const btn = document.getElementById('btnEnviarContacto');
+  const nombre = document.getElementById('contactNombre').value.trim();
+  const telefono = document.getElementById('contactTelefono').value.trim();
+  const email = document.getElementById('contactEmail').value.trim();
+  const sucursalId = document.getElementById('contactSucursal').value;
+  const mensaje = document.getElementById('contactMensaje').value.trim();
+  
+  // Validaciones
+  if (!nombre || !telefono || !sucursalId || !mensaje) {
+    alert('⚠️ Por favor completa todos los campos obligatorios (*)');
+    return;
+  }
+  
+  // Deshabilitar botón mientras envía
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+  
+  try {
+    const { data, error } = await supabase
+      .from('contactos')
+      .insert([{
+        nombre: nombre,
+        telefono: telefono,
+        email: email || null,
+        sucursal_id: parseInt(sucursalId),
+        mensaje: mensaje,
+        leido: false
+      }]);
+    
+    if (error) throw error;
+    
+    // Mostrar mensaje de éxito
+    document.getElementById('contactForm').classList.add('hidden');
+    document.getElementById('contactSuccess').classList.remove('hidden');
+    
+    // Limpiar formulario
+    document.getElementById('contactForm').reset();
+    
+    console.log('✅ Mensaje de contacto guardado en Supabase');
+    
+    // Restaurar después de 5 segundos
+    setTimeout(function() {
+      document.getElementById('contactForm').classList.remove('hidden');
+      document.getElementById('contactSuccess').classList.add('hidden');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Enviar mensaje</span>';
+    }, 5000);
+    
+  } catch (error) {
+    console.error('Error enviando contacto:', error);
+    alert('❌ Error al enviar el mensaje. Por favor intenta de nuevo.');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Enviar mensaje</span>';
   }
 }
 
@@ -1754,6 +1893,14 @@ document.addEventListener('DOMContentLoaded', function() {
     loadSucursales();
     // 2. Inicializar otras funciones (menús, etc.)
     loadCart();
+     // Poblar selector del formulario de contacto
+  poblarSelectorContacto();
+  
+  // Event listener del formulario de contacto
+  const contactForm = document.getElementById('contactForm');
+  if (contactForm) {
+    contactForm.addEventListener('submit', enviarContacto);
+  }
 
     var urlParams = new URLSearchParams(window.location.search);
     isScreenMode = urlParams.get('modo') === 'pantalla';
