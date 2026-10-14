@@ -815,7 +815,51 @@ async function loadProducts() {
     console.error('Error cargando productos:', error);
     alert('Error al cargar el catálogo. Por favor, recarga la página.');
   }
-}  var cart = [];
+}
+// ==========================================
+// CARGAR SUCURSALES DESDE SUPABASE
+// ==========================================
+let sucursales = [];
+let sucursalSeleccionada = null;
+
+async function loadSucursales() {
+  try {
+    const { data, error } = await supabase
+      .from('sucursales')
+      .select('*')
+      .eq('activo', true)
+      .order('nombre', { ascending: true });
+    
+    if (error) throw error;
+    
+    sucursales = data;
+    console.log(`✅ ${sucursales.length} sucursales cargadas desde Supabase`);
+    
+    // Poblar el selector del modal de cotización
+    poblarSelectorSucursales();
+    
+  } catch (error) {
+    console.error('Error cargando sucursales:', error);
+  }
+}
+
+function poblarSelectorSucursales() {
+  const selector = document.getElementById('sucursalSelector');
+  if (!selector) return;
+  
+  // Limpiar opciones existentes (excepto la primera)
+  selector.innerHTML = '<option value="">-- Selecciona una sucursal --</option>';
+  
+  sucursales.forEach(sucursal => {
+    const option = document.createElement('option');
+    option.value = sucursal.whatsapp; // El número de WhatsApp
+    option.textContent = sucursal.nombre.replace('Alban Sucursal ', ''); // Nombre limpio
+    option.dataset.telefono = sucursal.telefono;
+    option.dataset.horario = sucursal.horario;
+    selector.appendChild(option);
+  });
+}
+  var cart = [];
   var currentFilter = { categoria: 'all', subcategoria: 'all' };
   var currentRoom = 'sala';
   var customImage = null;
@@ -1429,34 +1473,68 @@ imgDiv.addEventListener('click', function(e) {
     document.getElementById('reviewTotal').textContent = cart.length + ' productos';
     document.getElementById('quoteReviewModal').classList.add('active');
   }
-
+<!-- SELECTOR DE SUCURSAL (NUEVO) -->
+<div class="mb-4 p-4 bg-alban-yellow/10 border border-alban-yellow/30 rounded-lg">
+  <p class="text-xs text-alban-yellow font-bold mb-2">
+    <i class="fas fa-store mr-1"></i> SUCURSAL DESTINO
+  </p>
+  <select id="sucursalSelector" class="w-full bg-alban-black border-2 border-alban-yellow text-white rounded-lg p-3 text-sm font-semibold focus:outline-none focus:border-yellow-400">
+    <option value="">-- Selecciona una sucursal --</option>
+  </select>
+  <div id="sucursalInfo" class="mt-2 text-xs text-gray-400 hidden">
+    <p><i class="fas fa-phone mr-1"></i> <span id="sucursalTelefono"></span></p>
+    <p><i class="fas fa-clock mr-1"></i> <span id="sucursalHorario"></span></p>
+  </div>
+</div>
   function sendQuoteWhatsApp() {
-    var clientName = document.getElementById('clientName').value.trim();
-    var clientPhone = document.getElementById('clientPhone').value.trim();
-    var clientNotes = document.getElementById('clientNotes').value.trim();
-    var msg = '🏠 *COTIZACIÓN ALBAN INGENIERÍA*\n';
-    msg += '━━━━━━━━━━━━━━━━━━━━\n\n';
-    if (clientName) msg += '👤 *Cliente:* ' + clientName + '\n';
-    if (clientPhone) msg += '📱 *Teléfono:* ' + clientPhone + '\n';
-    if (clientName || clientPhone) msg += '\n';
-    msg += '📋 *PRODUCTOS COTIZADOS:*\n\n';
-    for (var i = 0; i < cart.length; i++) {
-      msg += '✅ *' + cart[i].nombre + '*\n';
-      msg += '   SKU: ' + cart[i].sku + '\n';
-      msg += '   Categoría: ' + cart[i].categoria + '\n';
-      msg += '   Cantidad: ' + cart[i].quantity + ' m²\n\n';
-    }
-    msg += '━━━━━━━━━━━━━━━━━━━━\n';
-    msg += '📞 *Por favor contactarme para cotización personalizada.*\n\n';
-    if (clientNotes) {
-      msg += '📝 *Notas:* ' + clientNotes + '\n\n';
-    }
-    msg += '¡Gracias por su interés en Alban Ingeniería!';
-    window.open('https://wa.me/5212345678900?text=' + encodeURIComponent(msg), '_blank');
-    document.getElementById('clientName').value = '';
-    document.getElementById('clientPhone').value = '';
-    document.getElementById('clientNotes').value = '';
+  // Validar que se haya seleccionado una sucursal
+  if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
+    alert('⚠️ Por favor selecciona una sucursal destino antes de enviar la cotización.');
+    return;
   }
+  
+  const clientName = document.getElementById('clientName').value.trim();
+  const clientPhone = document.getElementById('clientPhone').value.trim();
+  const clientNotes = document.getElementById('clientNotes').value.trim();
+  
+  let msg = '🏠 *COTIZACIÓN ALBAN INGENIERÍA*\n';
+  msg += '━━━━━━━━━━━━━━━━━━━━\n\n';
+  msg += '📍 *Sucursal destino:* ' + sucursalSeleccionada.nombre + '\n\n';
+  
+  if (clientName) msg += '👤 *Cliente:* ' + clientName + '\n';
+  if (clientPhone) msg += '📱 *Teléfono:* ' + clientPhone + '\n';
+  if (clientName || clientPhone) msg += '\n';
+  
+  msg += '📋 *PRODUCTOS COTIZADOS:*\n\n';
+  
+  for (let i = 0; i < cart.length; i++) {
+    msg += '✅ *' + cart[i].nombre + '*\n';
+    msg += '   SKU: ' + cart[i].sku + '\n';
+    msg += '   Categoría: ' + cart[i].categoria + '\n';
+    msg += '   Cantidad: ' + cart[i].quantity + ' m²\n\n';
+  }
+  
+  msg += '━━━━━━━━━━━━━━━━━━━━\n';
+  msg += '📞 *Por favor contactarme para cotización personalizada.*\n\n';
+  
+  if (clientNotes) {
+    msg += '📝 *Notas:* ' + clientNotes + '\n\n';
+  }
+  
+  msg += '¡Gracias por su interés en Alban Ingeniería!';
+  
+  // Abrir WhatsApp con el número de la sucursal seleccionada
+  const whatsappUrl = 'https://wa.me/' + sucursalSeleccionada.whatsapp + '?text=' + encodeURIComponent(msg);
+  window.open(whatsappUrl, '_blank');
+  
+  // Limpiar formulario
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientPhone').value = '';
+  document.getElementById('clientNotes').value = '';
+  document.getElementById('sucursalSelector').value = '';
+  document.getElementById('sucursalInfo').classList.add('hidden');
+  sucursalSeleccionada = null;
+}
 
   function saveImageAsJPG() {
     var canvas = document.getElementById('mainCanvas');
@@ -1672,6 +1750,7 @@ document.getElementById('btnHome').addEventListener('click', resetToHome);
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Cargar productos desde Supabase
     loadProducts();
+    loadSucursales();
     // 2. Inicializar otras funciones (menús, etc.)
     loadCart();
 
@@ -1700,6 +1779,29 @@ document.addEventListener('DOMContentLoaded', function() {
       
     }
     // Scroll suave para el menú Nosotros
+// Evento para mostrar información de la sucursal seleccionada
+const sucursalSelector = document.getElementById('sucursalSelector');
+if (sucursalSelector) {
+  sucursalSelector.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const infoDiv = document.getElementById('sucursalInfo');
+    
+    if (this.value && selectedOption.dataset.telefono) {
+      document.getElementById('sucursalTelefono').textContent = selectedOption.dataset.telefono;
+      document.getElementById('sucursalHorario').textContent = selectedOption.dataset.horario || 'Consultar';
+      infoDiv.classList.remove('hidden');
+      sucursalSeleccionada = {
+        whatsapp: this.value,
+        nombre: selectedOption.textContent,
+        telefono: selectedOption.dataset.telefono
+      };
+    } else {
+      infoDiv.classList.add('hidden');
+      sucursalSeleccionada = null;
+    }
+  });
+}
+
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function(e) {
     var target = document.querySelector(this.getAttribute('href'));
