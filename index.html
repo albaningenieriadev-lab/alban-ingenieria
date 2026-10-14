@@ -1140,12 +1140,13 @@ function poblarSelectorSucursales() {
   };
 
   function updateCategoryDisplay() {
-    var display = document.getElementById('currentCategoryDisplay');
-    var catLabel = currentFilter.categoria === 'all' ? 'Todos los productos' : currentFilter.categoria;
-    var subLabel = currentFilter.subcategoria && currentFilter.subcategoria !== 'all' ? ' > ' + currentFilter.subcategoria : '';
-    display.innerHTML = '<i class="fas fa-filter mr-2"></i>Mostrando: <span class="text-alban-yellow font-bold">' + catLabel + subLabel + '</span>';
-  }
-
+  var display = document.getElementById('currentCategoryDisplay');
+  if (!display) return;  // ← AGREGA ESTA LÍNEA
+  
+  var catLabel = currentFilter.categoria === 'all' ? 'Todos los productos' : currentFilter.categoria;
+  var subLabel = currentFilter.subcategoria && currentFilter.subcategoria !== 'all' ? ' > ' + currentFilter.subcategoria : '';
+  display.innerHTML = '<i class="fas fa-filter mr-2"></i>Mostrando: <span class="text-alban-yellow font-bold">' + catLabel + subLabel + '</span>';
+}
   function updateCategoryHero() {
     var data = categoryImages[currentFilter.categoria] || categoryImages['all'];
     document.getElementById('heroImage').src = data.img;
