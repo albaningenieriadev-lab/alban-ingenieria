@@ -694,6 +694,19 @@ header .max-w-7xl {
             <span class="text-alban-yellow font-bold text-2xl" id="reviewTotal">0</span>
           </div>
         </div>
+        <!-- SELECTOR DE SUCURSAL (NUEVO) -->
+<div class="mb-4 p-4 bg-alban-yellow/10 border border-alban-yellow/30 rounded-lg">
+  <p class="text-xs text-alban-yellow font-bold mb-2">
+    <i class="fas fa-store mr-1"></i> SUCURSAL DESTINO
+  </p>
+  <select id="sucursalSelector" class="w-full bg-alban-black border-2 border-alban-yellow text-white rounded-lg p-3 text-sm font-semibold focus:outline-none focus:border-yellow-400">
+    <option value="">-- Selecciona una sucursal --</option>
+  </select>
+  <div id="sucursalInfo" class="mt-2 text-xs text-gray-400 hidden">
+    <p><i class="fas fa-phone mr-1"></i> <span id="sucursalTelefono"></span></p>
+    <p><i class="fas fa-clock mr-1"></i> <span id="sucursalHorario"></span></p>
+  </div>
+</div>
         <div class="mt-6 p-4 bg-alban-yellow/10 border border-alban-yellow/30 rounded-lg">
           <p class="text-xs text-alban-yellow font-bold mb-2"><i class="fas fa-info-circle mr-1"></i> DATOS DEL CLIENTE (opcional)</p>
           <input type="text" id="clientName" placeholder="Nombre del cliente" class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 mb-2 text-sm focus:border-alban-yellow focus:outline-none">
@@ -1473,19 +1486,7 @@ imgDiv.addEventListener('click', function(e) {
     document.getElementById('reviewTotal').textContent = cart.length + ' productos';
     document.getElementById('quoteReviewModal').classList.add('active');
   }
-<!-- SELECTOR DE SUCURSAL (NUEVO) -->
-<div class="mb-4 p-4 bg-alban-yellow/10 border border-alban-yellow/30 rounded-lg">
-  <p class="text-xs text-alban-yellow font-bold mb-2">
-    <i class="fas fa-store mr-1"></i> SUCURSAL DESTINO
-  </p>
-  <select id="sucursalSelector" class="w-full bg-alban-black border-2 border-alban-yellow text-white rounded-lg p-3 text-sm font-semibold focus:outline-none focus:border-yellow-400">
-    <option value="">-- Selecciona una sucursal --</option>
-  </select>
-  <div id="sucursalInfo" class="mt-2 text-xs text-gray-400 hidden">
-    <p><i class="fas fa-phone mr-1"></i> <span id="sucursalTelefono"></span></p>
-    <p><i class="fas fa-clock mr-1"></i> <span id="sucursalHorario"></span></p>
-  </div>
-</div>
+
   function sendQuoteWhatsApp() {
   // Validar que se haya seleccionado una sucursal
   if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
