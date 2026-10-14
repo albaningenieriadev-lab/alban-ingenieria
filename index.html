@@ -913,7 +913,8 @@ async function loadSucursales() {
     
     // Poblar el selector del modal de cotización
     poblarSelectorSucursales();
-    
+    // ✅ AGREGA ESTA LÍNEA: poblar también el formulario de contacto
+    poblarSelectorContacto();    
   } catch (error) {
     console.error('Error cargando sucursales:', error);
   }
@@ -1894,7 +1895,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 2. Inicializar otras funciones (menús, etc.)
     loadCart();
      // Poblar selector del formulario de contacto
-  poblarSelectorContacto();
+     //poblarSelectorContacto();
   
   // Event listener del formulario de contacto
   const contactForm = document.getElementById('contactForm');
@@ -2004,14 +2005,13 @@ document.addEventListener('keydown', function(e) {
       });
     });
 
-    document.addEventListener('click', function(e) {
-      if (!document.getElementById('megaMenuContainer').contains(e.target)) {
-        megaMenu.classList.remove('active');
-      }
-    });
+  document.addEventListener('click', function(e) {
+  var megaMenuContainer = document.getElementById('megaMenuContainer');
+  if (megaMenuContainer && !megaMenuContainer.contains(e.target)) {
+    megaMenu.classList.remove('active');
+  }
+});
 
-    updateCategoryHero();
-    renderProducts(products);
     loadCart();
 
     document.getElementById('btnConnectScreen').addEventListener('click', function() {
