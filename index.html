@@ -2377,17 +2377,18 @@ document.addEventListener('DOMContentLoaded', function() {
   if (productDetailModal) {
     productDetailModal.addEventListener('click', function(e) {
       if (e.target === productDetailModal) closeProductDetail();
-    });
+       });
   }
+});
 
 }); // ← 1. CIERRA DOMContentLoaded
 
-})(); // ← 2. CIERRA LA FUNCIÓN (function() { DEL INICIO DEL ARCHIVO
-</script>
+})(); // ← 2. CIERRA LA FUNCIÓN
+  </script>
 
-<!-- ========================================== -->
-<!-- MODALES HTML (DEBEN IR DESPUÉS DE </script>) -->
-<!-- ========================================== -->
+  <!-- ========================================== -->
+  <!-- MODALES HTML (DEBEN IR DESPUÉS DE </script>) -->
+  <!-- ========================================== -->
 
 <!-- MODAL DETALLE PRODUCTO -->
 <div class="product-detail-modal" id="productDetailModal">
