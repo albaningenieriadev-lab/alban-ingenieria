@@ -2398,7 +2398,7 @@ document.getElementById('productDetailModal').addEventListener('click', function
   if (e.target === document.getElementById('productDetailModal')) closeProductDetail();
 });
 
-    // ==========================================
+        // ==========================================
     // CERRAR MODAL CON TECLA ESCAPE
     // ==========================================
     document.addEventListener('keydown', function(e) {
@@ -2411,225 +2411,52 @@ document.getElementById('productDetailModal').addEventListener('click', function
     });
 
     // ==========================================
-    // MEGA MENU LOGIC
+    // SCROLL SUAVE Y SELECTOR DE SUCURSAL
     // ==========================================
-    var btnMegaMenu = document.getElementById('btnMegaMenu');
-    var megaMenu = document.getElementById('megaMenu');
-    var megaMenuItems = megaMenu ? megaMenu.querySelectorAll('.mega-item') : [];
-
-    if (btnMegaMenu) {
-      btnMegaMenu.addEventListener('click', function(e) {
-        e.stopPropagation();
-        megaMenu.classList.toggle('active');
-      });
-    }
-
-    megaMenuItems.forEach(function(item) {
-      item.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var categoria = item.getAttribute('data-cat');
-        var subcategoria = item.getAttribute('data-sub');
-        currentFilter.categoria = categoria;
-        currentFilter.subcategoria = subcategoria;
-        applyFilters();
-        updateCategoryHero();
-        updateCategoryDisplay();
+    const sucursalSelector = document.getElementById('sucursalSelector');
+    if (sucursalSelector) {
+      sucursalSelector.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const infoDiv = document.getElementById('sucursalInfo');
         
-        var label = categoria === 'all' ? 'Catálogo' : categoria;
-        if (subcategoria && subcategoria !== 'all') {
-          label += ' > ' + subcategoria;
-        }
-        var currentCategoryLabel = document.getElementById('currentCategoryLabel');
-        if (currentCategoryLabel) currentCategoryLabel.textContent = label;
-        
-        megaMenu.classList.remove('active');
-      });
-    });
-
-    document.addEventListener('click', function(e) {
-      var megaMenuContainer = document.getElementById('megaMenuContainer');
-      if (megaMenuContainer && !megaMenuContainer.contains(e.target)) {
-        megaMenu.classList.remove('active');
-      }
-    });
-
-    loadCart();
-
-    document.getElementById('btnConnectScreen').addEventListener('click', function() {
-      document.getElementById('screenModal').classList.add('active');
-      document.body.style.overflow = 'hidden';
-    });
-    document.getElementById('btnCloseScreenModal').addEventListener('click', function() {
-      document.getElementById('screenModal').classList.remove('active');
-      document.body.style.overflow = '';
-    });
-    document.getElementById('btnGenerateCode').addEventListener('click', initPeerAsHost);
-
-    document.getElementById('btnCotizacion').addEventListener('click', function() { document.getElementById('quoteBar').classList.toggle('active'); });
-    document.getElementById('btnCloseRoomModal').addEventListener('click', closeRoomModal);
-    document.getElementById('btnCancelRoom').addEventListener('click', closeRoomModal);
-    document.getElementById('btnClear').addEventListener('click', clearQuote);
-    document.getElementById('btnOpenChat').addEventListener('click', toggleChatbot);
-    document.getElementById('btnCloseChat').addEventListener('click', toggleChatbot);
-    
-    // ✅ AQUÍ ESTÁ LA CORRECCIÓN: SIN PARÉNTESIS en sendChatMessage
-    document.getElementById('btnSendChat').addEventListener('click', sendChatMessage);
-    
-    document.getElementById('chatInput').addEventListener('keypress', function(e) { 
-      if (e.key === 'Enter') sendChatMessage(); 
-    });
-
-    document.getElementById('btnVisualizer').addEventListener('click', openRoomModal);
-    document.getElementById('btnReviewQuote').addEventListener('click', showQuoteReview);
-    document.getElementById('btnWhatsApp').addEventListener('click', showQuoteReview);
-    document.getElementById('btnCloseReview').addEventListener('click', function() {
-      document.getElementById('quoteReviewModal').classList.remove('active');
-    });
-    document.getElementById('btnEditQuote').addEventListener('click', function() {
-      document.getElementById('quoteReviewModal').classList.remove('active');
-      document.getElementById('quoteBar').classList.add('active');
-    });
-    document.getElementById('btnConfirmSend').addEventListener('click', function() {
-      sendQuoteWhatsApp();
-      document.getElementById('quoteReviewModal').classList.remove('active');
-      showNotification('Cotización enviada por WhatsApp');
-    });
-
-    document.getElementById('btnBackToRooms').addEventListener('click', function() {
-      if (hasAppliedMaterials()) {
-        showExitConfirmation('change');
-      } else {
-        closeVisualizer();
-        openRoomModal();
-      }
-    });
-
-    document.getElementById('btnCloseVisualizer').addEventListener('click', function() {
-      if (hasAppliedMaterials()) {
-        showExitConfirmation('close');
-      } else {
-        closeVisualizer();
-      }
-    });
-
-    document.getElementById('btnSaveAndSend').addEventListener('click', function() {
-      saveImageAsJPG();
-      hideExitConfirmation();
-      setTimeout(function() { showQuoteReview(); }, 500);
-    });
-
-    document.getElementById('btnSaveOnly').addEventListener('click', function() {
-      saveImageAsJPG();
-      hideExitConfirmation();
-      showNotification('Imagen guardada en formato JPG');
-      setTimeout(function() { executePendingAction(); }, 500);
-    });
-
-    document.getElementById('btnDiscard').addEventListener('click', function() {
-      hideExitConfirmation();
-      executePendingAction();
-    });
-
-    var roomOptions = document.querySelectorAll('.room-option');
-    var uploadedPreview = document.getElementById('uploadedPreview');
-
-    roomOptions.forEach(function(option) {
-      option.addEventListener('click', function() {
-        roomOptions.forEach(function(o) { o.classList.remove('selected'); });
-        option.classList.add('selected');
-        currentRoom = option.getAttribute('data-room');
-        customImage = null;
-        uploadedPreview.classList.add('hidden');
-        document.getElementById('previewImage').src = '';
-      });
-    });
-
-    var uploadZone = document.getElementById('uploadZone');
-    var imageUpload = document.getElementById('imageUpload');
-    var previewImage = document.getElementById('previewImage');
-
-    uploadZone.addEventListener('click', function() { imageUpload.click(); });
-    uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); uploadZone.style.background = 'rgba(255,199,0,0.1)'; });
-    uploadZone.addEventListener('dragleave', function() { uploadZone.style.background = ''; });
-    uploadZone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      uploadZone.style.background = '';
-      var file = e.dataTransfer.files[0];
-      if (file && file.type.startsWith('image/')) handleImageUpload(file);
-    });
-    imageUpload.addEventListener('change', function(e) {
-      var file = e.target.files[0];
-      if (file) handleImageUpload(file);
-    });
-
-    function handleImageUpload(file) {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        previewImage.src = e.target.result;
-        customImage = e.target.result;
-        uploadedPreview.classList.remove('hidden');
-        roomOptions.forEach(function(o) { o.classList.remove('selected'); });
-        currentRoom = 'personalizado';
-      };
-      reader.readAsDataURL(file);
-    }
-
-    document.getElementById('btnStartVisualizer').addEventListener('click', function() { openVisualizer(); });
-    document.getElementById('mainCanvas').addEventListener('click', handleCanvasClick);
-    
-    document.getElementById('toleranceSlider').addEventListener('input', function() {
-      tolerance = parseInt(this.value);
-      document.getElementById('toleranceValue').textContent = tolerance;
-    });
-
-    document.getElementById('btnUndoZone').addEventListener('click', function() {
-      if (zones.length > 0) {
-        zones.pop();
-        currentZoneId = zones.length > 0 ? zones[zones.length - 1].id : null;
-        renderZonesList();
-        redrawAllZones();
-        broadcastToScreen();
-      }
-    });
-
-    document.getElementById('btnClearZones').addEventListener('click', function() {
-      zones = [];
-      currentZoneId = null;
-      document.getElementById('currentZone').textContent = 'Ninguna';
-      document.getElementById('zoneIndicator').classList.add('hidden');
-      renderZonesList();
-      redrawAllZones();
-      broadcastToScreen();
-    });
-
-    document.getElementById('catalogFilter').addEventListener('change', function() {
-      var search = document.getElementById('catalogSearch').value;
-      renderVisualizerCatalog(this.value, search);
-    });
-
-    document.getElementById('catalogSearch').addEventListener('input', function() {
-      var cat = document.getElementById('catalogFilter').value;
-      renderVisualizerCatalog(cat, this.value);
-    });
-
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') { 
-        var quoteModal = document.getElementById('quoteReviewModal');
-        var exitModal = document.getElementById('exitConfirmModal');
-        var screenModal = document.getElementById('screenModal');
-        
-        if (quoteModal && quoteModal.classList.contains('active')) {
-          quoteModal.classList.remove('active');
-        } else if (exitModal && exitModal.classList.contains('active')) {
-          hideExitConfirmation();
+        if (this.value && selectedOption.dataset.telefono) {
+          document.getElementById('sucursalTelefono').textContent = selectedOption.dataset.telefono;
+          document.getElementById('sucursalHorario').textContent = selectedOption.dataset.horario || 'Consultar';
+          infoDiv.classList.remove('hidden');
+          sucursalSeleccionada = {
+            whatsapp: this.value,
+            nombre: selectedOption.textContent,
+            telefono: selectedOption.dataset.telefono
+          };
         } else {
-          if (megaMenu) megaMenu.classList.remove('active');
-          closeVisualizer(); 
-          closeRoomModal(); 
-          if (screenModal) screenModal.classList.remove('active'); 
+          infoDiv.classList.add('hidden');
+          sucursalSeleccionada = null;
         }
-      }
+      });
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        var target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
     });
+
+    // === MODAL DETALLE PRODUCTO ===
+    const btnCloseProductDetail = document.getElementById('btnCloseProductDetail');
+    if (btnCloseProductDetail) {
+      btnCloseProductDetail.addEventListener('click', closeProductDetail);
+    }
+    
+    const productDetailModal = document.getElementById('productDetailModal');
+    if (productDetailModal) {
+      productDetailModal.addEventListener('click', function(e) {
+        if (e.target === productDetailModal) closeProductDetail();
+      });
+    }
 
   }); // ← 1. CIERRA DOMContentLoaded
 
@@ -2728,5 +2555,6 @@ document.getElementById('productDetailModal').addEventListener('click', function
   </div>
   <div id="samplesList" class="flex gap-2 overflow-x-auto pb-1 min-w-[200px] max-w-[70vw]"></div>
 </div>
+
 </body>
 </html>
