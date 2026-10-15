@@ -2347,7 +2347,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // ==========================================
   // SELECTOR DE SUCURSAL Y MODALES
   // ==========================================
-  const sucursalSelector = document.getElementById('sucursalSelector');
+  var sucursalSelector = document.getElementById('sucursalSelector');
   if (sucursalSelector) {
     sucursalSelector.addEventListener('change', function() {
       const selectedOption = this.options[this.selectedIndex];
