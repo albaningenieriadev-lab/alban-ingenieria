@@ -2357,27 +2357,21 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btnCapture) btnCapture.addEventListener('click', capturePhoto);
   
   const btnSaveSample = document.getElementById('btnSaveSample');
+    const btnSaveSample = document.getElementById('btnSaveSample');
   if (btnSaveSample) btnSaveSample.addEventListener('click', saveSample);
   
   const btnRetake = document.getElementById('btnRetake');
-  if (btnRetake) btnRetake.addEventListener('click', () => { capturePreview.classList.add('hidden'); currentCapture = null; });
+  if (btnRetake) btnRetake.addEventListener('click', () => { 
+    capturePreview.classList.add('hidden'); 
+    currentCapture = null; 
+  });
   
   const btnClearSamples = document.getElementById('btnClearSamples');
   if (btnClearSamples) btnClearSamples.addEventListener('click', clearAllSamples);
-  
-    });
-  }
-  
-      const btnClearSamples = document.getElementById('btnClearSamples');
-      if (btnClearSamples) {
-      btnClearSamples.addEventListener('click', clearAllSamples);
-      }
-      return;
-      
-    }
-    // Scroll suave para el menú Nosotros
-// Evento para mostrar información de la sucursal seleccionada
-const sucursalSelector = document.getElementById('sucursalSelector');
+
+  // Scroll suave para el menú Nosotros
+  const sucursalSelector = document.getElementById('sucursalSelector');
+
 if (sucursalSelector) {
   sucursalSelector.addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
