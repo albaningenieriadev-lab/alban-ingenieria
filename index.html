@@ -1860,6 +1860,27 @@ function sendChatMessage() {
 function processBotResponse(userMsg) {
   var lowerMsg = userMsg.toLowerCase();
 
+  // 🤝 DESPEDIDAS Y AGRADECIMIENTOS (agregar al inicio, después de var lowerMsg)
+if (lowerMsg.includes('gracias') || lowerMsg.includes('thank') || lowerMsg.includes('agradezco')) {
+  addMessageHTML('¡Con gusto! 😊 Estoy aquí para ayudarte.<br><br>Si necesitas una cotización personalizada o tienes dudas específicas, puedes:<br>• 📱 Escribirnos por <b>WhatsApp</b> (botón verde abajo)<br>• 📧 Llenar el <b>formulario de contacto</b><br>• 🏢 Visitar cualquiera de nuestras <b>3 sucursales</b><br><br>¡Que tengas un excelente día! ', 'bot');
+  return;
+}
+
+if (lowerMsg.includes('adios') || lowerMsg.includes('adiós') || lowerMsg.includes('hasta luego') || lowerMsg.includes('nos vemos') || lowerMsg.includes('bye')) {
+  addMessageHTML('¡Hasta pronto! 👋 Fue un placer atenderte.<br><br>Recuerda que puedes volver cuando quieras para consultar nuestro catálogo de más de 240 productos.<br><br>¡Éxito en tu proyecto! 🏠✨', 'bot');
+  return;
+}
+
+if (lowerMsg.includes('ok') || lowerMsg.includes('entiendo') || lowerMsg.includes('perfecto') || lowerMsg.includes('listo') || lowerMsg.includes('ya vi')) {
+  addMessageHTML('¡Perfecto! 😊 ¿Hay algo más en lo que pueda ayudarte?<br><br>Puedes preguntarme sobre:<br>• Productos específicos (ej: "lambrin nogal")<br>• Precios y disponibilidad<br>• Horarios y sucursales<br>• O agregar productos a tu cotización', 'bot');
+  return;
+}
+
+if (lowerMsg.includes('no') || lowerMsg.includes('nada mas') || lowerMsg.includes('nada más') || lowerMsg.includes('eso es todo')) {
+  addMessageHTML('Entendido. 😊 Si más adelante necesitas algo, aquí estaré.<br><br>💡 <b>Recuerda:</b> También puedes contactarnos directamente por WhatsApp al <b>961 243 9114</b> para atención personalizada.<br><br>¡Gracias por visitar Alban Ingeniería! 🏠', 'bot');
+  return;
+}
+
   // Saludos básicos
   if (lowerMsg.includes('hola') || lowerMsg.includes('buenas') || lowerMsg.includes('hi')) {
     addMessageHTML('¡Hola! 👋 Bienvenido a <b>Alban Ingeniería</b>. ¿Buscas algún producto en específico?<br><br>💡 <i>Ejemplos de búsqueda:</i><br>• "lambrin nogal"<br>• "piso spc"<br>• "placa marmol"<br>• "plafon pvc"', 'bot');
