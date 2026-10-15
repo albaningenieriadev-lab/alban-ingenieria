@@ -893,130 +893,6 @@ let capturedSamples = [];  // Array para guardar las muestras
 let cameraStream = null;   // Stream de la cámara
 let currentCapture = null; // Captura temporal
 
-// Elementos del DOM
-const cameraModal = document.getElementById('cameraModal');
-const cameraVideo = document.getElementById('cameraVideo');
-const cameraCanvas = document.getElementById('cameraCanvas');
-const capturePreview = document.getElementById('capturePreview');
-const previewImg = document.getElementById('previewImg');
-const samplesPanel = document.getElementById('samplesPanel');
-const samplesList = document.getElementById('samplesList');
-const samplesCount = document.getElementById('samplesCount');
-
-// Abrir cámara
-async function openCamera() {
-  try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({ 
-      video: { 
-        facingMode: 'environment',  // Cámara trasera en móviles
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      } 
-    });
-    cameraVideo.srcObject = cameraStream;
-    cameraModal.classList.remove('hidden');
-    capturePreview.classList.add('hidden');
-    currentCapture = null;
-  } catch (error) {
-    console.error('Error al acceder a la cámara:', error);
-    alert('⚠️ No se pudo acceder a la cámara. Verifica los permisos del navegador.');
-  }
-}
-
-// Cerrar cámara
-function closeCamera() {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-    cameraStream = null;
-  }
-  cameraModal.classList.add('hidden');
-  capturePreview.classList.add('hidden');
-  currentCapture = null;
-}
-
-// Capturar foto
-function capturePhoto() {
-  const context = cameraCanvas.getContext('2d');
-  cameraCanvas.width = cameraVideo.videoWidth;
-  cameraCanvas.height = cameraVideo.videoHeight;
-  context.drawImage(cameraVideo, 0, 0);
-  
-  currentCapture = cameraCanvas.toDataURL('image/jpeg', 0.9);
-  previewImg.src = currentCapture;
-  capturePreview.classList.remove('hidden');
-}
-
-// Guardar muestra
-function saveSample() {
-  if (!currentCapture) return;
-  
-  const sampleName = document.getElementById('sampleName').value.trim() || 
-                     'Muestra ' + (capturedSamples.length + 1);
-  
-  const sample = {
-    id: Date.now(),
-    name: sampleName,
-    image: currentCapture,
-    timestamp: new Date().toISOString()
-  };
-  
-  capturedSamples.push(sample);
-  renderSamples();
-  
-  // Resetear
-  document.getElementById('sampleName').value = '';
-  capturePreview.classList.add('hidden');
-  currentCapture = null;
-  
-  showNotification('✅ Muestra "' + sampleName + '" guardada');
-}
-
-// Renderizar panel de muestras
-function renderSamples() {
-  samplesList.innerHTML = '';
-  samplesCount.textContent = capturedSamples.length;
-  
-  if (capturedSamples.length > 0) {
-    samplesPanel.classList.remove('hidden');
-  } else {
-    samplesPanel.classList.add('hidden');
-  }
-  
-  capturedSamples.forEach(sample => {
-    const item = document.createElement('div');
-    item.className = 'relative flex-shrink-0 group';
-    
-    item.innerHTML = `
-      <div class="w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-700 hover:border-alban-yellow transition cursor-pointer">
-        <img src="${sample.image}" alt="${sample.name}" class="w-full h-full object-cover">
-      </div>
-      <button class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition" 
-              onclick="deleteSample(${sample.id})">
-        <i class="fas fa-times"></i>
-      </button>
-      <p class="text-[10px] text-gray-400 mt-1 text-center truncate w-20">${sample.name}</p>
-    `;
-    
-    samplesList.appendChild(item);
-  });
-}
-
-// Eliminar muestra
-window.deleteSample = function(id) {
-  capturedSamples = capturedSamples.filter(s => s.id !== id);
-  renderSamples();
-};
-
-// Limpiar todas las muestras
-function clearAllSamples() {
-  if (capturedSamples.length === 0) return;
-  if (confirm('¿Eliminar todas las muestras capturadas?')) {
-    capturedSamples = [];
-    renderSamples();
-  }
-}
-
-
 // Función para cargar productos desde la base de datos
 async function loadProducts() {
   try {
@@ -2382,6 +2258,175 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.removeItem('alban_screen_code');
         window.location.href = window.location.pathname;
       });
+
+
+        // ==========================================
+  // INICIALIZACIÓN DE LA CÁMARA (dentro de DOMContentLoaded)
+  // ==========================================
+  
+  const cameraModal = document.getElementById('cameraModal');
+  const cameraVideo = document.getElementById('cameraVideo');
+  const cameraCanvas = document.getElementById('cameraCanvas');
+  const capturePreview = document.getElementById('capturePreview');
+  const previewImg = document.getElementById('previewImg');
+  const samplesPanel = document.getElementById('samplesPanel');
+  const samplesList = document.getElementById('samplesList');
+  const samplesCount = document.getElementById('samplesCount');
+
+  // Abrir cámara
+  async function openCamera() {
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      });
+      cameraVideo.srcObject = cameraStream;
+      cameraModal.classList.remove('hidden');
+      capturePreview.classList.add('hidden');
+      currentCapture = null;
+      console.log('✅ Cámara abierta correctamente');
+    } catch (error) {
+      console.error('Error al acceder a la cámara:', error);
+      alert('⚠️ No se pudo acceder a la cámara. Error: ' + error.message);
+    }
+  }
+
+  // Cerrar cámara
+  function closeCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+    cameraModal.classList.add('hidden');
+    capturePreview.classList.add('hidden');
+    currentCapture = null;
+  }
+
+  // Capturar foto
+  function capturePhoto() {
+    const context = cameraCanvas.getContext('2d');
+    cameraCanvas.width = cameraVideo.videoWidth;
+    cameraCanvas.height = cameraVideo.videoHeight;
+    context.drawImage(cameraVideo, 0, 0);
+    
+    currentCapture = cameraCanvas.toDataURL('image/jpeg', 0.9);
+    previewImg.src = currentCapture;
+    capturePreview.classList.remove('hidden');
+  }
+
+  // Guardar muestra
+  function saveSample() {
+    if (!currentCapture) return;
+    
+    const sampleName = document.getElementById('sampleName').value.trim() || 
+                       'Muestra ' + (capturedSamples.length + 1);
+    
+    const sample = {
+      id: Date.now(),
+      name: sampleName,
+      image: currentCapture,
+      timestamp: new Date().toISOString()
+    };
+    
+    capturedSamples.push(sample);
+    renderSamples();
+    
+    document.getElementById('sampleName').value = '';
+    capturePreview.classList.add('hidden');
+    currentCapture = null;
+    
+    showNotification('✅ Muestra "' + sampleName + '" guardada');
+  }
+
+  // Renderizar panel de muestras
+  function renderSamples() {
+    samplesList.innerHTML = '';
+    samplesCount.textContent = capturedSamples.length;
+    
+    if (capturedSamples.length > 0) {
+      samplesPanel.classList.remove('hidden');
+    } else {
+      samplesPanel.classList.add('hidden');
+    }
+    
+    capturedSamples.forEach(sample => {
+      const item = document.createElement('div');
+      item.className = 'relative flex-shrink-0 group';
+      
+      item.innerHTML = `
+        <div class="w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-700 hover:border-alban-yellow transition cursor-pointer">
+          <img src="${sample.image}" alt="${sample.name}" class="w-full h-full object-cover">
+        </div>
+        <button class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition" 
+                onclick="deleteSample(${sample.id})">
+          <i class="fas fa-times"></i>
+        </button>
+        <p class="text-[10px] text-gray-400 mt-1 text-center truncate w-20">${sample.name}</p>
+      `;
+      
+      samplesList.appendChild(item);
+    });
+  }
+
+  // Eliminar muestra
+  window.deleteSample = function(id) {
+    capturedSamples = capturedSamples.filter(s => s.id !== id);
+    renderSamples();
+  };
+
+  // Limpiar todas las muestras
+  function clearAllSamples() {
+    if (capturedSamples.length === 0) return;
+    if (confirm('¿Eliminar todas las muestras capturadas?')) {
+      capturedSamples = [];
+      renderSamples();
+    }
+  }
+
+  // ==========================================
+  // EVENT LISTENERS DE LA CÁMARA
+  // ==========================================
+  
+  const btnOpenCamera = document.getElementById('btnOpenCamera');
+  if (btnOpenCamera) {
+    btnOpenCamera.addEventListener('click', function() {
+      console.log(' Botón de cámara clickeado');
+      openCamera();
+    });
+  } else {
+    console.error('❌ No se encontró el botón btnOpenCamera');
+  }
+  
+  const btnCloseCamera = document.getElementById('btnCloseCamera');
+  if (btnCloseCamera) {
+    btnCloseCamera.addEventListener('click', closeCamera);
+  }
+  
+  const btnCapture = document.getElementById('btnCapture');
+  if (btnCapture) {
+    btnCapture.addEventListener('click', capturePhoto);
+  }
+  
+  const btnSaveSample = document.getElementById('btnSaveSample');
+  if (btnSaveSample) {
+    btnSaveSample.addEventListener('click', saveSample);
+  }
+  
+  const btnRetake = document.getElementById('btnRetake');
+  if (btnRetake) {
+    btnRetake.addEventListener('click', function() {
+      capturePreview.classList.add('hidden');
+      currentCapture = null;
+    });
+  }
+  
+  const btnClearSamples = document.getElementById('btnClearSamples');
+  if (btnClearSamples) {
+    btnClearSamples.addEventListener('click', clearAllSamples);
+  }
         // ==========================================
         // EVENTOS DE LA CÁMARA
         // ==========================================
