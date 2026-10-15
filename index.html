@@ -2345,7 +2345,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderSamples() {
     samplesList.innerHTML = '';
     samplesCount.textContent = capturedSamples.length;
-    
+
     if (capturedSamples.length > 0) {
       samplesPanel.classList.remove('hidden');
     } else {
@@ -2393,11 +2393,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnOpenCamera = document.getElementById('btnOpenCamera');
   if (btnOpenCamera) {
     btnOpenCamera.addEventListener('click', function() {
-      console.log(' Botón de cámara clickeado');
+      alert('¡El botón funciona! Intentando abrir cámara...');
+      console.log('📷 Botón de cámara clickeado');
       openCamera();
     });
   } else {
-    console.error('❌ No se encontró el botón btnOpenCamera');
+    console.error('❌ No se encontró el botón btnOpenCamera en el HTML');
   }
   
   const btnCloseCamera = document.getElementById('btnCloseCamera');
