@@ -2084,83 +2084,95 @@ function addToQuoteFromChat(productId) {
     try { currentConn.send({ type: 'image-update', image: dataUrl }); } catch(e) {}
   }
 
-  function hasAppliedMaterials() {
+   function hasAppliedMaterials() {
     return zones.length > 0 && zones.some(function(z) { return z.material; });
   }
-function openProductDetail (productId) {
-  // Buscar el producto en el array
-  var product = products.find(p => p.id === productId);
-  if (!product) return;
-  
-  // Actualizar imagen y textos con verificación de seguridad (evita errores null)
-  var img = document.getElementById('detailProductImage');
-  if (img) img.src = product.imagen_url;
-  
-  var cat = document.getElementById('detailProductCategory');
-  if (cat) cat.textContent = product.categoria;
-  
-  var name = document.getElementById('detailProductName');
-  if (name) name.textContent = product.nombre;
-  
-  var type = document.getElementById('detailProductType');
-  if (type) type.textContent = product.tipo_producto || 'Producto';
-  
-  var sku = document.getElementById('detailProductSku');
-  if (sku) sku.textContent = product.sku;
-  
-  var desc = document.getElementById('detailProductDescription');
-  if (desc) desc.textContent = product.descripcion || 'Producto de alta calidad de Alban Ingeniería. Ideal para proyectos de remodelación y construcción.';
-  
-  var measures = document.getElementById('detailProductMeasures');
-  if (measures) measures.textContent = product.medidas || 'Consultar';
-  
-  var ambiente = document.getElementById('detailProductAmbiente');
-  if (ambiente) ambiente.textContent = product.tipo_ambiente || 'General';
-  
-  
+
+  function openProductDetail(productId) {
+    var product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    var img = document.getElementById('detailProductImage');
+    if (img) img.src = product.imagen_url;
+    
+    var cat = document.getElementById('detailProductCategory');
+    if (cat) cat.textContent = product.categoria;
+    
+    var name = document.getElementById('detailProductName');
+    if (name) name.textContent = product.nombre;
+    
+    var type = document.getElementById('detailProductType');
+    if (type) type.textContent = product.tipo_producto || 'Producto';
+    
+    var sku = document.getElementById('detailProductSku');
+    if (sku) sku.textContent = product.sku;
+    
+    var desc = document.getElementById('detailProductDescription');
+    if (desc) desc.textContent = product.descripcion || 'Producto de alta calidad.';
+    
+    var measures = document.getElementById('detailProductMeasures');
+    if (measures) measures.textContent = product.medidas || 'Consultar';
+    
+    var ambiente = document.getElementById('detailProductAmbiente');
+    if (ambiente) ambiente.textContent = product.tipo_ambiente || 'General';
+    
+    var stockContainer = document.getElementById('detailStockByBranch');
+    if (stockContainer && product.inventario) {
+      stockContainer.innerHTML = '';
+      sucursales.forEach(s => {
+        var stock = product.inventario[s.id] || 0;
+        var row = document.createElement('div');
+        row.className = 'flex justify-between items-center bg-alban-black rounded-lg p-2 border border-gray-700';
+        
+        var stockClass = 'text-green-400';
+        var stockText = stock + ' m²';
+        if (stock === 0) {
+          stockClass = 'text-red-400';
+          stockText = 'Agotado';
+        } else if (stock < 50) {
+          stockClass = 'text-yellow-400';
+        }
+        
+        row.innerHTML = '<span class="text-xs text-gray-300"><i class="fas fa-map-marker-alt mr-1 text-alban-yellow"></i>' + s.nombre.replace('Alban Sucursal ', '') + '</span><span class="text-xs font-bold ' + stockClass + '">' + stockText + '</span>';
+        stockContainer.appendChild(row);
+      });
+    }
+    
+    var btnAdd = document.getElementById('btnAddToCartDetail');
+    if (btnAdd) {
+      btnAdd.onclick = function() {
+        addToQuote(product.id);
+        document.getElementById('productDetailModal').classList.remove('active');
+      };
+    }
+    
+    var btnVis = document.getElementById('btnVisualizeProduct');
+    if (btnVis) {
+      btnVis.onclick = function() {
+        document.getElementById('productDetailModal').classList.remove('active');
+        openRoomModal();
+        window._pendingProduct = product;
+      };
+    }
+    
+    var modal = document.getElementById('productDetailModal');
+    if (modal) modal.classList.add('active');
+  }
+
+  function closeProductDetail() {
+    document.getElementById('productDetailModal').classList.remove('active');
+  }
+
+  function resetToHome() {
+    currentFilter.categoria = 'all';
+    currentFilter.subcategoria = 'all';
+    updateCategoryHero();
+    updateCategoryDisplay();
+    applyFilters();
+    document.getElementById('currentCategoryLabel').textContent = 'Catálogo';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   
-  // Configurar botones con verificación
-  var btnAdd = document.getElementById('btnAddToCartDetail');
-  if (btnAdd) {
-    btnAdd.onclick = function() {
-      addToQuote(product.id);
-      document.getElementById('productDetailModal').classList.remove('active');
-    };
-  }
-  
-  var btnVis = document.getElementById('btnVisualizeProduct');
-  if (btnVis) {
-    btnVis.onclick = function() {
-      document.getElementById('productDetailModal').classList.remove('active');
-      openRoomModal();
-      window._pendingProduct = product;
-    };
-  }
-  
-  // Abrir modal
-  var modal = document.getElementById('productDetailModal');
-  if (modal) modal.classList.add('active');
-}
-function closeProductDetail() {
-  document.getElementById('productDetailModal').classList.remove('active');
-}
-function resetToHome() {
-  // Resetear filtros
-  currentFilter.categoria = 'all';
-  currentFilter.subcategoria = 'all';
-  
-  // Actualizar UI
-  updateCategoryHero();
-  updateCategoryDisplay();
-  applyFilters();
-  
-  // Resetear label del mega menú
-  document.getElementById('currentCategoryLabel').textContent = 'Catálogo';
-  
-  // Scroll suave al inicio
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 document.getElementById('btnHome').addEventListener('click', resetToHome);  
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Cargar productos desde Supabase
