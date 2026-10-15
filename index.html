@@ -2337,15 +2337,27 @@ document.addEventListener('DOMContentLoaded', function() {
   if (sucursalSelector) {
     sucursalSelector.addEventListener('change', function() {
       // Aquí va la lógica que tenías para el selector, si la había.
-      // Si no tenía nada, puedes dejar solo el if vacío o borrar estas líneas.
       console.log('Sucursal seleccionada:', this.value);
     });
   }
 
-}); // ← 1. Cierra el document.addEventListener('DOMContentLoaded', ...)
+  // ==========================================
+  // SCROLL SUAVE PARA EL MENÚ
+  // ==========================================
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+}); // ← 1. Cierra el document.addEventListener('DOMContentLoaded')
 
 })(); // ← 2. Cierra la función envolvente (IIFE)
-</script> // ← 3. Cierra la etiqueta de script (DEBE SER LO ÚLTIMO)
+</script> <!-- ← 3. Cierra la etiqueta de script -->
 
   // Scroll suave para el menú Nosotros
   const sucursalSelector = document.getElementById('sucursalSelector');
@@ -2716,6 +2728,5 @@ document.getElementById('productDetailModal').addEventListener('click', function
   </div>
   <div id="samplesList" class="flex gap-2 overflow-x-auto pb-1 min-w-[200px] max-w-[70vw]"></div>
 </div>
-
 </body>
 </html>
