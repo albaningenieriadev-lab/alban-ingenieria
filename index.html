@@ -1880,7 +1880,15 @@ if (lowerMsg.includes('no') || lowerMsg.includes('nada mas') || lowerMsg.include
   addMessageHTML('Entendido. 😊 Si más adelante necesitas algo, aquí estaré.<br><br>💡 <b>Recuerda:</b> También puedes contactarnos directamente por WhatsApp al <b>961 243 9114</b> para atención personalizada.<br><br>¡Gracias por visitar Alban Ingeniería! 🏠', 'bot');
   return;
 }
-
+// 🤝 SOLICITUD DE AGENTE/ASESOR HUMANO
+if (lowerMsg.includes('agente') || lowerMsg.includes('asesor') || lowerMsg.includes('humano') || 
+    lowerMsg.includes('persona') || lowerMsg.includes('comunicar') || lowerMsg.includes('hablar con') ||
+    lowerMsg.includes('atención personalizada') || lowerMsg.includes('atencion personalizada') ||
+    lowerMsg.includes('alguien') || lowerMsg.includes('representante') || lowerMsg.includes('ejecutivo')) {
+  
+  addMessageHTML('🤝 ¡Claro! Con mucho gusto te comunico con uno de nuestros asesores.<br><br>Elige la opción que prefieras:<br><br>📱 <b>Opción 1: WhatsApp directo</b><br>Haz clic en el botón verde de WhatsApp (abajo a la derecha) para chatear al instante con un asesor.<br><br>📞 <b>Opción 2: Llámanos</b><br>• Tuxtla: <b>961 243 9114</b><br>• Tapachula: <b>962 253 6559</b><br>• Cacahoatán: <b>962 564 2478</b><br><br>📧 <b>Opción 3: Formulario de contacto</b><br>Baja hasta la sección "Contacto" y llena el formulario. Te responderemos en menos de 24 horas.<br><br>¿Cómo prefieres que te contactemos?', 'bot');
+  return;
+}
   // Saludos básicos
   if (lowerMsg.includes('hola') || lowerMsg.includes('buenas') || lowerMsg.includes('hi')) {
     addMessageHTML('¡Hola! 👋 Bienvenido a <b>Alban Ingeniería</b>. ¿Buscas algún producto en específico?<br><br>💡 <i>Ejemplos de búsqueda:</i><br>• "lambrin nogal"<br>• "piso spc"<br>• "placa marmol"<br>• "plafon pvc"', 'bot');
