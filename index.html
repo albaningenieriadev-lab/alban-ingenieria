@@ -2087,7 +2087,7 @@ function addToQuoteFromChat(productId) {
   function hasAppliedMaterials() {
     return zones.length > 0 && zones.some(function(z) { return z.material; });
   }
-function openProductDetail(productId) {
+function  (productId) {
   // Buscar el producto en el array
   var product = products.find(p => p.id === productId);
   if (!product) return;
@@ -2117,32 +2117,7 @@ function openProductDetail(productId) {
   var ambiente = document.getElementById('detailProductAmbiente');
   if (ambiente) ambiente.textContent = product.tipo_ambiente || 'General';
   
-  // ✅ MOSTRAR STOCK REAL POR SUCURSAL (reemplaza al antiguo detailProductStock)
-  var stockContainer = document.getElementById('detailStockByBranch');
-  if (stockContainer) {
-    stockContainer.innerHTML = '';
-    if (product.inventario) {
-      sucursales.forEach(s => {
-        const stock = product.inventario[s.id] || 0;
-        const row = document.createElement('div');
-        row.className = 'flex justify-between items-center bg-alban-black rounded-lg p-2 border border-gray-700';
-        
-        let stockClass = 'text-green-400';
-        let stockText = stock + ' m²';
-        if (stock === 0) {
-          stockClass = 'text-red-400';
-          stockText = 'Agotado';
-        } else if (stock < 50) {
-          stockClass = 'text-yellow-400';
-        }
-        
-        row.innerHTML = `
-          <span class="text-xs text-gray-300"><i class="fas fa-map-marker-alt mr-1 text-alban-yellow"></i>${s.nombre.replace('Alban Sucursal ', '')}</span>
-          <span class="text-xs font-bold ${stockClass}">${stockText}</span>
-        `;
-        stockContainer.appendChild(row);
-      });
-    }
+  
   }
   
   // Configurar botones con verificación
@@ -2367,6 +2342,10 @@ document.addEventListener('DOMContentLoaded', function() {
   
   const btnClearSamples = document.getElementById('btnClearSamples');
   if (btnClearSamples) btnClearSamples.addEventListener('click', clearAllSamples);
+});
+
+})();
+</script>
 
   // Scroll suave para el menú Nosotros
   const sucursalSelector = document.getElementById('sucursalSelector');
