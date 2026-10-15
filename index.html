@@ -2331,7 +2331,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btnClearSamples) btnClearSamples.addEventListener('click', clearAllSamples);
 
 
-  // ==========================================
+    // ==========================================
   // SCROLL SUAVE PARA EL MENÚ
   // ==========================================
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -2341,11 +2341,13 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-  });
+    }); // ← Cierra el addEventListener
+  }); // ← Cierra el forEach (¡ESTO ERA LO QUE FALTABA!)
 
   // ==========================================
   // SELECTOR DE SUCURSAL Y MODALES
   // ==========================================
+  
   var sucursalSelector = document.getElementById('sucursalSelector');
   if (sucursalSelector) {
     sucursalSelector.addEventListener('change', function() {
