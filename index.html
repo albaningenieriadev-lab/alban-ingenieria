@@ -631,7 +631,11 @@ header .max-w-7xl {
     </div>
   </div>
 </div>
-
+<!-- BOTÓN DE CÁMARA PARA CAPTURAR MUESTRAS -->
+<button id="btnOpenCamera" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2 font-semibold text-sm">
+  <i class="fas fa-camera"></i>
+  <span>Capturar muestra</span>
+</button>
 <!-- MODAL VISUALIZADOR -->
 <div class="modal-overlay" id="visualizerModal">
   <div class="h-screen flex flex-col">
@@ -870,6 +874,138 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Variable global para almacenar los productos
 let products = [];
+
+// ==========================================
+// FASE 1: CÁMARA + MUESTRAS CAPTURADAS
+// ==========================================
+
+let capturedSamples = [];  // Array para guardar las muestras
+let cameraStream = null;   // Stream de la cámara
+let currentCapture = null; // Captura temporal
+
+// Elementos del DOM
+const cameraModal = document.getElementById('cameraModal');
+const cameraVideo = document.getElementById('cameraVideo');
+const cameraCanvas = document.getElementById('cameraCanvas');
+const capturePreview = document.getElementById('capturePreview');
+const previewImg = document.getElementById('previewImg');
+const samplesPanel = document.getElementById('samplesPanel');
+const samplesList = document.getElementById('samplesList');
+const samplesCount = document.getElementById('samplesCount');
+
+// Abrir cámara
+async function openCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        facingMode: 'environment',  // Cámara trasera en móviles
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      } 
+    });
+    cameraVideo.srcObject = cameraStream;
+    cameraModal.classList.remove('hidden');
+    capturePreview.classList.add('hidden');
+    currentCapture = null;
+  } catch (error) {
+    console.error('Error al acceder a la cámara:', error);
+    alert('⚠️ No se pudo acceder a la cámara. Verifica los permisos del navegador.');
+  }
+}
+
+// Cerrar cámara
+function closeCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+  cameraModal.classList.add('hidden');
+  capturePreview.classList.add('hidden');
+  currentCapture = null;
+}
+
+// Capturar foto
+function capturePhoto() {
+  const context = cameraCanvas.getContext('2d');
+  cameraCanvas.width = cameraVideo.videoWidth;
+  cameraCanvas.height = cameraVideo.videoHeight;
+  context.drawImage(cameraVideo, 0, 0);
+  
+  currentCapture = cameraCanvas.toDataURL('image/jpeg', 0.9);
+  previewImg.src = currentCapture;
+  capturePreview.classList.remove('hidden');
+}
+
+// Guardar muestra
+function saveSample() {
+  if (!currentCapture) return;
+  
+  const sampleName = document.getElementById('sampleName').value.trim() || 
+                     'Muestra ' + (capturedSamples.length + 1);
+  
+  const sample = {
+    id: Date.now(),
+    name: sampleName,
+    image: currentCapture,
+    timestamp: new Date().toISOString()
+  };
+  
+  capturedSamples.push(sample);
+  renderSamples();
+  
+  // Resetear
+  document.getElementById('sampleName').value = '';
+  capturePreview.classList.add('hidden');
+  currentCapture = null;
+  
+  showNotification('✅ Muestra "' + sampleName + '" guardada');
+}
+
+// Renderizar panel de muestras
+function renderSamples() {
+  samplesList.innerHTML = '';
+  samplesCount.textContent = capturedSamples.length;
+  
+  if (capturedSamples.length > 0) {
+    samplesPanel.classList.remove('hidden');
+  } else {
+    samplesPanel.classList.add('hidden');
+  }
+  
+  capturedSamples.forEach(sample => {
+    const item = document.createElement('div');
+    item.className = 'relative flex-shrink-0 group';
+    
+    item.innerHTML = `
+      <div class="w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-700 hover:border-alban-yellow transition cursor-pointer">
+        <img src="${sample.image}" alt="${sample.name}" class="w-full h-full object-cover">
+      </div>
+      <button class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition" 
+              onclick="deleteSample(${sample.id})">
+        <i class="fas fa-times"></i>
+      </button>
+      <p class="text-[10px] text-gray-400 mt-1 text-center truncate w-20">${sample.name}</p>
+    `;
+    
+    samplesList.appendChild(item);
+  });
+}
+
+// Eliminar muestra
+window.deleteSample = function(id) {
+  capturedSamples = capturedSamples.filter(s => s.id !== id);
+  renderSamples();
+};
+
+// Limpiar todas las muestras
+function clearAllSamples() {
+  if (capturedSamples.length === 0) return;
+  if (confirm('¿Eliminar todas las muestras capturadas?')) {
+    capturedSamples = [];
+    renderSamples();
+  }
+}
+
 
 // Función para cargar productos desde la base de datos
 async function loadProducts() {
@@ -2208,6 +2344,51 @@ document.addEventListener('DOMContentLoaded', function() {
      // Poblar selector del formulario de contacto
      //poblarSelectorContacto();
     poblarFiltroSucursal();
+  
+    // ==========================================
+  // EVENTOS DE LA CÁMARA
+  // ==========================================
+  
+  const btnOpenCamera = document.getElementById('btnOpenCamera');
+  if (btnOpenCamera) {
+    btnOpenCamera.addEventListener('click', openCamera);
+  }
+  
+  const btnCloseCamera = document.getElementById('btnCloseCamera');
+  if (btnCloseCamera) {
+    btnCloseCamera.addEventListener('click', closeCamera);
+  }
+  
+  const btnCapture = document.getElementById('btnCapture');
+  if (btnCapture) {
+    btnCapture.addEventListener('click', capturePhoto);
+  }
+  
+  const btnSaveSample = document.getElementById('btnSaveSample');
+  if (btnSaveSample) {
+    btnSaveSample.addEventListener('click', saveSample);
+  }
+  
+  const btnRetake = document.getElementById('btnRetake');
+  if (btnRetake) {
+    btnRetake.addEventListener('click', function() {
+      capturePreview.classList.add('hidden');
+      currentCapture = null;
+    });
+  }
+  
+  const btnClearSamples = document.getElementById('btnClearSamples');
+  if (btnClearSamples) {
+    btnClearSamples.addEventListener('click', clearAllSamples);
+  }
+  
+  // Cerrar cámara con tecla Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !cameraModal.classList.contains('hidden')) {
+      closeCamera();
+    }
+  });
+
   // Event listener del formulario de contacto
   const contactForm = document.getElementById('contactForm');
   if (contactForm) {
@@ -2541,6 +2722,74 @@ document.addEventListener('keydown', function(e) {
         <button id="btnVisualizeProduct" class="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 border border-gray-700 transition flex items-center gap-2"><i class="fas fa-magic"></i><span>Visualizar</span></button>
       </div>
     </div>
+  </div>
+</div>
+<!-- MODAL DE CÁMARA -->
+<div id="cameraModal" class="hidden fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-4">
+  <div class="max-w-4xl w-full bg-alban-card rounded-2xl border border-gray-800 overflow-hidden">
+    <!-- Header -->
+    <div class="p-4 border-b border-gray-800 flex justify-between items-center">
+      <h3 class="text-xl font-bold text-white flex items-center gap-2">
+        <i class="fas fa-camera text-alban-yellow"></i>
+        Capturar muestra física
+      </h3>
+      <button id="btnCloseCamera" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 text-white flex items-center justify-center">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <!-- Área de cámara -->
+    <div class="relative bg-black">
+      <video id="cameraVideo" autoplay playsinline class="w-full h-auto max-h-[60vh]"></video>
+      <canvas id="cameraCanvas" class="hidden"></canvas>
+      
+      <!-- Overlay de guía -->
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div class="border-2 border-alban-yellow/50 border-dashed w-64 h-64 rounded-lg"></div>
+      </div>
+    </div>
+    
+    <!-- Controles -->
+    <div class="p-4 flex justify-center gap-4 bg-alban-black">
+      <button id="btnCapture" class="w-20 h-20 rounded-full bg-alban-yellow hover:bg-yellow-400 text-alban-black flex items-center justify-center shadow-xl transition transform hover:scale-105">
+        <i class="fas fa-camera text-3xl"></i>
+      </button>
+    </div>
+    
+    <!-- Preview de captura -->
+    <div id="capturePreview" class="hidden p-4 border-t border-gray-800">
+      <p class="text-sm text-gray-400 mb-2 font-semibold">Vista previa:</p>
+      <div class="flex items-center gap-4">
+        <img id="previewImg" class="w-32 h-32 object-cover rounded-lg border-2 border-alban-yellow">
+        <div class="flex-1">
+          <input type="text" id="sampleName" placeholder="Nombre de la muestra (opcional)" 
+                 class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 text-sm mb-2">
+          <div class="flex gap-2">
+            <button id="btnSaveSample" class="flex-1 px-4 py-2 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 transition">
+              <i class="fas fa-check mr-1"></i> Guardar muestra
+            </button>
+            <button id="btnRetake" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition">
+              <i class="fas fa-redo"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL DE MUESTRAS CAPTURADAS -->
+<div id="samplesPanel" class="hidden fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-alban-card/95 backdrop-blur border border-gray-800 rounded-2xl p-3 z-40 max-w-[90vw]">
+  <div class="flex items-center gap-2 mb-2">
+    <i class="fas fa-images text-alban-yellow"></i>
+    <span class="text-xs font-bold text-white">Muestras capturadas</span>
+    <span id="samplesCount" class="text-xs bg-alban-yellow text-alban-black px-2 py-0.5 rounded-full font-bold">0</span>
+    <button id="btnClearSamples" class="ml-auto text-xs text-red-400 hover:text-red-300">
+      <i class="fas fa-trash-alt"></i> Limpiar
+    </button>
+  </div>
+  <div id="samplesList" class="flex gap-2 overflow-x-auto pb-1 min-w-[200px] max-w-[70vw]">
+    <!-- Las miniaturas aparecerán aquí -->
   </div>
 </div>
 </body>
