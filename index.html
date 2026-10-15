@@ -2288,7 +2288,7 @@ document.addEventListener('keydown', function(e) {
     document.getElementById('btnOpenChat').addEventListener('click', toggleChatbot);
     document.getElementById('btnCloseChat').addEventListener('click', toggleChatbot);
     document.getElementById('btnSendChat').addEventListener('click', sendMessage);
-    document.getElementById('chatInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') sendMessage(); });
+    document.getElementById('chatInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') sendChatMessage(); });
 
     document.getElementById('btnVisualizer').addEventListener('click', openRoomModal);
 
