@@ -1862,46 +1862,63 @@ function processBotResponse(userMsg) {
 
   // Saludos básicos
   if (lowerMsg.includes('hola') || lowerMsg.includes('buenas') || lowerMsg.includes('hi')) {
-    addMessage('¡Hola! 👋 Bienvenido a Alban Ingeniería. ¿Buscas algún producto en específico? (Ej: *"lambrin nogal"*, *"piso spc"*, *"placa marmol"*).', 'bot');
+    addMessageHTML('¡Hola! 👋 Bienvenido a <b>Alban Ingeniería</b>. ¿Buscas algún producto en específico?<br><br>💡 <i>Ejemplos de búsqueda:</i><br>• "lambrin nogal"<br>• "piso spc"<br>• "placa marmol"<br>• "plafon pvc"', 'bot');
     return;
   }
 
-  // Preguntas generales
-  if (lowerMsg.includes('horario') || lowerMsg.includes('abierto')) {
-    addMessage('Nuestro horario de atención es:<br>🕒 Lun-Vie: 8:00 - 18:00<br>🕒 Sáb: 8:00 - 16:00<br>🕒 Dom: 8:00 - 13:00', 'bot');
+  // Preguntas sobre catálogo
+  if (lowerMsg.includes('catálogo') || lowerMsg.includes('catalogo') || lowerMsg.includes('productos') || lowerMsg.includes('tienen')) {
+    addMessageHTML('📚 Tenemos más de <b>240 productos</b> en las siguientes categorías:<br><br>🏠 <b>Muros y Revestimientos</b> (Lambrines, Wall Cladding)<br>🎨 <b>Placas y Paneles</b> (Mármol, Madera, 3D)<br>️ <b>Plafones</b> (PVC de diferentes medidas)<br> <b>Pisos</b> (SPC Vinílico, Deck Exterior)<br> <b>Muebles</b> (Escritorios, Sillas, Mesas)<br>🧱 <b>Materiales de Construcción</b> (Piedra PU)<br><br>¿Qué categoría te interesa?', 'bot');
     return;
   }
 
-  if (lowerMsg.includes('envio') || lowerMsg.includes('entrega')) {
-    addMessage('🚚 ¡Sí! Hacemos envíos a toda la República Mexicana. La cotización de envío se calcula según tu código postal y el volumen del pedido.', 'bot');
+  // Horario
+  if (lowerMsg.includes('horario') || lowerMsg.includes('abierto') || lowerMsg.includes('hora')) {
+    addMessageHTML('🕒 Nuestro horario de atención:<br><br>📅 <b>Lunes a Viernes:</b> 8:00 - 18:00 hrs<br>📅 <b>Sábado:</b> 8:00 - 16:00 hrs<br>📅 <b>Domingo:</b> 8:00 - 13:00 hrs<br><br>📍 Tenemos sucursales en Tuxtla Gutiérrez, Tapachula y Cacahoatán.', 'bot');
+    return;
+  }
+
+  // Envíos
+  if (lowerMsg.includes('envio') || lowerMsg.includes('entrega') || lowerMsg.includes('envío')) {
+    addMessageHTML('🚚 ¡Sí! Hacemos envíos a toda la República Mexicana.<br><br>La cotización de envío se calcula según:<br>• Tu código postal<br>• El volumen del pedido<br>• El tipo de producto<br><br>💡 Agrega productos a tu cotización y te contactaremos con los detalles de envío.', 'bot');
+    return;
+  }
+
+  // Precios
+  if (lowerMsg.includes('precio') || lowerMsg.includes('costo') || lowerMsg.includes('cuanto cuesta') || lowerMsg.includes('cuánto cuesta')) {
+    addMessageHTML('💰 Nuestros precios varían según el producto:<br><br> <b>Rango de precios:</b><br>• Paneles 3D: desde $50/m²<br>• Lambrines: desde $150/m²<br>• Placas tipo mármol: desde $800/m²<br>• Pisos SPC: desde $880/m²<br>• Muebles: desde $2,500<br><br>🎯 Los precios pueden variar según disponibilidad y volumen. ¿Te gustaría cotizar algún producto específico?', 'bot');
+    return;
+  }
+
+  // Sucursales
+  if (lowerMsg.includes('sucursal') || lowerMsg.includes('ubicación') || lowerMsg.includes('donde estan') || lowerMsg.includes('dónde están')) {
+    addMessageHTML(' Tenemos 3 sucursales en Chiapas:<br><br>🏢 <b>Tuxtla Gutiérrez</b><br>Carr. Panamericana 4766<br>Tel: 961 243 9114<br><br>🏢 <b>Tapachula</b><br>Del Internado 11, Los Naranjos<br>Tel: 962 253 6559<br><br>🏢 <b>Cacahoatán</b><br>Blvd. Soriana 6ª oriente<br>Tel: 962 564 2478', 'bot');
     return;
   }
 
   // 🧠 BÚSQUEDA INTELIGENTE EN EL CATÁLOGO
-  // Dividimos el mensaje en palabras clave (ignorando palabras cortas como "de", "el", "un")
+  // Dividimos el mensaje en palabras clave (ignorando palabras cortas)
   var keywords = lowerMsg.split(' ').filter(word => word.length > 2);
   
   // Buscamos coincidencias en nombre, categoría, subcategoría o tipo de producto
   var matches = products.filter(function(p) {
     var searchText = (p.nombre + ' ' + p.categoria + ' ' + p.subcategoria + ' ' + p.tipo_producto).toLowerCase();
-    // El producto debe coincidir con AL MENOS UNA de las palabras clave
     return keywords.some(function(keyword) {
       return searchText.includes(keyword);
     });
-  }).slice(0, 3); // Mostramos máximo 3 resultados para no saturar
+  }).slice(0, 3);
 
   if (matches.length > 0) {
-    var reply = '¡Excelente! 🎯 Encontré <b>' + matches.length + ' opción(es)</b> que coinciden con tu búsqueda:<br><br>';
+    var reply = '🎯 ¡Excelente! Encontré <b>' + matches.length + ' opción(es)</b> que coinciden con tu búsqueda:<br><br>';
     
-    matches.forEach(function(p, index) {
+    matches.forEach(function(p) {
       var stockText = p.stockTotal > 0 ? p.stockTotal + ' m² en total' : 'Agotado';
       var stockColor = p.stockTotal > 100 ? 'text-green-400' : (p.stockTotal > 0 ? 'text-yellow-400' : 'text-red-400');
       
-      reply += '<div class="mb-3 p-2 bg-gray-800/50 rounded border border-gray-700">';
+      reply += '<div class="mb-3 p-3 bg-gray-800/50 rounded-lg border border-gray-700">';
       reply += '<b class="text-alban-yellow text-sm">' + p.nombre + '</b><br>';
       reply += '<span class="text-xs text-gray-400">SKU: ' + p.sku + '</span><br>';
       reply += '<span class="text-xs ' + stockColor + '">📦 Disponibilidad: ' + stockText + '</span><br>';
-      // Botón para agregar directamente desde el chat
       reply += '<button onclick="addToQuoteFromChat(' + p.id + ')" class="mt-2 px-3 py-1.5 bg-alban-yellow text-alban-black text-xs rounded font-bold hover:bg-yellow-400 transition w-full">';
       reply += '<i class="fas fa-cart-plus mr-1"></i> Agregar a cotización';
       reply += '</button></div>';
@@ -1911,10 +1928,9 @@ function processBotResponse(userMsg) {
     addMessageHTML(reply, 'bot');
     
   } else {
-    addMessage('🔍 No encontré productos con esa descripción exacta. <br><br>💡 <b>Consejo:</b> Intenta con palabras más generales como: <i>"lambrin"</i>, <i>"piso"</i>, <i>"marmol"</i>, <i>"plafon"</i> o el nombre de una categoría.', 'bot');
+    addMessageHTML('🔍 No encontré productos con esa descripción exacta.<br><br>💡 <b>Consejo:</b> Intenta con palabras más generales como:<br>• <i>"lambrin"</i><br>• <i>"piso"</i><br>• <i>"marmol"</i><br>• <i>"plafon"</i><br>• O el nombre de una categoría', 'bot');
   }
 }
-
 // Función para enviar HTML en el chat (necesaria para los botones)
 function addMessageHTML(htmlContent, sender) {
   var container = document.getElementById('chatMessages');
