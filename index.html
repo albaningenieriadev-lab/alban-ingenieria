@@ -2327,12 +2327,25 @@ document.addEventListener('DOMContentLoaded', function() {
     currentCapture = null; 
   });
   
-  const btnClearSamples = document.getElementById('btnClearSamples');
+    const btnClearSamples = document.getElementById('btnClearSamples');
   if (btnClearSamples) btnClearSamples.addEventListener('click', clearAllSamples);
-});
 
-})();
-</script>
+  // ==========================================
+  // SCROLL SUAVE Y SELECTOR DE SUCURSAL
+  // ==========================================
+  const sucursalSelector = document.getElementById('sucursalSelector');
+  if (sucursalSelector) {
+    sucursalSelector.addEventListener('change', function() {
+      // Aquí va la lógica que tenías para el selector, si la había.
+      // Si no tenía nada, puedes dejar solo el if vacío o borrar estas líneas.
+      console.log('Sucursal seleccionada:', this.value);
+    });
+  }
+
+}); // ← 1. Cierra el document.addEventListener('DOMContentLoaded', ...)
+
+})(); // ← 2. Cierra la función envolvente (IIFE)
+</script> // ← 3. Cierra la etiqueta de script (DEBE SER LO ÚLTIMO)
 
   // Scroll suave para el menú Nosotros
   const sucursalSelector = document.getElementById('sucursalSelector');
@@ -2373,23 +2386,31 @@ document.getElementById('productDetailModal').addEventListener('click', function
   if (e.target === document.getElementById('productDetailModal')) closeProductDetail();
 });
 
-// Cerrar modal con tecla Escape
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    if (document.getElementById('productDetailModal').classList.contains('active')) {
-      closeProductDetail();
-    }
-  }
-});
+    // ==========================================
+    // CERRAR MODAL CON TECLA ESCAPE
+    // ==========================================
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        var detailModal = document.getElementById('productDetailModal');
+        if (detailModal && detailModal.classList.contains('active')) {
+          closeProductDetail();
+        }
+      }
+    });
+
+    // ==========================================
     // MEGA MENU LOGIC
+    // ==========================================
     var btnMegaMenu = document.getElementById('btnMegaMenu');
     var megaMenu = document.getElementById('megaMenu');
-    var megaMenuItems = megaMenu.querySelectorAll('.mega-item');
+    var megaMenuItems = megaMenu ? megaMenu.querySelectorAll('.mega-item') : [];
 
-    btnMegaMenu.addEventListener('click', function(e) {
-      e.stopPropagation();
-      megaMenu.classList.toggle('active');
-    });
+    if (btnMegaMenu) {
+      btnMegaMenu.addEventListener('click', function(e) {
+        e.stopPropagation();
+        megaMenu.classList.toggle('active');
+      });
+    }
 
     megaMenuItems.forEach(function(item) {
       item.addEventListener('click', function(e) {
@@ -2406,18 +2427,19 @@ document.addEventListener('keydown', function(e) {
         if (subcategoria && subcategoria !== 'all') {
           label += ' > ' + subcategoria;
         }
-        document.getElementById('currentCategoryLabel').textContent = label;
+        var currentCategoryLabel = document.getElementById('currentCategoryLabel');
+        if (currentCategoryLabel) currentCategoryLabel.textContent = label;
         
         megaMenu.classList.remove('active');
       });
     });
 
-  document.addEventListener('click', function(e) {
-  var megaMenuContainer = document.getElementById('megaMenuContainer');
-  if (megaMenuContainer && !megaMenuContainer.contains(e.target)) {
-    megaMenu.classList.remove('active');
-  }
-});
+    document.addEventListener('click', function(e) {
+      var megaMenuContainer = document.getElementById('megaMenuContainer');
+      if (megaMenuContainer && !megaMenuContainer.contains(e.target)) {
+        megaMenu.classList.remove('active');
+      }
+    });
 
     loadCart();
 
@@ -2437,19 +2459,17 @@ document.addEventListener('keydown', function(e) {
     document.getElementById('btnClear').addEventListener('click', clearQuote);
     document.getElementById('btnOpenChat').addEventListener('click', toggleChatbot);
     document.getElementById('btnCloseChat').addEventListener('click', toggleChatbot);
-    document.getElementById('btnSendChat').addEventListener('click', sendChatMessage());
-    document.getElementById('chatInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') sendChatMessage(); });
+    
+    // ✅ AQUÍ ESTÁ LA CORRECCIÓN: SIN PARÉNTESIS en sendChatMessage
+    document.getElementById('btnSendChat').addEventListener('click', sendChatMessage);
+    
+    document.getElementById('chatInput').addEventListener('keypress', function(e) { 
+      if (e.key === 'Enter') sendChatMessage(); 
+    });
 
     document.getElementById('btnVisualizer').addEventListener('click', openRoomModal);
-
-    document.getElementById('btnReviewQuote').addEventListener('click', function() {
-      showQuoteReview();
-    });
-
-    document.getElementById('btnWhatsApp').addEventListener('click', function() {
-      showQuoteReview();
-    });
-
+    document.getElementById('btnReviewQuote').addEventListener('click', showQuoteReview);
+    document.getElementById('btnWhatsApp').addEventListener('click', showQuoteReview);
     document.getElementById('btnCloseReview').addEventListener('click', function() {
       document.getElementById('quoteReviewModal').classList.remove('active');
     });
@@ -2483,18 +2503,14 @@ document.addEventListener('keydown', function(e) {
     document.getElementById('btnSaveAndSend').addEventListener('click', function() {
       saveImageAsJPG();
       hideExitConfirmation();
-      setTimeout(function() {
-        showQuoteReview();
-      }, 500);
+      setTimeout(function() { showQuoteReview(); }, 500);
     });
 
     document.getElementById('btnSaveOnly').addEventListener('click', function() {
       saveImageAsJPG();
       hideExitConfirmation();
       showNotification('Imagen guardada en formato JPG');
-      setTimeout(function() {
-        executePendingAction();
-      }, 500);
+      setTimeout(function() { executePendingAction(); }, 500);
     });
 
     document.getElementById('btnDiscard').addEventListener('click', function() {
@@ -2546,12 +2562,9 @@ document.addEventListener('keydown', function(e) {
       reader.readAsDataURL(file);
     }
 
-    document.getElementById('btnStartVisualizer').addEventListener('click', function() {
-      openVisualizer();
-    });
-
+    document.getElementById('btnStartVisualizer').addEventListener('click', function() { openVisualizer(); });
     document.getElementById('mainCanvas').addEventListener('click', handleCanvasClick);
-
+    
     document.getElementById('toleranceSlider').addEventListener('input', function() {
       tolerance = parseInt(this.value);
       document.getElementById('toleranceValue').textContent = tolerance;
@@ -2589,22 +2602,32 @@ document.addEventListener('keydown', function(e) {
 
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') { 
-        if (document.getElementById('quoteReviewModal').classList.contains('active')) {
-          document.getElementById('quoteReviewModal').classList.remove('active');
-        } else if (document.getElementById('exitConfirmModal').classList.contains('active')) {
+        var quoteModal = document.getElementById('quoteReviewModal');
+        var exitModal = document.getElementById('exitConfirmModal');
+        var screenModal = document.getElementById('screenModal');
+        
+        if (quoteModal && quoteModal.classList.contains('active')) {
+          quoteModal.classList.remove('active');
+        } else if (exitModal && exitModal.classList.contains('active')) {
           hideExitConfirmation();
         } else {
-          megaMenu.classList.remove('active');
+          if (megaMenu) megaMenu.classList.remove('active');
           closeVisualizer(); 
           closeRoomModal(); 
-          document.getElementById('screenModal').classList.remove('active'); 
+          if (screenModal) screenModal.classList.remove('active'); 
         }
       }
     });
-  });
 
-})();
-</script>
+  }); // ← 1. CIERRA DOMContentLoaded
+
+})(); // ← 2. CIERRA IIFE
+</script> <!-- ← 3. CIERRA SCRIPT (Aquí termina el JavaScript) -->
+
+<!-- ========================================== -->
+<!-- MODALES HTML (DEBEN IR DESPUÉS DE </script>) -->
+<!-- ========================================== -->
+
 <!-- MODAL DETALLE PRODUCTO -->
 <div class="product-detail-modal" id="productDetailModal">
   <div class="product-detail-content">
@@ -2622,11 +2645,9 @@ document.addEventListener('keydown', function(e) {
         <span>SKU: <span class="text-white font-mono" id="detailProductSku"></span></span>
       </div>
       <div class="mb-4">
-  <p class="text-xs text-gray-400 mb-2 font-semibold">DISPONIBILIDAD POR SUCURSAL:</p>
-  <div id="detailStockByBranch" class="space-y-2">
-    <!-- Se llena dinámicamente -->
-  </div>
-</div>
+        <p class="text-xs text-gray-400 mb-2 font-semibold">DISPONIBILIDAD POR SUCURSAL:</p>
+        <div id="detailStockByBranch" class="space-y-2"></div>
+      </div>
       <div class="text-gray-300 text-sm leading-relaxed mb-6" id="detailProductDescription"></div>
       <div class="grid grid-cols-2 gap-3 mb-6 text-xs">
         <div class="bg-alban-black rounded-lg p-3 border border-gray-700"><p class="text-gray-400 mb-1"><i class="fas fa-ruler-combined mr-1"></i>Medidas</p><p class="text-white font-semibold" id="detailProductMeasures"></p></div>
@@ -2639,46 +2660,36 @@ document.addEventListener('keydown', function(e) {
     </div>
   </div>
 </div>
+
 <!-- MODAL DE CÁMARA -->
 <div id="cameraModal" class="hidden fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-4">
   <div class="max-w-4xl w-full bg-alban-card rounded-2xl border border-gray-800 overflow-hidden">
-    <!-- Header -->
     <div class="p-4 border-b border-gray-800 flex justify-between items-center">
       <h3 class="text-xl font-bold text-white flex items-center gap-2">
-        <i class="fas fa-camera text-alban-yellow"></i>
-        Capturar muestra física
+        <i class="fas fa-camera text-alban-yellow"></i> Capturar muestra física
       </h3>
       <button id="btnCloseCamera" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 text-white flex items-center justify-center">
         <i class="fas fa-times"></i>
       </button>
     </div>
-    
-    <!-- Área de cámara -->
     <div class="relative bg-black">
       <video id="cameraVideo" autoplay playsinline class="w-full h-auto max-h-[60vh]"></video>
       <canvas id="cameraCanvas" class="hidden"></canvas>
-      
-      <!-- Overlay de guía -->
       <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div class="border-2 border-alban-yellow/50 border-dashed w-64 h-64 rounded-lg"></div>
       </div>
     </div>
-    
-    <!-- Controles -->
     <div class="p-4 flex justify-center gap-4 bg-alban-black">
       <button id="btnCapture" class="w-20 h-20 rounded-full bg-alban-yellow hover:bg-yellow-400 text-alban-black flex items-center justify-center shadow-xl transition transform hover:scale-105">
         <i class="fas fa-camera text-3xl"></i>
       </button>
     </div>
-    
-    <!-- Preview de captura -->
     <div id="capturePreview" class="hidden p-4 border-t border-gray-800">
       <p class="text-sm text-gray-400 mb-2 font-semibold">Vista previa:</p>
       <div class="flex items-center gap-4">
         <img id="previewImg" class="w-32 h-32 object-cover rounded-lg border-2 border-alban-yellow">
         <div class="flex-1">
-          <input type="text" id="sampleName" placeholder="Nombre de la muestra (opcional)" 
-                 class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 text-sm mb-2">
+          <input type="text" id="sampleName" placeholder="Nombre de la muestra (opcional)" class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 text-sm mb-2">
           <div class="flex gap-2">
             <button id="btnSaveSample" class="flex-1 px-4 py-2 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 transition">
               <i class="fas fa-check mr-1"></i> Guardar muestra
@@ -2703,9 +2714,8 @@ document.addEventListener('keydown', function(e) {
       <i class="fas fa-trash-alt"></i> Limpiar
     </button>
   </div>
-  <div id="samplesList" class="flex gap-2 overflow-x-auto pb-1 min-w-[200px] max-w-[70vw]">
-    <!-- Las miniaturas aparecerán aquí -->
-  </div>
+  <div id="samplesList" class="flex gap-2 overflow-x-auto pb-1 min-w-[200px] max-w-[70vw]"></div>
 </div>
+
 </body>
 </html>
