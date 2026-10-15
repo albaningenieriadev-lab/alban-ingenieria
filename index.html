@@ -2368,27 +2368,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-    const btnCloseProductDetail = document.getElementById('btnCloseProductDetail');
+      const btnCloseProductDetail = document.getElementById('btnCloseProductDetail');
   if (btnCloseProductDetail) {
     btnCloseProductDetail.addEventListener('click', closeProductDetail);
   }
-  
-    const productDetailModal = document.getElementById('productDetailModal');
+
+  const productDetailModal = document.getElementById('productDetailModal');
   if (productDetailModal) {
     productDetailModal.addEventListener('click', function(e) {
-      if (e.target === productDetailModal) closeProductDetail();
-       });
+      if (e.target === productDetailModal) {
+        closeProductDetail();
+      }
+    });
   }
-});
 
 }); // ← 1. CIERRA DOMContentLoaded
 
-})(); // ← 2. CIERRA LA FUNCIÓN
-  </script>
+})(); // ← 2. CIERRA LA FUNCIÓN PRINCIPAL (function() { del inicio del archivo
+</script>
 
-  <!-- ========================================== -->
-  <!-- MODALES HTML (DEBEN IR DESPUÉS DE </script>) -->
-  <!-- ========================================== -->
+<!-- ========================================== -->
+<!-- MODALES HTML (DEBEN IR DESPUÉS DE </script>) -->
+<!-- ========================================== -->
 
 <!-- MODAL DETALLE PRODUCTO -->
 <div class="product-detail-modal" id="productDetailModal">
