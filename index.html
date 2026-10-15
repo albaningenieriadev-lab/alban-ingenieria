@@ -2354,114 +2354,47 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-}); // ← 1. Cierra el document.addEventListener('DOMContentLoaded')
-
-})(); // ← 2. Cierra la función envolvente (IIFE)
-</script> <!-- ← 3. Cierra la etiqueta de script -->
-
-  // Scroll suave para el menú Nosotros
+  // ==========================================
+  // SELECTOR DE SUCURSAL Y MODALES
+  // ==========================================
   const sucursalSelector = document.getElementById('sucursalSelector');
-
-if (sucursalSelector) {
-  sucursalSelector.addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
-    const infoDiv = document.getElementById('sucursalInfo');
-    
-    if (this.value && selectedOption.dataset.telefono) {
-      document.getElementById('sucursalTelefono').textContent = selectedOption.dataset.telefono;
-      document.getElementById('sucursalHorario').textContent = selectedOption.dataset.horario || 'Consultar';
-      infoDiv.classList.remove('hidden');
-      sucursalSeleccionada = {
-        whatsapp: this.value,
-        nombre: selectedOption.textContent,
-        telefono: selectedOption.dataset.telefono
-      };
-    } else {
-      infoDiv.classList.add('hidden');
-      sucursalSeleccionada = null;
-    }
-  });
-}
-
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function(e) {
-    var target = document.querySelector(this.getAttribute('href'));
-    if (target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  });
-});
-// === MODAL DETALLE PRODUCTO ===
-document.getElementById('btnCloseProductDetail').addEventListener('click', closeProductDetail);
-document.getElementById('productDetailModal').addEventListener('click', function(e) {
-  if (e.target === document.getElementById('productDetailModal')) closeProductDetail();
-});
-
-        // ==========================================
-    // CERRAR MODAL CON TECLA ESCAPE
-    // ==========================================
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        var detailModal = document.getElementById('productDetailModal');
-        if (detailModal && detailModal.classList.contains('active')) {
-          closeProductDetail();
-        }
+  if (sucursalSelector) {
+    sucursalSelector.addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      const infoDiv = document.getElementById('sucursalInfo');
+      
+      if (this.value && selectedOption.dataset.telefono) {
+        document.getElementById('sucursalTelefono').textContent = selectedOption.dataset.telefono;
+        document.getElementById('sucursalHorario').textContent = selectedOption.dataset.horario || 'Consultar';
+        infoDiv.classList.remove('hidden');
+        sucursalSeleccionada = {
+          whatsapp: this.value,
+          nombre: selectedOption.textContent,
+          telefono: selectedOption.dataset.telefono
+        };
+      } else {
+        infoDiv.classList.add('hidden');
+        sucursalSeleccionada = null;
       }
     });
+  }
 
-    // ==========================================
-    // SCROLL SUAVE Y SELECTOR DE SUCURSAL
-    // ==========================================
-    const sucursalSelector = document.getElementById('sucursalSelector');
-    if (sucursalSelector) {
-      sucursalSelector.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const infoDiv = document.getElementById('sucursalInfo');
-        
-        if (this.value && selectedOption.dataset.telefono) {
-          document.getElementById('sucursalTelefono').textContent = selectedOption.dataset.telefono;
-          document.getElementById('sucursalHorario').textContent = selectedOption.dataset.horario || 'Consultar';
-          infoDiv.classList.remove('hidden');
-          sucursalSeleccionada = {
-            whatsapp: this.value,
-            nombre: selectedOption.textContent,
-            telefono: selectedOption.dataset.telefono
-          };
-        } else {
-          infoDiv.classList.add('hidden');
-          sucursalSeleccionada = null;
-        }
-      });
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function(e) {
-        var target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          e.preventDefault();
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
+  const btnCloseProductDetail = document.getElementById('btnCloseProductDetail');
+  if (btnCloseProductDetail) {
+    btnCloseProductDetail.addEventListener('click', closeProductDetail);
+  }
+  
+  const productDetailModal = document.getElementById('productDetailModal');
+  if (productDetailModal) {
+    productDetailModal.addEventListener('click', function(e) {
+      if (e.target === productDetailModal) closeProductDetail();
     });
+  }
 
-    // === MODAL DETALLE PRODUCTO ===
-    const btnCloseProductDetail = document.getElementById('btnCloseProductDetail');
-    if (btnCloseProductDetail) {
-      btnCloseProductDetail.addEventListener('click', closeProductDetail);
-    }
-    
-    const productDetailModal = document.getElementById('productDetailModal');
-    if (productDetailModal) {
-      productDetailModal.addEventListener('click', function(e) {
-        if (e.target === productDetailModal) closeProductDetail();
-      });
-    }
-
-  }); // ← 1. CIERRA DOMContentLoaded
+}); // ← 1. CIERRA DOMContentLoaded
 
 })(); // ← 2. CIERRA IIFE
-</script> <!-- ← 3. CIERRA SCRIPT (Aquí termina el JavaScript) -->
+</script> <!-- ← 3. CIERRA SCRIPT (Aquí termina el JavaScript para siempre) -->
 
 <!-- ========================================== -->
 <!-- MODALES HTML (DEBEN IR DESPUÉS DE </script>) -->
