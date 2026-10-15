@@ -2373,15 +2373,16 @@ document.addEventListener('DOMContentLoaded', function() {
     btnCloseProductDetail.addEventListener('click', closeProductDetail);
   }
   
-  const productDetailModal = document.getElementById('productDetailModal');
+    const productDetailModal = document.getElementById('productDetailModal');
   if (productDetailModal) {
     productDetailModal.addEventListener('click', function(e) {
       if (e.target === productDetailModal) closeProductDetail();
     });
   }
 
-}); // ← CIERRA DOMContentLoaded
-})();
+}); // ← 1. CIERRA DOMContentLoaded
+
+})(); // ← 2. CIERRA LA FUNCIÓN (function() { DEL INICIO DEL ARCHIVO
 </script>
 
 <!-- ========================================== -->
