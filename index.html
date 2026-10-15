@@ -2087,7 +2087,7 @@ function addToQuoteFromChat(productId) {
   function hasAppliedMaterials() {
     return zones.length > 0 && zones.some(function(z) { return z.material; });
   }
-function  (productId) {
+function openProductDetail (productId) {
   // Buscar el producto en el array
   var product = products.find(p => p.id === productId);
   if (!product) return;
