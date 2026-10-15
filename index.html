@@ -11,6 +11,15 @@
 tailwind.config = { theme: { extend: { colors: { alban: { yellow: '#FFC700', black: '#1a1a1a', dark: '#0a0a0a', card: '#141414' } } } } }
 </script>
 <style>
+  /* Estilo para la imagen del chatbot */
+.chatbot-avatar-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #FFC700;
+  background-color: #FFC700;
+}
 .product-card .product-img-container {
   height: 180px;
   overflow: hidden;
@@ -524,11 +533,11 @@ header .max-w-7xl {
     <button id="btnCloseChat" class="text-gray-400"><i class="fas fa-times"></i></button>
   </div>
   <div class="chat-messages bg-alban-card" id="chatMessages">
-    <div class="message bot">¡Hola! Soy el asistente de Alban Ingeniería. ¿En qué te ayudo?</div>
+    <div class="message bot">¡Hola! Soy la asistente de Alban Ingeniería. ¿En qué te ayudo?</div>
   </div>
   <div class="p-3 border-t border-gray-800 flex gap-2">
     <input type="text" id="chatInput" placeholder="Escribe..." class="flex-1 bg-alban-black border border-gray-700 text-white rounded-lg px-4 py-2">
-    <button id="btnSendChat" class="px-4 py-2 bg-alban-yellow text-alban-black rounded-lg font-bold"><i class="fas fa-paper-plane"></i></button>
+    <button id="btnSendChat" class="px-4 py-2 bg-alban-yellow text-alban-black rounded-lg font-bold"><img src="imagenes/chatbot/asesora.png" alt="Asesora Alban" class="chatbot-avatar-img"></button>
   </div>
 </div>
 
