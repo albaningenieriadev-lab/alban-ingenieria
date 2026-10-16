@@ -2318,8 +2318,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Botón de cotización (revisar carrito)
-   var btnReviewQuote = document.getElementById('btnReviewQuote');
+   // ==========================================
+  // BOTONES DE COTIZACIÓN Y MODALES (BLOQUE UNIFICADO)
+  // ==========================================
+
+  // 1. Botón Revisar Cotización
+  var btnReviewQuote = document.getElementById('btnReviewQuote');
   if (btnReviewQuote) {
     btnReviewQuote.addEventListener('click', function() {
       if (cart.length === 0 && capturedSamples.length === 0) {
@@ -2329,102 +2333,74 @@ document.addEventListener('DOMContentLoaded', function() {
       showQuoteReview();
     });
   }
-  // Botón de enviar cotización por WhatsApp
+
+  // 2. Botón Enviar por WhatsApp (desde la barra o el modal)
   var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
-  if (btnSendWhatsApp) {
-    btnSendWhatsApp.addEventListener('click', function() {
-      sendQuoteWhatsApp();
+  var btnWhatsAppBar = document.getElementById('btnWhatsApp');
+  
+  function handleSendWhatsApp() {
+    sendQuoteWhatsApp();
+    var modal = document.getElementById('quoteReviewModal');
+    if (modal) modal.classList.remove('active');
+  }
+  if (btnSendWhatsApp) btnSendWhatsApp.addEventListener('click', handleSendWhatsApp);
+  if (btnWhatsAppBar) btnWhatsAppBar.addEventListener('click', handleSendWhatsApp);
+
+  // 3. Botón Cerrar modal de revisión
+  var btnCloseReview = document.getElementById('btnCloseReview');
+  if (btnCloseReview) {
+    btnCloseReview.addEventListener('click', function() {
       var modal = document.getElementById('quoteReviewModal');
       if (modal) modal.classList.remove('active');
     });
   }
-  // Botones del modal de confirmación de salida
-  var btnSaveAndContinue = document.getElementById('btnSaveAndContinue');
-  if (btnSaveAndContinue) {
-    btnSaveAndContinue.addEventListener('click', function() {
-      saveImageAsJPG();
-      hideExitConfirmation();
-      if (pendingAction === 'change') {
-        closeVisualizer();
-        openRoomModal();
-      } else if (pendingAction === 'close') {
-        closeVisualizer();
-      }
-      // Preguntar si quiere enviar cotización
-      if (cart.length > 0 || capturedSamples.length > 0) {
-        if (confirm('¿Desea enviar la cotización por WhatsApp?')) {
-          showQuoteReview();
-        }
-      }
+
+  // 4. Botón Editar (volver al visualizador)
+  var btnEditQuote = document.getElementById('btnEditQuote');
+  if (btnEditQuote) {
+    btnEditQuote.addEventListener('click', function() {
+      var modal = document.getElementById('quoteReviewModal');
+      if (modal) modal.classList.remove('active');
+      openVisualizer();
     });
   }
 
-  var btnDiscardChanges = document.getElementById('btnDiscardChanges');
-  if (btnDiscardChanges) {
-    btnDiscardChanges.addEventListener('click', function() {
-      hideExitConfirmation();
-      if (pendingAction === 'change') {
-        closeVisualizer();
-        openRoomModal();
-      } else if (pendingAction === 'close') {
-        closeVisualizer();
-      }
-    });
-  }
-  // ==========================================
-  // BOTONES DEL MODAL DE CONFIRMACIÓN DE SALIDA
-  // ==========================================
-  
-  // Botón: Guardar imagen y enviar cotización
+  // 5. Botones del modal de confirmación de salida
   var btnSaveAndSend = document.getElementById('btnSaveAndSend');
   if (btnSaveAndSend) {
     btnSaveAndSend.addEventListener('click', function() {
       saveImageAsJPG();
       hideExitConfirmation();
-      if (pendingAction === 'change') {
-        closeVisualizer();
-        openRoomModal();
-      } else if (pendingAction === 'close') {
-        closeVisualizer();
-      }
-      // Abrir modal de revisión de cotización después de un breve delay
-      setTimeout(function() {
-        showQuoteReview();
-      }, 300);
+      if (pendingAction === 'change') { closeVisualizer(); openRoomModal(); } 
+      else if (pendingAction === 'close') { closeVisualizer(); }
+      setTimeout(function() { showQuoteReview(); }, 300);
     });
   }
 
-  // Botón: Solo guardar imagen
   var btnSaveOnly = document.getElementById('btnSaveOnly');
   if (btnSaveOnly) {
     btnSaveOnly.addEventListener('click', function() {
       saveImageAsJPG();
       hideExitConfirmation();
-      if (pendingAction === 'change') {
-        closeVisualizer();
-        openRoomModal();
-      } else if (pendingAction === 'close') {
-        closeVisualizer();
-      }
+      if (pendingAction === 'change') { closeVisualizer(); openRoomModal(); } 
+      else if (pendingAction === 'close') { closeVisualizer(); }
     });
   }
 
-  // Botón: Descartar cambios y salir
-    var btnDiscard = document.getElementById('btnDiscard');
-  var btnDiscardChanges = document.getElementById('btnDiscardChanges');
-  
+  // 6. Botón Descartar cambios y salir (UNIFICADO)
+  var btnDiscard = document.getElementById('btnDiscard');
   function handleDiscard() {
+    console.log('🗑️ Descartando cambios. pendingAction:', pendingAction);
     hideExitConfirmation();
-    if (pendingAction === 'change') {
-      closeVisualizer();
-      openRoomModal();
-    } else if (pendingAction === 'close') {
-      closeVisualizer();
+    if (pendingAction === 'change') { 
+      closeVisualizer(); 
+      openRoomModal(); 
+    } else if (pendingAction === 'close') { 
+      closeVisualizer(); 
     }
   }
+  if (btnDiscard) btnDiscard.addEventListener('click', handleDiscard); 
   
-  if (btnDiscard) btnDiscard.addEventListener('click', handleDiscard);
-  if (btnDiscardChanges) btnDiscardChanges.addEventListener('click', handleDiscard);
   // ==========================================
   // 3. FASE 1: CÁMARA + MUESTRAS
   // ==========================================
@@ -2484,42 +2460,7 @@ document.addEventListener('DOMContentLoaded', function() {
     showNotification('✅ Muestra "' + sampleName + '" guardada');
   }
 
-    function renderSamples() {
-    samplesList.innerHTML = '';
-    samplesCount.textContent = capturedSamples.length;
-    samplesPanel.classList.toggle('hidden', capturedSamples.length === 0);
-    
-    capturedSamples.forEach((sample, index) => {
-      const item = document.createElement('div');
-      item.className = 'relative flex-shrink-0 group cursor-move';
-      item.draggable = true;
-      item.dataset.sampleId = sample.id;
-      item.innerHTML = `
-        <div class="w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-700 hover:border-alban-yellow transition">
-          <img src="${sample.image}" alt="${sample.name}" class="w-full h-full object-cover pointer-events-none">
-        </div>
-        <button class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition" onclick="deleteSample(${sample.id})">
-          <i class="fas fa-times"></i>
-        </button>
-        <p class="text-[10px] text-gray-400 mt-1 text-center truncate w-20">${sample.name}</p>
-      `;
-      
-      // Hacer la muestra arrastrable
-      item.addEventListener('dragstart', function(e) {
-        e.dataTransfer.setData('sampleId', sample.id);
-        e.dataTransfer.effectAllowed = 'copy';
-        item.style.opacity = '0.5';
-      });
-      
-      item.addEventListener('dragend', function() {
-        item.style.opacity = '1';
-      });
-      
-      samplesList.appendChild(item);
-    });
-  }
-
-  window.deleteSample = function(id) {
+    window.deleteSample = function(id) {
     capturedSamples = capturedSamples.filter(s => s.id !== id);
     renderSamples();
   };
@@ -2736,7 +2677,10 @@ document.addEventListener('DOMContentLoaded', function() {
       canvas.addEventListener('drop', function(e) {
         e.preventDefault();
         canvas.style.cursor = 'default';
-        
+        // AGREGA ESTAS 3 LÍNEAS:
+        console.log('🎯 DROP DETECTADO');
+        console.log('Sample ID:', e.dataTransfer.getData('sampleId'));
+        console.log('Total muestras:', capturedSamples.length);
         const sampleId = parseInt(e.dataTransfer.getData('sampleId'));
         const sample = capturedSamples.find(function(s) { return s.id === sampleId; });
         
