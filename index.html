@@ -1731,6 +1731,64 @@ imgDiv.appendChild(stockBadge);
     }
     var container = document.getElementById('reviewItems');
     container.innerHTML = '';
+    // Mostrar muestras capturadas
+    if (capturedSamples.length > 0) {
+      var samplesHeader = document.createElement('div');
+      samplesHeader.className = 'mb-4';
+      samplesHeader.innerHTML = '<h3 class="text-sm font-bold text-alban-yellow mb-2"> MUESTRAS FÍSICAS CAPTURADAS:</h3>';
+      container.appendChild(samplesHeader);
+      
+      capturedSamples.forEach((sample, index) => {
+        var div = document.createElement('div');
+        div.className = 'flex items-center gap-3 p-3 bg-alban-black rounded-lg border border-gray-700 mb-2';
+        div.innerHTML = `
+          <img src="${sample.image}" class="w-10 h-10 rounded object-cover flex-shrink-0">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-white font-semibold truncate">${sample.name}</p>
+            <p class="text-xs text-gray-400">Muestra física #${index + 1}</p>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+    
+    // Mostrar productos del carrito
+    if (cart.length > 0) {
+      var productsHeader = document.createElement('div');
+      productsHeader.className = 'mb-4 mt-6';
+      productsHeader.innerHTML = '<h3 class="text-sm font-bold text-alban-yellow mb-2">🛒 PRODUCTOS DEL CATÁLOGO:</h3>';
+      container.appendChild(productsHeader);
+      
+      cart.forEach(function(item, index) {
+        var div = document.createElement('div');
+        div.className = 'flex items-center gap-3 p-3 bg-alban-black rounded-lg border border-gray-700 mb-2';
+        div.innerHTML = `
+          <div class="w-10 h-10 bg-alban-yellow rounded-full flex items-center justify-center text-alban-black font-bold flex-shrink-0">${index + 1}</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm text-white font-semibold truncate">${item.nombre}</p>
+            <p class="text-xs text-gray-400 font-mono">SKU: ${item.sku}</p>
+            <p class="text-xs text-gray-500">${item.quantity} m²</p>
+          </div>
+          <button class="remove-item ml-2 text-red-400 hover:text-red-300 px-2" data-index="${index}"><i class="fas fa-trash"></i></button>
+        `;
+        container.appendChild(div);
+      });
+    }
+    
+    var removeBtns = container.querySelectorAll('.remove-item');
+    removeBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.getAttribute('data-index'));
+        cart.splice(idx, 1);
+        saveCart();
+        updateQuoteBar();
+        showQuoteReview();
+      });
+    });
+    
+    document.getElementById('reviewTotal').textContent = cart.length + ' productos + ' + capturedSamples.length + ' muestras';
+    document.getElementById('quoteReviewModal').classList.add('active');
+  }
     cart.forEach(function(item, index) {
       var div = document.createElement('div');
       div.className = 'flex items-center gap-3 p-3 bg-alban-black rounded-lg border border-gray-700';
@@ -1776,16 +1834,26 @@ imgDiv.appendChild(stockBadge);
   if (clientName) msg += '👤 *Cliente:* ' + clientName + '\n';
   if (clientPhone) msg += '📱 *Teléfono:* ' + clientPhone + '\n';
   if (clientName || clientPhone) msg += '\n';
-  
-  msg += '📋 *PRODUCTOS COTIZADOS:*\n\n';
-  
-  for (let i = 0; i < cart.length; i++) {
-    msg += '✅ *' + cart[i].nombre + '*\n';
-    msg += '   SKU: ' + cart[i].sku + '\n';
-    msg += '   Categoría: ' + cart[i].categoria + '\n';
-    msg += '   Cantidad: ' + cart[i].quantity + ' m²\n\n';
-  }
-  
+  // Agregar muestras capturadas
+    if (capturedSamples.length > 0) {
+      msg += ' *MUESTRAS FÍSICAS CAPTURADAS:*\n\n';
+      capturedSamples.forEach((sample, index) => {
+        msg += '✅ *Muestra ' + (index + 1) + ':* ' + sample.name + '\n';
+        msg += '   Foto tomada en tienda\n\n';
+      });
+      msg += '━━━━━━━━━━━━━━━━━━━━\n\n';
+    }
+    
+    // Agregar productos del carrito
+    if (cart.length > 0) {
+      msg += '📋 *PRODUCTOS COTIZADOS:*\n\n';
+      for (let i = 0; i < cart.length; i++) {
+        msg += '✅ *' + cart[i].nombre + '*\n';
+        msg += '   SKU: ' + cart[i].sku + '\n';
+        msg += '   Categoría: ' + cart[i].categoria + '\n';
+        msg += '   Cantidad: ' + cart[i].quantity + ' m²\n\n';
+      }
+    }
   msg += '━━━━━━━━━━━━━━━━━━━━\n';
   msg += '📞 *Por favor contactarme para cotización personalizada.*\n\n';
   
@@ -2315,22 +2383,37 @@ document.addEventListener('DOMContentLoaded', function() {
     showNotification('✅ Muestra "' + sampleName + '" guardada');
   }
 
-  function renderSamples() {
+    function renderSamples() {
     samplesList.innerHTML = '';
     samplesCount.textContent = capturedSamples.length;
     samplesPanel.classList.toggle('hidden', capturedSamples.length === 0);
-    capturedSamples.forEach(sample => {
+    
+    capturedSamples.forEach((sample, index) => {
       const item = document.createElement('div');
-      item.className = 'relative flex-shrink-0 group';
+      item.className = 'relative flex-shrink-0 group cursor-move';
+      item.draggable = true;
+      item.dataset.sampleId = sample.id;
       item.innerHTML = `
-        <div class="w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-700 hover:border-alban-yellow transition cursor-pointer">
-          <img src="${sample.image}" alt="${sample.name}" class="w-full h-full object-cover">
+        <div class="w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-700 hover:border-alban-yellow transition">
+          <img src="${sample.image}" alt="${sample.name}" class="w-full h-full object-cover pointer-events-none">
         </div>
         <button class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition" onclick="deleteSample(${sample.id})">
           <i class="fas fa-times"></i>
         </button>
         <p class="text-[10px] text-gray-400 mt-1 text-center truncate w-20">${sample.name}</p>
       `;
+      
+      // Hacer la muestra arrastrable
+      item.addEventListener('dragstart', function(e) {
+        e.dataTransfer.setData('sampleId', sample.id);
+        e.dataTransfer.effectAllowed = 'copy';
+        item.style.opacity = '0.5';
+      });
+      
+      item.addEventListener('dragend', function() {
+        item.style.opacity = '1';
+      });
+      
       samplesList.appendChild(item);
     });
   }
@@ -2485,6 +2568,83 @@ document.addEventListener('DOMContentLoaded', function() {
       renderVisualizerCatalog(cat, this.value);
     });
   }
+  // ==========================================
+  // 3.7. ARRASTRAR MUESTRAS AL CANVAS
+  // ==========================================
+  const mainCanvasForDrop = document.getElementById('mainCanvas');
+  const zoneCanvasForDrop = document.getElementById('zoneCanvas');
+  
+  if (mainCanvasForDrop && zoneCanvasForDrop) {
+    // Permitir drop en ambos canvas
+    [mainCanvasForDrop, zoneCanvasForDrop].forEach(canvas => {
+      canvas.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        canvas.style.cursor = 'copy';
+      });
+      
+      canvas.addEventListener('dragleave', function() {
+        canvas.style.cursor = 'default';
+      });
+      
+      canvas.addEventListener('drop', function(e) {
+        e.preventDefault();
+        canvas.style.cursor = 'default';
+        
+        const sampleId = parseInt(e.dataTransfer.getData('sampleId'));
+        const sample = capturedSamples.find(s => s.id === sampleId);
+        
+        if (sample) {
+          // Obtener coordenadas del drop
+          const rect = canvas.getBoundingClientRect();
+          const scaleX = canvas.width / rect.width;
+          const scaleY = canvas.height / rect.height;
+          const x = Math.floor((e.clientX - rect.left) * scaleX);
+          const y = Math.floor((e.clientY - rect.top) * scaleY);
+          
+          // Detectar zona en el punto de drop
+          const zone = detectZone(x, y);
+          
+          if (zone) {
+            zone.id = Date.now();
+            zones.push(zone);
+            currentZoneId = zone.id;
+            
+            // Crear un producto temporal con la muestra
+            const tempProduct = {
+              id: 'sample_' + sample.id,
+              nombre: sample.name,
+              color: '#808080',
+              imagen_url: sample.image
+            };
+            
+            // Aplicar la muestra como textura
+            zone.material = {
+              product: tempProduct,
+              color: tempProduct.color,
+              name: tempProduct.nombre,
+              imagen_url: tempProduct.imagen_url
+            };
+            zone.alpha = 0.7;
+            
+            currentMaterialColor = tempProduct.color;
+            currentMaterialName = tempProduct.nombre;
+            
+            var currentMaterialEl = document.getElementById('currentMaterial');
+            if (currentMaterialEl) currentMaterialEl.textContent = tempProduct.nombre;
+            
+            loadTextureAndApply(zone, tempProduct);
+            renderZonesList();
+            broadcastToScreen();
+            showNotification('✅ Muestra "' + sample.name + '" aplicada');
+          } else {
+            showNotification('️ Zona muy pequeña. Intenta en otra área.');
+          }
+        }
+      });
+    });
+  }
+
   // ==========================================
   // 4. SCROLL SUAVE Y MODALES
   // ==========================================
