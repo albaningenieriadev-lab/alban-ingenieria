@@ -2369,6 +2369,63 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnClearSamples = document.getElementById('btnClearSamples');
   if (btnClearSamples) btnClearSamples.addEventListener('click', clearAllSamples);
 
+    // ==========================================
+  // 3.5. SUBIDA DE IMAGEN PERSONALIZADA (VISUALIZADOR)
+  // ==========================================
+  var roomOptions = document.querySelectorAll('.room-option');
+  var uploadedPreview = document.getElementById('uploadedPreview');
+  var previewImage = document.getElementById('previewImage');
+  var uploadZone = document.getElementById('uploadZone');
+  var imageUpload = document.getElementById('imageUpload');
+
+  if (roomOptions) {
+    roomOptions.forEach(function(option) {
+      option.addEventListener('click', function() {
+        roomOptions.forEach(function(o) { o.classList.remove('selected'); });
+        option.classList.add('selected');
+        currentRoom = option.getAttribute('data-room');
+        customImage = null;
+        if (uploadedPreview) uploadedPreview.classList.add('hidden');
+        if (previewImage) previewImage.src = '';
+      });
+    });
+  }
+
+  if (uploadZone && imageUpload) {
+    uploadZone.addEventListener('click', function() { imageUpload.click(); });
+    uploadZone.addEventListener('dragover', function(e) { 
+      e.preventDefault(); 
+      uploadZone.style.background = 'rgba(255,199,0,0.1)'; 
+    });
+    uploadZone.addEventListener('dragleave', function() { 
+      uploadZone.style.background = ''; 
+    });
+    uploadZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      uploadZone.style.background = '';
+      var file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) handleImageUpload(file);
+    });
+    imageUpload.addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (file) handleImageUpload(file);
+    });
+  }
+
+  function handleImageUpload(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      if (previewImage) previewImage.src = e.target.result;
+      customImage = e.target.result;
+      if (uploadedPreview) uploadedPreview.classList.remove('hidden');
+      if (roomOptions) {
+        roomOptions.forEach(function(o) { o.classList.remove('selected'); });
+      }
+      currentRoom = 'personalizado';
+    };
+    reader.readAsDataURL(file);
+  }
+  
   // ==========================================
   // 4. SCROLL SUAVE Y MODALES
   // ==========================================
