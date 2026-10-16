@@ -2708,7 +2708,6 @@
               }
 
             });
-          }
 
             // 2. Botón WhatsApp (unificado)
             var btnWhatsApp = document.getElementById('btnWhatsApp');
@@ -3325,63 +3324,65 @@
             } else {
               console.error('❌ NO se encontró el modal con ID "quoteReviewModal" en el HTML');
             }
-            // ==========================================
-            // MENÚ CATÁLOGO (CORREGIDO CON LOS IDs REALES DEL HTML)
-            // ==========================================
-            const btnMegaMenu = document.getElementById('btnMegaMenu');
-            const megaMenu = document.getElementById('megaMenu');
+// ==========================================
+// MENÚ CATÁLOGO (CÓDIGO JAVASCRIPT LIMPIO)
+// ==========================================
+const btnMegaMenu = document.getElementById('btnMegaMenu');
+const megaMenu = document.getElementById('megaMenu');
 
-            if (btnMegaMenu && megaMenu) {
-              console.log('✅ Botón y Menú de Catálogo encontrados correctamente');
+if (btnMegaMenu && megaMenu) {
+  console.log('✅ Botón y Menú de Catálogo encontrados correctamente');
+  
+  // Aseguramos que el menú tenga el z-index correcto para no quedar tapado
+  megaMenu.style.zIndex = '100';
 
-              btnMegaMenu.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('📂 Clic en botón Catálogo ejecutado');
+  btnMegaMenu.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('📂 Clic en botón Catálogo ejecutado');
+    
+    // Forzamos la visibilidad directamente, ignorando la clase 'hidden' de Tailwind
+    if (megaMenu.style.display === 'none' || megaMenu.style.display === '') {
+      megaMenu.style.display = 'block';
+      megaMenu.classList.remove('hidden'); 
+      console.log('👁️ Menú MOSTRADO forzosamente (display: block)');
+    } else {
+      megaMenu.style.display = 'none';
+      megaMenu.classList.add('hidden');
+      console.log('🙈 Menú OCULTADO (display: none)');
+    }
+  });
 
-                // Alternar visibilidad (usamos 'hidden' de Tailwind)
-                megaMenu.classList.toggle('hidden');
+  // Cerrar menú al hacer clic fuera de él
+  document.addEventListener('click', function (e) {
+    if (!btnMegaMenu.contains(e.target) && !megaMenu.contains(e.target)) {
+      megaMenu.classList.add('hidden');
+    }
+  });
 
-                console.log('✅ Menú alternado. ¿Tiene clase hidden?:', megaMenu.classList.contains('hidden'));
-              });
+  // Lógica para los items del menú
+  const megaItems = megaMenu.querySelectorAll('.mega-item');
+  megaItems.forEach(item => {
+    item.addEventListener('click', function () {
+      const cat = this.getAttribute('data-cat');
+      const sub = this.getAttribute('data-sub');
+      console.log('🔍 Filtrando por:', cat, sub);
 
-              // Cerrar menú al hacer clic fuera de él
-              document.addEventListener('click', function (e) {
-                if (!btnMegaMenu.contains(e.target) && !megaMenu.contains(e.target)) {
-                  megaMenu.classList.add('hidden');
-                }
-              });
-
-              // Lógica para los items del menú (al hacer clic en una categoría)
-              const megaItems = megaMenu.querySelectorAll('.mega-item');
-              megaItems.forEach(item => {
-                item.addEventListener('click', function () {
-                  const cat = this.getAttribute('data-cat');
-                  const sub = this.getAttribute('data-sub');
-                  console.log('🔍 Filtrando por Categoría:', cat, 'Subcategoría:', sub);
-
-                  const filterLabel = document.getElementById('filterLabel');
-                  if (filterLabel) {
-                    if (cat === 'all') {
-                      filterLabel.textContent = 'Todos los productos';
-                    } else {
-                      filterLabel.textContent = sub === 'all' ? cat : cat + ' - ' + sub;
-                    }
-                  }
-
-                  // Cerrar el menú después de seleccionar
-                  megaMenu.classList.add('hidden');
-                }); // ← Cierra addEventListener del item
-              });   // ← Cierra forEach
-            } else {
-  console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML. Revisa los IDs.');
+      const filterLabel = document.getElementById('filterLabel');
+      if (filterLabel) {
+        filterLabel.textContent = (cat === 'all') ? 'Todos los productos' : (sub === 'all' ? cat : cat + ' - ' + sub);
+      }
+      megaMenu.classList.add('hidden');
+    });
+  });
+} else {
+  console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML.');
 }
 
-}); // ← 1. CIERRA DOMContentLoaded
+}); // ← CIERRA DOMContentLoaded
 
-})(); // ← 2. CIERRA FUNCIÓN PRINCIPAL (function() { ... })();
+})(); // ← CIERRA FUNCIÓN PRINCIPAL
 </script>
-
 <!-- ========================================== -->
 <!-- MODALES HTML (DEBEN IR DESPUÉS DE </script>) -->
 <!-- ========================================== -->
