@@ -1156,13 +1156,13 @@ function poblarSelectorSucursales() {
   };
 
   var roomBackgrounds = {
-    'sala': 'imagenes/espacios/sala.jpg',
-    'cocina': 'imagenes/espacios/cocina.jpg',
-    'bano': 'imagenes/espacios/bano.jpg',
-    'estudio': 'imagenes/espacios/estudio.jpg',
-    'oficina': 'imagenes/espacios/oficina.jpg',
-    'fachada': 'imagenes/espacios/fachada.jpg'
-  };
+  'sala': 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200',
+  'cocina': 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=1200',
+  'bano': 'https://images.unsplash.com/photo-1552321554-5fefe6c3e73d?w=1200',
+  'estudio': 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=1200',
+  'oficina': 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200',
+  'fachada': 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200'
+};
 
   function updateCategoryDisplay() {
   var display = document.getElementById('currentCategoryDisplay');
@@ -2304,7 +2304,97 @@ document.addEventListener('DOMContentLoaded', function() {
         closeVisualizer();
         openRoomModal();
       }
+  // ==========================================
+  // BOTONES QUE ESTABAN FALLANDO
+  // ==========================================
+
+  // 1. Botón Catálogo (desplegar menú)
+  var btnCatalogo = document.getElementById('btnCatalogo');
+  if (btnCatalogo) {
+    btnCatalogo.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var menu = document.getElementById('catalogMenu');
+      if (menu) {
+        menu.classList.toggle('hidden');
+        console.log('📂 Menú catálogo:', menu.classList.contains('hidden') ? 'cerrado' : 'abierto');
+      } else {
+        console.warn('⚠️ No se encontró el elemento catalogMenu');
+      }
     });
+  }
+
+  // Cerrar menú al hacer clic fuera
+  document.addEventListener('click', function(e) {
+    var menu = document.getElementById('catalogMenu');
+    var btn = document.getElementById('btnCatalogo');
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.classList.add('hidden');
+    }
+  });
+
+  // 2. Botón WhatsApp (unificado)
+  var btnWhatsApp = document.getElementById('btnWhatsApp');
+  var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
+  
+  function handleWhatsApp() {
+    console.log(' Enviando cotización por WhatsApp...');
+    console.log('Carrito:', cart.length, 'productos');
+    console.log('Muestras:', capturedSamples.length);
+    
+    if (cart.length === 0 && capturedSamples.length === 0) {
+      alert('No hay productos ni muestras para enviar');
+      return;
+    }
+    
+    if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
+      alert('️ Por favor selecciona una sucursal destino');
+      return;
+    }
+    
+    sendQuoteWhatsApp();
+    
+    var modal = document.getElementById('quoteReviewModal');
+    if (modal) modal.classList.remove('active');
+  }
+  
+  if (btnWhatsApp) btnWhatsApp.addEventListener('click', handleWhatsApp);
+  if (btnSendWhatsApp) btnSendWhatsApp.addEventListener('click', handleWhatsApp);
+
+  // 3. Botón Editar (con pregunta inteligente)
+  var btnEditQuote = document.getElementById('btnEditQuote');
+  if (btnEditQuote) {
+    btnEditQuote.addEventListener('click', function() {
+      var modal = document.getElementById('quoteReviewModal');
+      if (modal) modal.classList.remove('active');
+      
+      if (customImage) {
+        var opcion = confirm(
+          'Tienes una imagen personalizada cargada en el visualizador.\n\n' +
+          '¿Deseas volver al visualizador para continuar editando?\n\n' +
+          'Aceptar = Volver al visualizador (conserva la imagen)\n' +
+          'Cancelar = Ir al catálogo de productos'
+        );
+        
+        if (opcion) {
+          console.log('🔄 Volviendo al visualizador con imagen personalizada');
+          openVisualizer();
+        } else {
+          console.log('📦 Ir al catálogo');
+          var catalogSection = document.getElementById('catalogSection') || document.getElementById('productGrid');
+          if (catalogSection) {
+            catalogSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      } else {
+        console.log('📦 No hay imagen personalizada, ir al catálogo');
+        var catalogSection = document.getElementById('catalogSection') || document.getElementById('productGrid');
+        if (catalogSection) {
+          catalogSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    });
+  }
+  });
   }
 
   var btnCloseVisualizer = document.getElementById('btnCloseVisualizer');
@@ -2355,13 +2445,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // 4. Botón Editar (volver al visualizador)
+  // Botón Editar (con pregunta inteligente)
   var btnEditQuote = document.getElementById('btnEditQuote');
   if (btnEditQuote) {
     btnEditQuote.addEventListener('click', function() {
       var modal = document.getElementById('quoteReviewModal');
       if (modal) modal.classList.remove('active');
-      openVisualizer();
+      
+      // Verificar si hay imagen personalizada en el visualizador
+      if (customImage) {
+        // Preguntar qué quiere hacer
+        var opcion = confirm(
+          'Tienes una imagen personalizada cargada en el visualizador.\n\n' +
+          '¿Deseas volver al visualizador para continuar editando?\n\n' +
+          'Aceptar = Volver al visualizador (conserva la imagen)\n' +
+          'Cancelar = Ir al catálogo de productos'
+        );
+        
+        if (opcion) {
+          // Volver al visualizador con la imagen
+          openVisualizer();
+        } else {
+          // Ir al catálogo
+          var catalogSection = document.getElementById('catalogSection');
+          if (catalogSection) {
+            catalogSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      } else {
+        // No hay imagen personalizada, ir directo al catálogo
+        var catalogSection = document.getElementById('catalogSection');
+        if (catalogSection) {
+          catalogSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     });
   }
 
