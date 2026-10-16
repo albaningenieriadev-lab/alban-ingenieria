@@ -2303,17 +2303,16 @@ document.addEventListener('DOMContentLoaded', function() {
         closeVisualizer();
         openRoomModal();
       }
-  // ==========================================
-  // BOTONES QUE ESTABAN FALLANDO
-  // ==========================================
 
-    // ==========================================
+     });
+  }
+  // ==========================================
   // MENÚ CATÁLOGO (BÚSQUEDA INTELIGENTE)
   // ==========================================
   
   // 1. Buscar el botón por ID o porque diga "Catálogo" en su texto
   const btnCatalogo = document.getElementById('btnCatalogo') || 
-                      Array.from(document.querySelectorAll('button, a')).find(el => el.textContent.trim().toLowerCase().includes('catálogo'));
+  Array.from(document.querySelectorAll('button, a')).find(el => el.textContent.trim().toLowerCase().includes('catálogo'));
   
   if (btnCatalogo) {
     console.log('✅ Botón de Catálogo encontrado:', btnCatalogo.id || 'sin ID, encontrado por texto');
@@ -2325,9 +2324,9 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // 2. Buscar el menú por ID o por clases comunes
       const menu = document.getElementById('catalogMenu') || 
-                   document.getElementById('menuCategorias') || 
-                   document.querySelector('.mega-menu') ||
-                   document.querySelector('.dropdown-menu');
+      document.getElementById('menuCategorias') || 
+      document.querySelector('.mega-menu') ||
+      document.querySelector('.dropdown-menu');
       
       if (menu) {
         menu.classList.toggle('hidden');
