@@ -1137,7 +1137,10 @@ function poblarSelectorSucursales() {
   var isScreenMode = false;
   var textureCache = {};
   var pendingAction = null;
-
+  let capturedSamples = [];
+  let cameraStream = null;
+  let currentCapture = null;
+  
   var categoryImages = {
     'all': { img: 'imagenes/categorias/catalogo.jpg', label: 'CATÁLOGO COMPLETO', title: 'Todos nuestros productos', desc: 'Más de 240 productos de ingeniería y acabados premium' },
     'Muros y Revestimientos': { img: 'imagenes/categorias/muros.jpg', label: 'MUROS Y REVESTIMIENTOS', title: 'Transforma tus paredes', desc: 'Lambrines, wall cladding y revestimientos flexibles' },
@@ -2366,10 +2369,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // ==========================================
   // 3. FASE 1: CÁMARA + MUESTRAS
   // ==========================================
-  let capturedSamples = [];
-  let cameraStream = null;
-  let currentCapture = null;
-
   const cameraModal = document.getElementById('cameraModal');
   const cameraVideo = document.getElementById('cameraVideo');
   const cameraCanvas = document.getElementById('cameraCanvas');
