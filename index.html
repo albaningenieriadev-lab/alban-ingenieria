@@ -1798,7 +1798,9 @@ imgDiv.appendChild(stockBadge);
       alert('⚠️ Por favor selecciona una sucursal destino antes de enviar la cotización.');
       return;
     }
-    
+
+    console.log('📞 Número de WhatsApp:', sucursalSeleccionada.whatsapp);
+
     const clientName = document.getElementById('clientName').value.trim();
     const clientPhone = document.getElementById('clientPhone').value.trim();
     const clientNotes = document.getElementById('clientNotes').value.trim();
@@ -1840,6 +1842,7 @@ imgDiv.appendChild(stockBadge);
     msg += '¡Gracias por su interés en Alban Ingeniería!';
     
     const whatsappUrl = 'https://wa.me/' + sucursalSeleccionada.whatsapp + '?text=' + encodeURIComponent(msg);
+    console.log('🔗 URL de WhatsApp:', whatsappUrl);
     window.open(whatsappUrl, '_blank');
     
     // Limpiar formulario
@@ -2428,58 +2431,44 @@ document.addEventListener('DOMContentLoaded', function() {
   var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
   var btnWhatsAppBar = document.getElementById('btnWhatsApp');
   
+    // ==========================================
+  // FUNCIÓN UNIFICADA PARA ENVIAR WHATSAPP
+  // ==========================================
   function handleSendWhatsApp() {
+    console.log('📱 Intentando enviar WhatsApp...');
+    console.log('Carrito:', cart.length, 'productos');
+    console.log('Muestras:', capturedSamples.length);
+    console.log('Sucursal seleccionada:', sucursalSeleccionada);
+    
+    if (cart.length === 0 && capturedSamples.length === 0) {
+      alert('No hay productos ni muestras para enviar');
+      return;
+    }
+    
+    if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
+      alert('⚠️ Por favor selecciona una sucursal destino');
+      return;
+    }
+    
+    console.log('✅ Enviando a WhatsApp:', sucursalSeleccionada.whatsapp);
     sendQuoteWhatsApp();
+    
     var modal = document.getElementById('quoteReviewModal');
     if (modal) modal.classList.remove('active');
   }
-  if (btnSendWhatsApp) btnSendWhatsApp.addEventListener('click', handleSendWhatsApp);
-  if (btnWhatsAppBar) btnWhatsAppBar.addEventListener('click', handleSendWhatsApp);
 
-  // 3. Botón Cerrar modal de revisión
-  var btnCloseReview = document.getElementById('btnCloseReview');
-  if (btnCloseReview) {
-    btnCloseReview.addEventListener('click', function() {
-      var modal = document.getElementById('quoteReviewModal');
-      if (modal) modal.classList.remove('active');
-    });
+  // Conectar la función a TODOS los botones de WhatsApp
+  var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
+  var btnWhatsApp = document.getElementById('btnWhatsApp');
+  
+  if (btnSendWhatsApp) {
+    btnSendWhatsApp.addEventListener('click', handleSendWhatsApp);
+    console.log('✅ Botón btnSendWhatsApp conectado');
   }
-
-  // Botón Editar (con pregunta inteligente)
-  var btnEditQuote = document.getElementById('btnEditQuote');
-  if (btnEditQuote) {
-    btnEditQuote.addEventListener('click', function() {
-      var modal = document.getElementById('quoteReviewModal');
-      if (modal) modal.classList.remove('active');
-      
-      // Verificar si hay imagen personalizada en el visualizador
-      if (customImage) {
-        // Preguntar qué quiere hacer
-        var opcion = confirm(
-          'Tienes una imagen personalizada cargada en el visualizador.\n\n' +
-          '¿Deseas volver al visualizador para continuar editando?\n\n' +
-          'Aceptar = Volver al visualizador (conserva la imagen)\n' +
-          'Cancelar = Ir al catálogo de productos'
-        );
-        
-        if (opcion) {
-          // Volver al visualizador con la imagen
-          openVisualizer();
-        } else {
-          // Ir al catálogo
-          var catalogSection = document.getElementById('catalogSection');
-          if (catalogSection) {
-            catalogSection.scrollIntoView({ behavior: 'smooth' });
-          }
-        }
-      } else {
-        // No hay imagen personalizada, ir directo al catálogo
-        var catalogSection = document.getElementById('catalogSection');
-        if (catalogSection) {
-          catalogSection.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
-    });
+  
+  if (btnWhatsApp) {
+    btnWhatsApp.addEventListener('click', handleSendWhatsApp);
+    console.log('✅ Botón btnWhatsApp conectado');
   }
 
   // 5. Botones del modal de confirmación de salida
