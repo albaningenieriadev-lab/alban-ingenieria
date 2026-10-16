@@ -2888,129 +2888,69 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  // ==========================================
-  // DIAGNÓSTICO: BOTONES DEL MODAL DE COTIZACIÓN
-  // ==========================================
-  
-  console.log('🔍 Buscando botones del modal...');
-  
-  // 1. Botón Cerrar (X)
-  var btnCloseReview = document.getElementById('btnCloseReview');
-  console.log('btnCloseReview:', btnCloseReview);
-  if (btnCloseReview) {
-    btnCloseReview.addEventListener('click', function() {
-      console.log('❌ Clic en Cerrar');
-      var modal = document.getElementById('quoteReviewModal');
-      if (modal) modal.classList.remove('active');
-    });
-  }
-
-  // 2. Botón Editar
-  var btnEditQuote = document.getElementById('btnEditQuote');
-  console.log('btnEditQuote:', btnEditQuote);
-  if (btnEditQuote) {
-    btnEditQuote.addEventListener('click', function() {
-      console.log('✏️ Clic en Editar');
-      var modal = document.getElementById('quoteReviewModal');
-      if (modal) modal.classList.remove('active');
-      
-      if (customImage) {
-        var opcion = confirm(
-          'Tienes una imagen personalizada cargada.\n\n' +
-          'Aceptar = Volver al visualizador\n' +
-          'Cancelar = Ir al catálogo'
-        );
-        if (opcion) {
-          openVisualizer();
-        } else {
-          var catalogSection = document.getElementById('productGrid');
-          if (catalogSection) catalogSection.scrollIntoView({ behavior: 'smooth' });
-        }
-      } else {
-        var catalogSection = document.getElementById('productGrid');
-        if (catalogSection) catalogSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    });
-  }
-
-  // 3. Botón Enviar por WhatsApp
-  var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
-  console.log('btnSendWhatsApp:', btnSendWhatsApp);
-  if (btnSendWhatsApp) {
-    btnSendWhatsApp.addEventListener('click', function() {
-      console.log('📱 Clic en Enviar WhatsApp');
-      console.log('Sucursal:', sucursalSeleccionada);
-      console.log('Carrito:', cart.length);
-      
-      if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
-        alert('⚠️ Selecciona una sucursal destino');
-        return;
-      }
-      
-      sendQuoteWhatsApp();
-      
-      var modal = document.getElementById('quoteReviewModal');
-      if (modal) modal.classList.remove('active');
-    });
-  }
     // ==========================================
-  // CONECTAR BOTONES DEL MODAL DE COTIZACIÓN
+  // SOLUCIÓN DEFINITIVA: BOTONES DEL MODAL DE COTIZACIÓN
   // ==========================================
+  const quoteModal = document.getElementById('quoteReviewModal');
   
-  // Buscar el botón "Enviar por WhatsApp" dentro del modal
-  var modalButtons = document.querySelectorAll('#quoteReviewModal button');
-  modalButtons.forEach(function(btn) {
-    if (btn.textContent.includes('Enviar por WhatsApp')) {
-      console.log('✅ Botón WhatsApp del modal encontrado');
-      btn.addEventListener('click', function() {
-        console.log('📱 Clic en Enviar WhatsApp del modal');
+  if (quoteModal) {
+    console.log('✅ Modal de cotización encontrado en el DOM');
+    
+    // 1. Botón Cerrar (X) - Busca por ID o por el ícono de la X
+    const closeBtn = document.getElementById('btnCloseReview') || quoteModal.querySelector('.fa-times')?.closest('button');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('❌ Clic en Cerrar modal');
+        quoteModal.classList.remove('active');
+      });
+    }
+
+    // 2. Botón Editar - Busca por ID o por el texto "Editar"
+    const editBtn = document.getElementById('btnEditQuote') || Array.from(quoteModal.querySelectorAll('button')).find(b => b.textContent.includes('Editar'));
+    if (editBtn) {
+      editBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('✏️ Clic en Editar');
+        quoteModal.classList.remove('active');
         
-        if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
-          alert('⚠️ Selecciona una sucursal destino');
+        // Pequeño delay para asegurar que el modal se cierre antes de hacer scroll
+        setTimeout(() => {
+          if (typeof customImage !== 'undefined' && customImage) {
+            const opcion = confirm('Tienes una imagen personalizada.\n\nAceptar = Volver al visualizador\nCancelar = Ir al catálogo');
+            if (opcion) {
+              if (typeof openVisualizer === 'function') openVisualizer();
+            } else {
+              document.getElementById('productGrid')?.scrollIntoView({ behavior: 'smooth' });
+            }
+          } else {
+            document.getElementById('productGrid')?.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      });
+    }
+
+    // 3. Botón Enviar por WhatsApp - Busca por ID o por el texto "WhatsApp"
+    const whatsappBtn = document.getElementById('btnSendWhatsApp') || Array.from(quoteModal.querySelectorAll('button')).find(b => b.textContent.includes('WhatsApp'));
+    if (whatsappBtn) {
+      whatsappBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('📱 Clic en Enviar WhatsApp desde modal');
+        console.log('Sucursal:', typeof sucursalSeleccionada !== 'undefined' ? sucursalSeleccionada : 'No definida');
+        
+        if (typeof sucursalSeleccionada === 'undefined' || !sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
+          alert('⚠️ Selecciona una sucursal destino en el formulario de abajo');
           return;
         }
         
-        sendQuoteWhatsApp();
-        
-        var modal = document.getElementById('quoteReviewModal');
-        if (modal) modal.classList.remove('active');
-      });
-    }
-    
-    if (btn.textContent.includes('Editar')) {
-      console.log('✅ Botón Editar del modal encontrado');
-      btn.addEventListener('click', function() {
-        console.log('️ Clic en Editar del modal');
-        var modal = document.getElementById('quoteReviewModal');
-        if (modal) modal.classList.remove('active');
-        
-        if (customImage) {
-          var opcion = confirm(
-            'Tienes una imagen personalizada.\n\n' +
-            'Aceptar = Volver al visualizador\n' +
-            'Cancelar = Ir al catálogo'
-          );
-          if (opcion) {
-            openVisualizer();
-          } else {
-            var catalogSection = document.getElementById('productGrid');
-            if (catalogSection) catalogSection.scrollIntoView({ behavior: 'smooth' });
-          }
-        } else {
-          var catalogSection = document.getElementById('productGrid');
-          if (catalogSection) catalogSection.scrollIntoView({ behavior: 'smooth' });
+        if (typeof sendQuoteWhatsApp === 'function') {
+          sendQuoteWhatsApp();
         }
+        quoteModal.classList.remove('active');
       });
     }
-  });
-
-  // Botón X para cerrar el modal
-  var btnCloseReview = document.querySelector('#quoteReviewModal .fa-times')?.parentElement;
-  if (btnCloseReview) {
-    btnCloseReview.addEventListener('click', function() {
-      var modal = document.getElementById('quoteReviewModal');
-      if (modal) modal.classList.remove('active');
-    });
+  } else {
+    console.error('❌ NO se encontró el modal con ID "quoteReviewModal" en el HTML');
   }
 }); // ← CIERRA DOMContentLoaded
 
