@@ -2363,7 +2363,57 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+  // ==========================================
+  // BOTONES DEL MODAL DE CONFIRMACIÓN DE SALIDA
+  // ==========================================
+  
+  // Botón: Guardar imagen y enviar cotización
+  var btnSaveAndSend = document.getElementById('btnSaveAndSend');
+  if (btnSaveAndSend) {
+    btnSaveAndSend.addEventListener('click', function() {
+      saveImageAsJPG();
+      hideExitConfirmation();
+      if (pendingAction === 'change') {
+        closeVisualizer();
+        openRoomModal();
+      } else if (pendingAction === 'close') {
+        closeVisualizer();
+      }
+      // Abrir modal de revisión de cotización después de un breve delay
+      setTimeout(function() {
+        showQuoteReview();
+      }, 300);
+    });
+  }
 
+  // Botón: Solo guardar imagen
+  var btnSaveOnly = document.getElementById('btnSaveOnly');
+  if (btnSaveOnly) {
+    btnSaveOnly.addEventListener('click', function() {
+      saveImageAsJPG();
+      hideExitConfirmation();
+      if (pendingAction === 'change') {
+        closeVisualizer();
+        openRoomModal();
+      } else if (pendingAction === 'close') {
+        closeVisualizer();
+      }
+    });
+  }
+
+  // Botón: Descartar cambios y salir
+  var btnDiscard = document.getElementById('btnDiscard');
+  if (btnDiscard) {
+    btnDiscard.addEventListener('click', function() {
+      hideExitConfirmation();
+      if (pendingAction === 'change') {
+        closeVisualizer();
+        openRoomModal();
+      } else if (pendingAction === 'close') {
+        closeVisualizer();
+      }
+    });
+  }
   var btnCloseVisualizer = document.getElementById('btnCloseVisualizer');
   if (btnCloseVisualizer) btnCloseVisualizer.addEventListener('click', closeVisualizer);
   // ==========================================
