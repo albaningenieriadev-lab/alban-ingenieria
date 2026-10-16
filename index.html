@@ -2319,17 +2319,25 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Botón de cotización (revisar carrito)
-  var btnReviewQuote = document.getElementById('btnReviewQuote');
+   var btnReviewQuote = document.getElementById('btnReviewQuote');
   if (btnReviewQuote) {
-    btnReviewQuote.addEventListener('click', showQuoteReview);
+    btnReviewQuote.addEventListener('click', function() {
+      if (cart.length === 0 && capturedSamples.length === 0) {
+        alert('No hay productos ni muestras en el carrito');
+        return;
+      }
+      showQuoteReview();
+    });
   }
-
   // Botón de enviar cotización por WhatsApp
   var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
   if (btnSendWhatsApp) {
-    btnSendWhatsApp.addEventListener('click', sendQuoteWhatsApp);
+    btnSendWhatsApp.addEventListener('click', function() {
+      sendQuoteWhatsApp();
+      var modal = document.getElementById('quoteReviewModal');
+      if (modal) modal.classList.remove('active');
+    });
   }
-
   // Botones del modal de confirmación de salida
   var btnSaveAndContinue = document.getElementById('btnSaveAndContinue');
   if (btnSaveAndContinue) {
@@ -2402,20 +2410,21 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Botón: Descartar cambios y salir
-  var btnDiscard = document.getElementById('btnDiscard');
-  if (btnDiscard) {
-    btnDiscard.addEventListener('click', function() {
-      hideExitConfirmation();
-      if (pendingAction === 'change') {
-        closeVisualizer();
-        openRoomModal();
-      } else if (pendingAction === 'close') {
-        closeVisualizer();
-      }
-    });
+    var btnDiscard = document.getElementById('btnDiscard');
+  var btnDiscardChanges = document.getElementById('btnDiscardChanges');
+  
+  function handleDiscard() {
+    hideExitConfirmation();
+    if (pendingAction === 'change') {
+      closeVisualizer();
+      openRoomModal();
+    } else if (pendingAction === 'close') {
+      closeVisualizer();
+    }
   }
-  var btnCloseVisualizer = document.getElementById('btnCloseVisualizer');
-  if (btnCloseVisualizer) btnCloseVisualizer.addEventListener('click', closeVisualizer);
+  
+  if (btnDiscard) btnDiscard.addEventListener('click', handleDiscard);
+  if (btnDiscardChanges) btnDiscardChanges.addEventListener('click', handleDiscard);
   // ==========================================
   // 3. FASE 1: CÁMARA + MUESTRAS
   // ==========================================
