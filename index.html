@@ -2291,7 +2291,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var btnStartVisualizer = document.getElementById('btnStartVisualizer');
   if (btnStartVisualizer) btnStartVisualizer.addEventListener('click', openVisualizer);
+ var btnBackToRooms = document.getElementById('btnBackToRooms');
+  if (btnBackToRooms) btnBackToRooms.addEventListener('click', function() {
+    closeVisualizer();
+    openRoomModal();
+  });
 
+  var btnCloseVisualizer = document.getElementById('btnCloseVisualizer');
+  if (btnCloseVisualizer) btnCloseVisualizer.addEventListener('click', closeVisualizer);
   // ==========================================
   // 3. FASE 1: CÁMARA + MUESTRAS
   // ==========================================
