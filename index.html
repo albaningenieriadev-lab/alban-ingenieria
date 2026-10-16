@@ -2193,33 +2193,68 @@ document.addEventListener('DOMContentLoaded', function() {
     contactForm.addEventListener('submit', enviarContacto);
   }
 
-    var urlParams = new URLSearchParams(window.location.search);
-    isScreenMode = urlParams.get('modo') === 'pantalla';
+      // ==========================================
+  // 1. MODO PANTALLA (Solo si la URL tiene ?modo=pantalla)
+  // ==========================================
+  var urlParams = new URLSearchParams(window.location.search);
+  var isScreenMode = urlParams.get('modo') === 'pantalla';
+  
+  if (isScreenMode) {
+    var screenModeEl = document.getElementById('screenMode');
+    if (screenModeEl) screenModeEl.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
     
-    if (isScreenMode) {
-      document.getElementById('screenMode').classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-      var savedCode = localStorage.getItem('alban_screen_code');
-      if (savedCode) {
-        initPeerAsClient(savedCode);
-      } else {
-        document.getElementById('remoteStatus').textContent = 'Ingresa el código de la tablet';
-        var codeInput = prompt('Ingresa el código de 4 dígitos de la tablet:');
-        if (codeInput && codeInput.length === 4) {
-          localStorage.setItem('alban_screen_code', codeInput);
-          initPeerAsClient(codeInput);
-        }
+    var savedCode = localStorage.getItem('alban_screen_code');
+    if (savedCode) {
+      initPeerAsClient(savedCode);
+    } else {
+      var remoteStatus = document.getElementById('remoteStatus');
+      if (remoteStatus) remoteStatus.textContent = 'Ingresa el código de la tablet';
+      var codeInput = prompt('Ingresa el código de 4 dígitos de la tablet:');
+      if (codeInput && codeInput.length === 4) {
+        localStorage.setItem('alban_screen_code', codeInput);
+        initPeerAsClient(codeInput);
       }
-        document.getElementById('btnExitScreen').addEventListener('click', function() {
+    }
+    
+    var btnExitScreen = document.getElementById('btnExitScreen');
+    if (btnExitScreen) {
+      btnExitScreen.addEventListener('click', function() {
         localStorage.removeItem('alban_screen_code');
         window.location.href = window.location.pathname;
       });
-    } 
-  // ← ¡ESTA LLAVE CIERRA EL if (isScreenMode)! ES OBLIGATORIA
+    }
+  } // <--- ¡ESTA LLAVE ES OBLIGATORIA! CIERRA EL if (isScreenMode)
+
   // ==========================================
-  // FASE 1: CÁMARA + MUESTRAS (pegar UNA sola vez)
+  // 2. EVENT LISTENERS PRINCIPALES (Se ejecutan SIEMPRE)
   // ==========================================
-  
+  var btnVisualizer = document.getElementById('btnVisualizer');
+  if (btnVisualizer) btnVisualizer.addEventListener('click', openRoomModal);
+
+  var btnCotizacion = document.getElementById('btnCotizacion');
+  if (btnCotizacion) btnCotizacion.addEventListener('click', function() { 
+    document.getElementById('quoteBar').classList.toggle('active'); 
+  });
+
+  var btnOpenChat = document.getElementById('btnOpenChat');
+  if (btnOpenChat) btnOpenChat.addEventListener('click', toggleChatbot);
+
+  var btnCloseChat = document.getElementById('btnCloseChat');
+  if (btnCloseChat) btnCloseChat.addEventListener('click', toggleChatbot);
+
+  var btnCloseRoomModal = document.getElementById('btnCloseRoomModal');
+  if (btnCloseRoomModal) btnCloseRoomModal.addEventListener('click', closeRoomModal);
+
+  var btnCancelRoom = document.getElementById('btnCancelRoom');
+  if (btnCancelRoom) btnCancelRoom.addEventListener('click', closeRoomModal);
+
+  var btnStartVisualizer = document.getElementById('btnStartVisualizer');
+  if (btnStartVisualizer) btnStartVisualizer.addEventListener('click', openVisualizer);
+
+  // ==========================================
+  // 3. FASE 1: CÁMARA + MUESTRAS
+  // ==========================================
   let capturedSamples = [];
   let cameraStream = null;
   let currentCapture = null;
@@ -2245,7 +2280,7 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('✅ Cámara abierta');
     } catch (error) {
       console.error('Error cámara:', error);
-      alert('️ No se pudo acceder a la cámara: ' + error.message);
+      alert('⚠️ No se pudo acceder a la cámara: ' + error.message);
     }
   }
 
@@ -2313,7 +2348,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Event listeners
   const btnOpenCamera = document.getElementById('btnOpenCamera');
   if (btnOpenCamera) btnOpenCamera.addEventListener('click', openCamera);
   
@@ -2332,12 +2366,11 @@ document.addEventListener('DOMContentLoaded', function() {
     currentCapture = null; 
   });
   
-    const btnClearSamples = document.getElementById('btnClearSamples');
+  const btnClearSamples = document.getElementById('btnClearSamples');
   if (btnClearSamples) btnClearSamples.addEventListener('click', clearAllSamples);
 
-
-    // ==========================================
-  // SCROLL SUAVE PARA EL MENÚ
+  // ==========================================
+  // 4. SCROLL SUAVE Y MODALES
   // ==========================================
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
@@ -2346,12 +2379,8 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    }); // ← Cierra el addEventListener
-  }); // ← Cierra el forEach (¡ESTO ERA LO QUE FALTABA!)
-
-  // ==========================================
-  // SELECTOR DE SUCURSAL Y MODALES
-  // ==========================================
+    });
+  });
 
   var sucursalSelector = document.getElementById('sucursalSelector');
   if (sucursalSelector) {
@@ -2375,7 +2404,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-      const btnCloseProductDetail = document.getElementById('btnCloseProductDetail');
+  const btnCloseProductDetail = document.getElementById('btnCloseProductDetail');
   if (btnCloseProductDetail) {
     btnCloseProductDetail.addEventListener('click', closeProductDetail);
   }
@@ -2389,9 +2418,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-}); // ← 1. CIERRA DOMContentLoaded
+}); // ← CIERRA DOMContentLoaded
 
-})(); // ← 2. CIERRA LA FUNCIÓN PRINCIPAL (function() { del inicio del archivo
+})(); // ← CIERRA FUNCIÓN PRINCIPAL
 </script>
 
 <!-- ========================================== -->
