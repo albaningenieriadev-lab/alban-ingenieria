@@ -2616,7 +2616,127 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+  // ==========================================
+  // 3.8. ARRASTRAR MUESTRAS AL CANVAS (DRAG & DROP)
+  // ==========================================
 
+  // Reemplazar renderSamples para hacer las muestras arrastrables
+  function renderSamples() {
+    samplesList.innerHTML = '';
+    samplesCount.textContent = capturedSamples.length;
+    samplesPanel.classList.toggle('hidden', capturedSamples.length === 0);
+    
+    capturedSamples.forEach(function(sample) {
+      const item = document.createElement('div');
+      item.className = 'relative flex-shrink-0 group cursor-move';
+      item.draggable = true;
+      item.dataset.sampleId = sample.id;
+      item.innerHTML = 
+        '<div class="w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-700 hover:border-alban-yellow transition">' +
+          '<img src="' + sample.image + '" alt="' + sample.name + '" class="w-full h-full object-cover pointer-events-none">' +
+        '</div>' +
+        '<button class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition delete-sample-btn">' +
+          '<i class="fas fa-times"></i>' +
+        '</button>' +
+        '<p class="text-[10px] text-gray-400 mt-1 text-center truncate w-20">' + sample.name + '</p>';
+      
+      // Botón de eliminar
+      const deleteBtn = item.querySelector('.delete-sample-btn');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          window.deleteSample(sample.id);
+        });
+      }
+      
+      // Hacer la muestra arrastrable
+      item.addEventListener('dragstart', function(e) {
+        e.dataTransfer.setData('sampleId', sample.id);
+        e.dataTransfer.effectAllowed = 'copy';
+        item.style.opacity = '0.5';
+      });
+      
+      item.addEventListener('dragend', function() {
+        item.style.opacity = '1';
+      });
+      
+      samplesList.appendChild(item);
+    });
+  }
+
+  // Configurar el canvas para recibir muestras arrastradas
+  const mainCanvasForDrop = document.getElementById('mainCanvas');
+  const zoneCanvasForDrop = document.getElementById('zoneCanvas');
+  
+  if (mainCanvasForDrop && zoneCanvasForDrop) {
+    [mainCanvasForDrop, zoneCanvasForDrop].forEach(function(canvas) {
+      canvas.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        canvas.style.cursor = 'copy';
+      });
+      
+      canvas.addEventListener('dragleave', function() {
+        canvas.style.cursor = 'default';
+      });
+      
+      canvas.addEventListener('drop', function(e) {
+        e.preventDefault();
+        canvas.style.cursor = 'default';
+        
+        const sampleId = parseInt(e.dataTransfer.getData('sampleId'));
+        const sample = capturedSamples.find(function(s) { return s.id === sampleId; });
+        
+        if (sample) {
+          // Obtener coordenadas del drop
+          const rect = canvas.getBoundingClientRect();
+          const scaleX = canvas.width / rect.width;
+          const scaleY = canvas.height / rect.height;
+          const x = Math.floor((e.clientX - rect.left) * scaleX);
+          const y = Math.floor((e.clientY - rect.top) * scaleY);
+          
+          // Detectar zona en el punto de drop
+          const zone = detectZone(x, y);
+          
+          if (zone) {
+            zone.id = Date.now();
+            zones.push(zone);
+            currentZoneId = zone.id;
+            
+            // Crear un producto temporal con la muestra
+            const tempProduct = {
+              id: 'sample_' + sample.id,
+              nombre: sample.name,
+              color: '#808080',
+              imagen_url: sample.image
+            };
+            
+            // Aplicar la muestra como textura
+            zone.material = {
+              product: tempProduct,
+              color: tempProduct.color,
+              name: tempProduct.nombre,
+              imagen_url: tempProduct.imagen_url
+            };
+            zone.alpha = 0.7;
+            
+            currentMaterialColor = tempProduct.color;
+            currentMaterialName = tempProduct.nombre;
+            
+            const currentMaterialEl = document.getElementById('currentMaterial');
+            if (currentMaterialEl) currentMaterialEl.textContent = tempProduct.nombre;
+            
+            loadTextureAndApply(zone, tempProduct);
+            renderZonesList();
+            broadcastToScreen();
+            showNotification('✅ Muestra "' + sample.name + '" aplicada');
+          } else {
+            showNotification('⚠️ Zona muy pequeña. Intenta en otra área.');
+          }
+        }
+      });
+    });
+  }
   // ==========================================
   // 4. SCROLL SUAVE Y MODALES
   // ==========================================
