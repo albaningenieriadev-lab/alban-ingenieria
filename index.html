@@ -2953,6 +2953,65 @@ document.addEventListener('DOMContentLoaded', function() {
       if (modal) modal.classList.remove('active');
     });
   }
+    // ==========================================
+  // CONECTAR BOTONES DEL MODAL DE COTIZACIÓN
+  // ==========================================
+  
+  // Buscar el botón "Enviar por WhatsApp" dentro del modal
+  var modalButtons = document.querySelectorAll('#quoteReviewModal button');
+  modalButtons.forEach(function(btn) {
+    if (btn.textContent.includes('Enviar por WhatsApp')) {
+      console.log('✅ Botón WhatsApp del modal encontrado');
+      btn.addEventListener('click', function() {
+        console.log('📱 Clic en Enviar WhatsApp del modal');
+        
+        if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
+          alert('⚠️ Selecciona una sucursal destino');
+          return;
+        }
+        
+        sendQuoteWhatsApp();
+        
+        var modal = document.getElementById('quoteReviewModal');
+        if (modal) modal.classList.remove('active');
+      });
+    }
+    
+    if (btn.textContent.includes('Editar')) {
+      console.log('✅ Botón Editar del modal encontrado');
+      btn.addEventListener('click', function() {
+        console.log('️ Clic en Editar del modal');
+        var modal = document.getElementById('quoteReviewModal');
+        if (modal) modal.classList.remove('active');
+        
+        if (customImage) {
+          var opcion = confirm(
+            'Tienes una imagen personalizada.\n\n' +
+            'Aceptar = Volver al visualizador\n' +
+            'Cancelar = Ir al catálogo'
+          );
+          if (opcion) {
+            openVisualizer();
+          } else {
+            var catalogSection = document.getElementById('productGrid');
+            if (catalogSection) catalogSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        } else {
+          var catalogSection = document.getElementById('productGrid');
+          if (catalogSection) catalogSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    }
+  });
+
+  // Botón X para cerrar el modal
+  var btnCloseReview = document.querySelector('#quoteReviewModal .fa-times')?.parentElement;
+  if (btnCloseReview) {
+    btnCloseReview.addEventListener('click', function() {
+      var modal = document.getElementById('quoteReviewModal');
+      if (modal) modal.classList.remove('active');
+    });
+  }
 }); // ← CIERRA DOMContentLoaded
 
 })(); // ← CIERRA FUNCIÓN PRINCIPAL
