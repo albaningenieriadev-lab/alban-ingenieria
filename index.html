@@ -2949,26 +2949,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Lógica para los items del menú (al hacer clic en una categoría)
-    const megaItems = megaMenu.querySelectorAll('.mega-item');
+ const megaItems = megaMenu.querySelectorAll('.mega-item');
     megaItems.forEach(item => {
       item.addEventListener('click', function() {
         const cat = this.getAttribute('data-cat');
         const sub = this.getAttribute('data-sub');
         console.log('🔍 Filtrando por Categoría:', cat, 'Subcategoría:', sub);
         
-        // Actualizar la etiqueta de filtro en la barra
         const filterLabel = document.getElementById('filterLabel');
         if (filterLabel) {
-            if (cat === 'all') {
-                filterLabel.textContent = 'Todos los productos';
-            } else {
-                filterLabel.textContent = sub === 'all' ? cat : cat + ' - ' + sub;
-            }
+          if (cat === 'all') {
+            filterLabel.textContent = 'Todos los productos';
+          } else {
+            filterLabel.textContent = sub === 'all' ? cat : cat + ' - ' + sub;
+          }
         }
-        
-        // IMPORTANTE: Aquí debes llamar a tu función real de filtrado. 
-        // Si tu función se llama applyFilters o similar, descomenta la siguiente línea:
-        // applyFilters(cat, sub); 
         
         // Cerrar el menú después de seleccionar
         megaMenu.classList.add('hidden');
@@ -2976,11 +2971,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   } else {
     console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML. Revisa los IDs.');
-  }  
+  }
 
-}); // ← CIERRA DOMContentLoaded
+}); // ← 1. CIERRA DOMContentLoaded
 
-})(); // ← CIERRA FUNCIÓN PRINCIPAL
+})(); // ← 2. CIERRA FUNCIÓN PRINCIPAL
 </script>
 
 <!-- ========================================== -->
