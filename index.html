@@ -2425,7 +2425,66 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     reader.readAsDataURL(file);
   }
-  
+    // ==========================================
+  // 3.6. INTERACCIÓN DEL VISUALIZADOR (CANVAS Y ZONAS)
+  // ==========================================
+  var mainCanvas = document.getElementById('mainCanvas');
+  if (mainCanvas) {
+    mainCanvas.addEventListener('click', handleCanvasClick);
+  }
+
+  var toleranceSlider = document.getElementById('toleranceSlider');
+  if (toleranceSlider) {
+    toleranceSlider.addEventListener('input', function() {
+      tolerance = parseInt(this.value);
+      var toleranceValue = document.getElementById('toleranceValue');
+      if (toleranceValue) toleranceValue.textContent = tolerance;
+    });
+  }
+
+  var btnUndoZone = document.getElementById('btnUndoZone');
+  if (btnUndoZone) {
+    btnUndoZone.addEventListener('click', function() {
+      if (zones.length > 0) {
+        zones.pop();
+        currentZoneId = zones.length > 0 ? zones[zones.length - 1].id : null;
+        renderZonesList();
+        redrawAllZones();
+        broadcastToScreen();
+      }
+    });
+  }
+
+  var btnClearZones = document.getElementById('btnClearZones');
+  if (btnClearZones) {
+    btnClearZones.addEventListener('click', function() {
+      zones = [];
+      currentZoneId = null;
+      var currentZoneEl = document.getElementById('currentZone');
+      if (currentZoneEl) currentZoneEl.textContent = 'Ninguna';
+      var zoneIndicator = document.getElementById('zoneIndicator');
+      if (zoneIndicator) zoneIndicator.classList.add('hidden');
+      renderZonesList();
+      redrawAllZones();
+      broadcastToScreen();
+    });
+  }
+
+  var catalogFilter = document.getElementById('catalogFilter');
+  if (catalogFilter) {
+    catalogFilter.addEventListener('change', function() {
+      var search = document.getElementById('catalogSearch').value;
+      renderVisualizerCatalog(this.value, search);
+    });
+  }
+
+  var catalogSearch = document.getElementById('catalogSearch');
+  if (catalogSearch) {
+    catalogSearch.addEventListener('input', function() {
+      var cat = document.getElementById('catalogFilter').value;
+      renderVisualizerCatalog(cat, this.value);
+    });
+  }
   // ==========================================
   // 4. SCROLL SUAVE Y MODALES
   // ==========================================
