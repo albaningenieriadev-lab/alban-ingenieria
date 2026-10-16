@@ -2210,11 +2210,12 @@ document.addEventListener('DOMContentLoaded', function() {
           initPeerAsClient(codeInput);
         }
       }
-      document.getElementById('btnExitScreen').addEventListener('click', function() {
+        document.getElementById('btnExitScreen').addEventListener('click', function() {
         localStorage.removeItem('alban_screen_code');
         window.location.href = window.location.pathname;
       });
-      }
+    } 
+  // ← ¡ESTA LLAVE CIERRA EL if (isScreenMode)! ES OBLIGATORIA
   // ==========================================
   // FASE 1: CÁMARA + MUESTRAS (pegar UNA sola vez)
   // ==========================================
