@@ -2307,27 +2307,46 @@ document.addEventListener('DOMContentLoaded', function() {
   // BOTONES QUE ESTABAN FALLANDO
   // ==========================================
 
-  // 1. Botón Catálogo (desplegar menú)
-  var btnCatalogo = document.getElementById('btnCatalogo');
+    // ==========================================
+  // MENÚ CATÁLOGO (BÚSQUEDA INTELIGENTE)
+  // ==========================================
+  
+  // 1. Buscar el botón por ID o porque diga "Catálogo" en su texto
+  const btnCatalogo = document.getElementById('btnCatalogo') || 
+                      Array.from(document.querySelectorAll('button, a')).find(el => el.textContent.trim().toLowerCase().includes('catálogo'));
+  
   if (btnCatalogo) {
+    console.log('✅ Botón de Catálogo encontrado:', btnCatalogo.id || 'sin ID, encontrado por texto');
+    
     btnCatalogo.addEventListener('click', function(e) {
+      e.preventDefault();
       e.stopPropagation();
-      var menu = document.getElementById('catalogMenu');
+      console.log('📂 Clic en botón Catálogo');
+      
+      // 2. Buscar el menú por ID o por clases comunes
+      const menu = document.getElementById('catalogMenu') || 
+                   document.getElementById('menuCategorias') || 
+                   document.querySelector('.mega-menu') ||
+                   document.querySelector('.dropdown-menu');
+      
       if (menu) {
         menu.classList.toggle('hidden');
-        console.log('📂 Menú catálogo:', menu.classList.contains('hidden') ? 'cerrado' : 'abierto');
+        console.log('✅ Menú alternado. ¿Está oculto?:', menu.classList.contains('hidden'));
       } else {
-        console.warn('⚠️ No se encontró el elemento catalogMenu');
+        console.warn('⚠️ No se encontró el menú desplegable. Revisa que tenga id="catalogMenu" en el HTML');
       }
     });
+  } else {
+    console.error('❌ No se encontró ningún botón que diga "Catálogo" en el HTML');
   }
 
-  // Cerrar menú al hacer clic fuera
+  // 3. Cerrar menú al hacer clic fuera
   document.addEventListener('click', function(e) {
-    var menu = document.getElementById('catalogMenu');
-    var btn = document.getElementById('btnCatalogo');
-    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
-      menu.classList.add('hidden');
+    if (btnCatalogo && !btnCatalogo.contains(e.target)) {
+      const menu = document.getElementById('catalogMenu') || document.getElementById('menuCategorias');
+      if (menu) {
+        menu.classList.add('hidden');
+      }
     }
   });
 
