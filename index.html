@@ -2888,7 +2888,71 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+  // ==========================================
+  // DIAGNÓSTICO: BOTONES DEL MODAL DE COTIZACIÓN
+  // ==========================================
+  
+  console.log('🔍 Buscando botones del modal...');
+  
+  // 1. Botón Cerrar (X)
+  var btnCloseReview = document.getElementById('btnCloseReview');
+  console.log('btnCloseReview:', btnCloseReview);
+  if (btnCloseReview) {
+    btnCloseReview.addEventListener('click', function() {
+      console.log('❌ Clic en Cerrar');
+      var modal = document.getElementById('quoteReviewModal');
+      if (modal) modal.classList.remove('active');
+    });
+  }
 
+  // 2. Botón Editar
+  var btnEditQuote = document.getElementById('btnEditQuote');
+  console.log('btnEditQuote:', btnEditQuote);
+  if (btnEditQuote) {
+    btnEditQuote.addEventListener('click', function() {
+      console.log('✏️ Clic en Editar');
+      var modal = document.getElementById('quoteReviewModal');
+      if (modal) modal.classList.remove('active');
+      
+      if (customImage) {
+        var opcion = confirm(
+          'Tienes una imagen personalizada cargada.\n\n' +
+          'Aceptar = Volver al visualizador\n' +
+          'Cancelar = Ir al catálogo'
+        );
+        if (opcion) {
+          openVisualizer();
+        } else {
+          var catalogSection = document.getElementById('productGrid');
+          if (catalogSection) catalogSection.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        var catalogSection = document.getElementById('productGrid');
+        if (catalogSection) catalogSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+
+  // 3. Botón Enviar por WhatsApp
+  var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
+  console.log('btnSendWhatsApp:', btnSendWhatsApp);
+  if (btnSendWhatsApp) {
+    btnSendWhatsApp.addEventListener('click', function() {
+      console.log('📱 Clic en Enviar WhatsApp');
+      console.log('Sucursal:', sucursalSeleccionada);
+      console.log('Carrito:', cart.length);
+      
+      if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
+        alert('⚠️ Selecciona una sucursal destino');
+        return;
+      }
+      
+      sendQuoteWhatsApp();
+      
+      var modal = document.getElementById('quoteReviewModal');
+      if (modal) modal.classList.remove('active');
+    });
+  }
 }); // ← CIERRA DOMContentLoaded
 
 })(); // ← CIERRA FUNCIÓN PRINCIPAL
