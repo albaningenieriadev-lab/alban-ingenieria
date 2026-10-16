@@ -2305,49 +2305,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
      });
-  }
-  // ==========================================
-  // MENÚ CATÁLOGO (BÚSQUEDA INTELIGENTE)
-  // ==========================================
-  
-  // 1. Buscar el botón por ID o porque diga "Catálogo" en su texto
-  const btnCatalogo = document.getElementById('btnCatalogo') || 
-  Array.from(document.querySelectorAll('button, a')).find(el => el.textContent.trim().toLowerCase().includes('catálogo'));
-  
-  if (btnCatalogo) {
-    console.log('✅ Botón de Catálogo encontrado:', btnCatalogo.id || 'sin ID, encontrado por texto');
-    
-    btnCatalogo.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('📂 Clic en botón Catálogo');
-      
-      // 2. Buscar el menú por ID o por clases comunes
-      const menu = document.getElementById('catalogMenu') || 
-      document.getElementById('menuCategorias') || 
-      document.querySelector('.mega-menu') ||
-      document.querySelector('.dropdown-menu');
-      
-      if (menu) {
-        menu.classList.toggle('hidden');
-        console.log('✅ Menú alternado. ¿Está oculto?:', menu.classList.contains('hidden'));
-      } else {
-        console.warn('⚠️ No se encontró el menú desplegable. Revisa que tenga id="catalogMenu" en el HTML');
-      }
-    });
-  } else {
-    console.error('❌ No se encontró ningún botón que diga "Catálogo" en el HTML');
-  }
-
-  // 3. Cerrar menú al hacer clic fuera
-  document.addEventListener('click', function(e) {
-    if (btnCatalogo && !btnCatalogo.contains(e.target)) {
-      const menu = document.getElementById('catalogMenu') || document.getElementById('menuCategorias');
-      if (menu) {
-        menu.classList.add('hidden');
-      }
-    }
-  });
 
   // 2. Botón WhatsApp (unificado)
   var btnWhatsApp = document.getElementById('btnWhatsApp');
@@ -2964,6 +2921,63 @@ document.addEventListener('DOMContentLoaded', function() {
   } else {
     console.error('❌ NO se encontró el modal con ID "quoteReviewModal" en el HTML');
   }
+  // ==========================================
+  // MENÚ CATÁLOGO (CORREGIDO CON LOS IDs REALES DEL HTML)
+  // ==========================================
+  const btnMegaMenu = document.getElementById('btnMegaMenu');
+  const megaMenu = document.getElementById('megaMenu');
+  
+  if (btnMegaMenu && megaMenu) {
+    console.log('✅ Botón y Menú de Catálogo encontrados correctamente');
+    
+    btnMegaMenu.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('📂 Clic en botón Catálogo ejecutado');
+      
+      // Alternar visibilidad (usamos 'hidden' de Tailwind)
+      megaMenu.classList.toggle('hidden');
+      
+      console.log('✅ Menú alternado. ¿Tiene clase hidden?:', megaMenu.classList.contains('hidden'));
+    });
+
+    // Cerrar menú al hacer clic fuera de él
+    document.addEventListener('click', function(e) {
+      if (!btnMegaMenu.contains(e.target) && !megaMenu.contains(e.target)) {
+        megaMenu.classList.add('hidden');
+      }
+    });
+    
+    // Lógica para los items del menú (al hacer clic en una categoría)
+    const megaItems = megaMenu.querySelectorAll('.mega-item');
+    megaItems.forEach(item => {
+      item.addEventListener('click', function() {
+        const cat = this.getAttribute('data-cat');
+        const sub = this.getAttribute('data-sub');
+        console.log('🔍 Filtrando por Categoría:', cat, 'Subcategoría:', sub);
+        
+        // Actualizar la etiqueta de filtro en la barra
+        const filterLabel = document.getElementById('filterLabel');
+        if (filterLabel) {
+            if (cat === 'all') {
+                filterLabel.textContent = 'Todos los productos';
+            } else {
+                filterLabel.textContent = sub === 'all' ? cat : cat + ' - ' + sub;
+            }
+        }
+        
+        // IMPORTANTE: Aquí debes llamar a tu función real de filtrado. 
+        // Si tu función se llama applyFilters o similar, descomenta la siguiente línea:
+        // applyFilters(cat, sub); 
+        
+        // Cerrar el menú después de seleccionar
+        megaMenu.classList.add('hidden');
+      });
+    });
+  } else {
+    console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML. Revisa los IDs.');
+  }  
+
 }); // ← CIERRA DOMContentLoaded
 
 })(); // ← CIERRA FUNCIÓN PRINCIPAL
