@@ -1724,35 +1724,36 @@ imgDiv.appendChild(stockBadge);
     updateQuoteBar();
   }
 
-  function showQuoteReview() {
-    if (cart.length === 0) { 
-      alert('No hay productos en el carrito'); 
-      return; 
+    function showQuoteReview() {
+    if (cart.length === 0 && capturedSamples.length === 0) {
+      alert('No hay productos ni muestras en el carrito');
+      return;
     }
+    
     var container = document.getElementById('reviewItems');
     container.innerHTML = '';
-    // Mostrar muestras capturadas
+    
+    // 1. Mostrar muestras capturadas
     if (capturedSamples.length > 0) {
       var samplesHeader = document.createElement('div');
       samplesHeader.className = 'mb-4';
-      samplesHeader.innerHTML = '<h3 class="text-sm font-bold text-alban-yellow mb-2"> MUESTRAS FÍSICAS CAPTURADAS:</h3>';
+      samplesHeader.innerHTML = '<h3 class="text-sm font-bold text-alban-yellow mb-2">📸 MUESTRAS FÍSICAS CAPTURADAS:</h3>';
       container.appendChild(samplesHeader);
       
-      capturedSamples.forEach((sample, index) => {
+      capturedSamples.forEach(function(sample, index) {
         var div = document.createElement('div');
         div.className = 'flex items-center gap-3 p-3 bg-alban-black rounded-lg border border-gray-700 mb-2';
-        div.innerHTML = `
-          <img src="${sample.image}" class="w-10 h-10 rounded object-cover flex-shrink-0">
-          <div class="flex-1 min-w-0">
-            <p class="text-sm text-white font-semibold truncate">${sample.name}</p>
-            <p class="text-xs text-gray-400">Muestra física #${index + 1}</p>
-          </div>
-        `;
+        div.innerHTML = 
+          '<img src="' + sample.image + '" class="w-10 h-10 rounded object-cover flex-shrink-0">' +
+          '<div class="flex-1 min-w-0">' +
+            '<p class="text-sm text-white font-semibold truncate">' + sample.name + '</p>' +
+            '<p class="text-xs text-gray-400">Muestra física #' + (index + 1) + '</p>' +
+          '</div>';
         container.appendChild(div);
       });
     }
     
-    // Mostrar productos del carrito
+    // 2. Mostrar productos del carrito
     if (cart.length > 0) {
       var productsHeader = document.createElement('div');
       productsHeader.className = 'mb-4 mt-6';
@@ -1762,15 +1763,14 @@ imgDiv.appendChild(stockBadge);
       cart.forEach(function(item, index) {
         var div = document.createElement('div');
         div.className = 'flex items-center gap-3 p-3 bg-alban-black rounded-lg border border-gray-700 mb-2';
-        div.innerHTML = `
-          <div class="w-10 h-10 bg-alban-yellow rounded-full flex items-center justify-center text-alban-black font-bold flex-shrink-0">${index + 1}</div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm text-white font-semibold truncate">${item.nombre}</p>
-            <p class="text-xs text-gray-400 font-mono">SKU: ${item.sku}</p>
-            <p class="text-xs text-gray-500">${item.quantity} m²</p>
-          </div>
-          <button class="remove-item ml-2 text-red-400 hover:text-red-300 px-2" data-index="${index}"><i class="fas fa-trash"></i></button>
-        `;
+        div.innerHTML = 
+          '<div class="w-10 h-10 bg-alban-yellow rounded-full flex items-center justify-center text-alban-black font-bold flex-shrink-0">' + (index + 1) + '</div>' +
+          '<div class="flex-1 min-w-0">' +
+            '<p class="text-sm text-white font-semibold truncate">' + item.nombre + '</p>' +
+            '<p class="text-xs text-gray-400 font-mono">SKU: ' + item.sku + '</p>' +
+            '<p class="text-xs text-gray-500">' + item.quantity + ' m²</p>' +
+          '</div>' +
+          '<button class="remove-item ml-2 text-red-400 hover:text-red-300 px-2" data-index="' + index + '"><i class="fas fa-trash"></i></button>';
         container.appendChild(div);
       });
     }
@@ -1789,62 +1789,34 @@ imgDiv.appendChild(stockBadge);
     document.getElementById('reviewTotal').textContent = cart.length + ' productos + ' + capturedSamples.length + ' muestras';
     document.getElementById('quoteReviewModal').classList.add('active');
   }
-    cart.forEach(function(item, index) {
-      var div = document.createElement('div');
-      div.className = 'flex items-center gap-3 p-3 bg-alban-black rounded-lg border border-gray-700';
-      div.innerHTML = 
-        '<div class="w-10 h-10 bg-alban-yellow rounded-full flex items-center justify-center text-alban-black font-bold flex-shrink-0">' + (index + 1) + '</div>' +
-        '<div class="flex-1 min-w-0">' +
-          '<p class="text-sm text-white font-semibold truncate">' + item.nombre + '</p>' +
-          '<p class="text-xs text-gray-400 font-mono">SKU: ' + item.sku + '</p>' +
-          '<p class="text-xs text-gray-500">' + item.quantity + ' m²</p>' +
-        '</div>' +
-        '<button class="remove-item ml-2 text-red-400 hover:text-red-300 px-2" data-index="' + index + '"><i class="fas fa-trash"></i></button>';
-      container.appendChild(div);
-    });
-    var removeBtns = container.querySelectorAll('.remove-item');
-    removeBtns.forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var idx = parseInt(btn.getAttribute('data-index'));
-        cart.splice(idx, 1);
-        saveCart();
-        updateQuoteBar();
-        showQuoteReview();
-      });
-    });
-    document.getElementById('reviewTotal').textContent = cart.length + ' productos';
-    document.getElementById('quoteReviewModal').classList.add('active');
-  }
 
   function sendQuoteWhatsApp() {
-  // Validar que se haya seleccionado una sucursal
-  if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
-    alert('⚠️ Por favor selecciona una sucursal destino antes de enviar la cotización.');
-    return;
-  }
-  
-  const clientName = document.getElementById('clientName').value.trim();
-  const clientPhone = document.getElementById('clientPhone').value.trim();
-  const clientNotes = document.getElementById('clientNotes').value.trim();
-  
-  let msg = '🏠 *COTIZACIÓN ALBAN INGENIERÍA*\n';
-  msg += '━━━━━━━━━━━━━━━━━━━━\n\n';
-  msg += '📍 *Sucursal destino:* ' + sucursalSeleccionada.nombre + '\n\n';
-  
-  if (clientName) msg += '👤 *Cliente:* ' + clientName + '\n';
-  if (clientPhone) msg += '📱 *Teléfono:* ' + clientPhone + '\n';
-  if (clientName || clientPhone) msg += '\n';
-  // Agregar muestras capturadas
+    if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
+      alert('⚠️ Por favor selecciona una sucursal destino antes de enviar la cotización.');
+      return;
+    }
+    
+    const clientName = document.getElementById('clientName').value.trim();
+    const clientPhone = document.getElementById('clientPhone').value.trim();
+    const clientNotes = document.getElementById('clientNotes').value.trim();
+    
+    let msg = '🏠 *COTIZACIÓN ALBAN INGENIERÍA*\n';
+    msg += '━━━━━━━━━━━━━━━━━━━━\n\n';
+    msg += '📍 *Sucursal destino:* ' + sucursalSeleccionada.nombre + '\n\n';
+    
+    if (clientName) msg += '👤 *Cliente:* ' + clientName + '\n';
+    if (clientPhone) msg += '📱 *Teléfono:* ' + clientPhone + '\n';
+    if (clientName || clientPhone) msg += '\n';
+    
     if (capturedSamples.length > 0) {
-      msg += ' *MUESTRAS FÍSICAS CAPTURADAS:*\n\n';
-      capturedSamples.forEach((sample, index) => {
+      msg += '📸 *MUESTRAS FÍSICAS CAPTURADAS:*\n\n';
+      capturedSamples.forEach(function(sample, index) {
         msg += '✅ *Muestra ' + (index + 1) + ':* ' + sample.name + '\n';
         msg += '   Foto tomada en tienda\n\n';
       });
       msg += '━━━━━━━━━━━━━━━━━━━━\n\n';
     }
     
-    // Agregar productos del carrito
     if (cart.length > 0) {
       msg += '📋 *PRODUCTOS COTIZADOS:*\n\n';
       for (let i = 0; i < cart.length; i++) {
@@ -1854,27 +1826,27 @@ imgDiv.appendChild(stockBadge);
         msg += '   Cantidad: ' + cart[i].quantity + ' m²\n\n';
       }
     }
-  msg += '━━━━━━━━━━━━━━━━━━━━\n';
-  msg += '📞 *Por favor contactarme para cotización personalizada.*\n\n';
-  
-  if (clientNotes) {
-    msg += '📝 *Notas:* ' + clientNotes + '\n\n';
+    
+    msg += '━━━━━━━━━━━━━━━━━━━━\n';
+    msg += '📞 *Por favor contactarme para cotización personalizada.*\n\n';
+    
+    if (clientNotes) {
+      msg += '📝 *Notas:* ' + clientNotes + '\n\n';
+    }
+    
+    msg += '¡Gracias por su interés en Alban Ingeniería!';
+    
+    const whatsappUrl = 'https://wa.me/' + sucursalSeleccionada.whatsapp + '?text=' + encodeURIComponent(msg);
+    window.open(whatsappUrl, '_blank');
+    
+    // Limpiar formulario
+    document.getElementById('clientName').value = '';
+    document.getElementById('clientPhone').value = '';
+    document.getElementById('clientNotes').value = '';
+    document.getElementById('sucursalSelector').value = '';
+    document.getElementById('sucursalInfo').classList.add('hidden');
+    sucursalSeleccionada = null;
   }
-  
-  msg += '¡Gracias por su interés en Alban Ingeniería!';
-  
-  // Abrir WhatsApp con el número de la sucursal seleccionada
-  const whatsappUrl = 'https://wa.me/' + sucursalSeleccionada.whatsapp + '?text=' + encodeURIComponent(msg);
-  window.open(whatsappUrl, '_blank');
-  
-  // Limpiar formulario
-  document.getElementById('clientName').value = '';
-  document.getElementById('clientPhone').value = '';
-  document.getElementById('clientNotes').value = '';
-  document.getElementById('sucursalSelector').value = '';
-  document.getElementById('sucursalInfo').classList.add('hidden');
-  sucursalSeleccionada = null;
-}
 
   function saveImageAsJPG() {
     var canvas = document.getElementById('mainCanvas');
@@ -2382,7 +2354,7 @@ document.addEventListener('DOMContentLoaded', function() {
     currentCapture = null;
     showNotification('✅ Muestra "' + sampleName + '" guardada');
   }
-}
+
     function renderSamples() {
     samplesList.innerHTML = '';
     samplesCount.textContent = capturedSamples.length;
