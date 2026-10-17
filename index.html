@@ -2524,23 +2524,27 @@
     });
     
     conn.on('data', function(data) {
-  // Si data es un string, es una imagen
-  if (typeof data === 'string' && data.startsWith('data:image')) {
-    console.log('📥 TV: Imagen recibida');
+  // Si es un objeto con tipo image-binary
+  if (data && data.type === 'image-binary') {
+    console.log('📥 TV: Imagen binaria recibida:', Math.round(data.data.byteLength / 1024), 'KB');
+    
+    // Convertir ArrayBuffer a Blob
+    const blob = new Blob([data.data], { type: 'image/jpeg' });
+    const url = URL.createObjectURL(blob);
+    
     const remoteImage = document.getElementById('remoteImage');
     const remoteView = document.getElementById('remoteView');
     const remotePlaceholder = document.getElementById('remotePlaceholder');
     
     if (remoteImage) {
-      remoteImage.src = data;
+      remoteImage.src = url;
       remoteImage.classList.remove('hidden');
     }
     if (remoteView) remoteView.classList.remove('hidden');
     if (remotePlaceholder) remotePlaceholder.classList.add('hidden');
-  }
-  // Si es un objeto, es un comando
-  else if (data && data.type === 'request-image') {
-    broadcastToScreen();
+    
+    // Liberar memoria después de 3 segundos
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
   }
 });
     
@@ -2610,7 +2614,7 @@
     console.log('✅ Tablet: Peer abierto, intentando conectar...');
     const conn = peer.connect(hostId, {
       reliable: true,
-      serialization: 'json'
+      serialization: 'binary'
     });
     
     let connectionAttempts = 0;
@@ -2714,10 +2718,10 @@
     return;
   }
 
-  // Canvas PEQUEÑO (320x240) - Suficiente para ver en TV
+ // Canvas tamaño razonable (640x480)
   const tempCanvas = document.createElement('canvas');
-  const MAX_W = 320;
-  const MAX_H = 240;
+  const MAX_W = 640;
+  const MAX_H = 480;
   
   let w = mainCanvas.width;
   let h = mainCanvas.height;
@@ -2738,37 +2742,30 @@
   ctx.drawImage(mainCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
   ctx.drawImage(zoneCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
   
-  // JPEG con calidad BAJA (25%)
-  const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.25);
-  
-  const sizeKB = Math.round(dataUrl.length / 1024);
-  console.log('📸 Imagen:', sizeKB, 'KB');
-  
-  // Verificar que no exceda 12 KB
-  if (sizeKB > 12) {
-    console.warn('⚠️ Imagen muy grande (' + sizeKB + ' KB), reduciendo más...');
-    // Si es muy grande, reducirla aún más
-    const smallerCanvas = document.createElement('canvas');
-    smallerCanvas.width = 240;
-    smallerCanvas.height = 180;
-    const sCtx = smallerCanvas.getContext('2d');
-    sCtx.drawImage(tempCanvas, 0, 0, 240, 180);
-    const newDataUrl = smallerCanvas.toDataURL('image/jpeg', 0.2);
-    try {
-      currentConn.send(newDataUrl);
-      console.log('✅ Imagen reducida enviada');
-    } catch (e) {
-      console.error('❌ Error:', e);
-    }
-  } else {
-    // Enviar normal
-    try {
-      currentConn.send(dataUrl);
-      console.log('✅ Imagen enviada');
-    } catch (e) {
-      console.error('❌ Error enviando:', e);
-    }
-  }
+  // Convertir a BLOB binario (NO DataURL)
+  tempCanvas.toBlob(function(blob) {
+    if (!blob) return;
+    
+    console.log('📸 Blob size:', Math.round(blob.size / 1024), 'KB');
+    
+    // Enviar como ArrayBuffer (binary channel lo acepta)
+    const reader = new FileReader();
+    reader.onload = function() {
+      try {
+        // Enviar objeto con metadatos + datos binarios
+        currentConn.send({
+          type: 'image-binary',
+          data: reader.result,  // ArrayBuffer
+          width: tempCanvas.width,
+          height: tempCanvas.height
+        });
+        console.log('✅ Blob binario enviado');
+      } catch (e) {
+        console.error('❌ Error enviando blob:', e);
+      }
+    };
+    reader.readAsArrayBuffer(blob);
+  }, 'image/jpeg', 0.5);  // 50% calidad - mucho mejor visualmente
 }
 
         function hasAppliedMaterials() {
