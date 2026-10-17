@@ -891,38 +891,37 @@
       class="fas fa-robot text-2xl"></i></button>
 
   <!-- MODAL CONECTAR PANTALLA -->
-  <div class="modal-overlay" id="screenModal">
-    <div class="min-h-screen flex items-center justify-center p-4">
-      <div class="max-w-md w-full bg-alban-card rounded-2xl border border-gray-800 p-8">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-white"><i class="fas fa-tv mr-3 text-purple-400"></i>Conectar Pantalla</h2>
-          <button id="btnCloseScreenModal" class="text-gray-400 hover:text-white text-2xl"><i
-              class="fas fa-times"></i></button>
-        </div>
-        <div class="text-center">
-          <div class="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4"><i
-              class="fas fa-tablet-alt text-4xl text-white"></i></div>
-          <p class="text-gray-400 mb-6">Genera un código para conectar la pantalla del showroom</p>
-          <button id="btnGenerateCode"
-            class="w-full px-6 py-4 bg-purple-600 text-white rounded-lg font-bold text-lg hover:bg-purple-700 mb-4">
-            <i class="fas fa-key mr-2"></i>Generar Código de Conexión
-          </button>
-          <div id="generatedCode" class="hidden">
-            <p class="text-xs text-gray-400 mb-2">Código de conexión:</p>
-            <p class="screen-code text-6xl font-bold text-purple-400 bg-alban-black py-6 rounded-lg border-2 border-purple-500 mb-4"
-              id="codeDisplay">----</p>
-            <p class="text-sm text-gray-300 mb-4">La pantalla se conectará automáticamente</p>
-            <div id="connectionStatus" class="text-sm"></div>
-          </div>
-        </div>
-        <div class="mt-6 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-          <p class="text-xs text-purple-300"><i class="fas fa-info-circle mr-1"></i> <strong>Instrucciones:</strong> En
-            la pantalla del showroom, abre esta misma página con <code
-              class="bg-alban-black px-2 py-1 rounded">?modo=pantalla</code> al final de la URL.</p>
-        </div>
+<div id="screenModal" class="hidden fixed inset-0 bg-black/90 z-[300] flex items-center justify-center backdrop-blur-sm">
+  <div class="bg-alban-card p-8 rounded-2xl border-2 border-purple-500 text-center max-w-md w-full shadow-2xl">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-white"><i class="fas fa-tv mr-3 text-purple-400"></i>Conectar Pantalla</h2>
+      <button id="btnCloseScreenModal" class="text-gray-400 hover:text-white text-2xl">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="text-center">
+      <div class="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-wifi text-4xl text-white"></i>
+      </div>
+      <p class="text-gray-300 mb-6" id="modalInstruction">Conexión en tiempo real</p>
+      
+      <div id="generatedCode" class="hidden">
+        <p class="text-sm text-gray-400 mb-2" id="codeLabel">Código de conexión:</p>
+        <p class="text-6xl font-mono font-bold text-purple-400 bg-alban-black py-6 rounded-lg border-2 border-purple-500 mb-4 tracking-widest" id="codeDisplay">----</p>
+        <div id="connectionStatus" class="text-sm mb-4"></div>
+      </div>
+      
+      <div id="tabletInstructions" class="hidden">
+        <p class="text-xs text-gray-400 mb-4">La tablet ingresará este código para conectarse</p>
       </div>
     </div>
+    
+    <button id="btnCloseScreenModal2" class="w-full px-6 py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 transition">
+      <i class="fas fa-times mr-2"></i> Cerrar
+    </button>
   </div>
+</div>
 
   <!-- MODAL SELECCIÓN DE ESPACIO -->
   <div class="modal-overlay" id="roomModal">
@@ -2682,11 +2681,22 @@
           const connectionStatus = document.getElementById('connectionStatus');
 
           // Abrir modal al hacer clic en "Conectar Pantalla"
-          if (btnConnectScreen && screenModal) {
-            btnConnectScreen.addEventListener('click', function() {
-              screenModal.classList.remove('hidden');
-            });
+          if (btnConnectScreen) {
+          btnConnectScreen.addEventListener('click', function() {
+          console.log('🔌 Clic en Conectar Pantalla');
+          // Aquí iremos a la lógica según el modo
+          const urlParams = new URLSearchParams(window.location.search);
+          const isScreenMode = urlParams.get('modo') === 'pantalla';
+    
+          if (isScreenMode) {
+          // Si estoy en modo PANTALLA, generar código
+          generarCodigoPantalla();
+          } else {
+          // Si estoy en modo TABLET, mostrar input para ingresar código
+          conectarTabletAPantalla();
           }
+          });
+        }
 
           // Cerrar modal y limpiar conexión
           if (btnCloseScreenModal && screenModal) {
@@ -2699,19 +2709,62 @@
             });
           }
 
-          // Generar código y activar el Host (Tablet)
-          if (btnGenerateCode) {
-            btnGenerateCode.addEventListener('click', function() {
-              // Generar código de 4 dígitos
-              myCode = Math.floor(1000 + Math.random() * 9000).toString();
-              codeDisplay.textContent = myCode;
-              generatedCode.classList.remove('hidden');
-              connectionStatus.innerHTML = '<p class="text-purple-400"><i class="fas fa-spinner fa-spin mr-2"></i>Esperando conexión de la pantalla...</p>';
-              
-              // Llamar a la función initPeerAsHost() que YA TIENES en tu código
-              initPeerAsHost();
-            });
-          }
+          // Generar código desde la PANTALLA (Host)
+          function generarCodigoPantalla() {
+          const screenModal = document.getElementById('screenModal');
+          const codeDisplay = document.getElementById('codeDisplay');
+          const generatedCode = document.getElementById('generatedCode');
+          const connectionStatus = document.getElementById('connectionStatus');
+  
+          if (!screenModal || !codeDisplay) {
+          alert('Error: No se encontró el modal de conexión');
+          return;
+        }
+        // Generar código de 4 dígitos
+        myCode = Math.floor(1000 + Math.random() * 9000).toString();
+        codeDisplay.textContent = myCode;
+        generatedCode.classList.remove('hidden');
+        screenModal.classList.remove('hidden');
+  
+        connectionStatus.innerHTML = '<p class="text-purple-400"><i class="fas fa-spinner fa-spin mr-2"></i>Esperando conexión de la tablet...</p>';
+  
+        // Iniciar como HOST (la pantalla espera conexión)
+        initPeerAsHost();
+  
+        console.log('📺 Pantalla generando código:', myCode);
+        }
+        // Conectar TABLET a la pantalla (Client)
+        function conectarTabletAPantalla() {
+        const screenModal = document.getElementById('screenModal');
+        const codeDisplay = document.getElementById('codeDisplay');
+        const generatedCode = document.getElementById('generatedCode');
+        const connectionStatus = document.getElementById('connectionStatus');
+  
+        if (!screenModal) {
+        alert('Error: No se encontró el modal');
+        return;
+        }
+  
+        screenModal.classList.remove('hidden');
+        generatedCode.classList.add('hidden');
+  
+        const codeInput = prompt('Ingresa el código de 4 dígitos que muestra la pantalla:');
+  
+        if (codeInput && codeInput.length === 4) {
+        // Guardar código y conectar
+        localStorage.setItem('alban_screen_code', codeInput);
+        connectionStatus.innerHTML = '<p class="text-purple-400"><i class="fas fa-spinner fa-spin mr-2"></i>Conectando a la pantalla...</p>';
+        generatedCode.classList.remove('hidden');
+        codeDisplay.textContent = codeInput;
+    
+        // Iniciar como CLIENT (la tablet se conecta)
+        initPeerAsClient(codeInput);
+    
+        console.log('📱 Tablet conectándose al código:', codeInput);
+        } else {
+        screenModal.classList.add('hidden');
+        }
+        }
           // ==========================================
           // 2. EVENT LISTENERS PRINCIPALES (Se ejecutan SIEMPRE)
           // ==========================================
