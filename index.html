@@ -2714,10 +2714,10 @@
     return;
   }
 
-  // Canvas con mejor calidad (640x480)
-const tempCanvas = document.createElement('canvas');
-const MAX_W = 640;
-const MAX_H = 480;
+  // Canvas PEQUEÑO (320x240) - Suficiente para ver en TV
+  const tempCanvas = document.createElement('canvas');
+  const MAX_W = 320;
+  const MAX_H = 240;
   
   let w = mainCanvas.width;
   let h = mainCanvas.height;
@@ -2730,22 +2730,44 @@ const MAX_H = 480;
   tempCanvas.height = Math.floor(h);
   const ctx = tempCanvas.getContext('2d');
   
-  // Dibujar ambos canvas
+  // Fondo negro
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+  
+  // Dibujar ambos canvas
   ctx.drawImage(mainCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
   ctx.drawImage(zoneCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
   
-  // JPEG con calidad MEDIA (40% - mejor balance)
-const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.4);
+  // JPEG con calidad BAJA (25%)
+  const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.25);
   
-  console.log('📸 Imagen:', Math.round(dataUrl.length / 1024), 'KB');
+  const sizeKB = Math.round(dataUrl.length / 1024);
+  console.log('📸 Imagen:', sizeKB, 'KB');
   
-  // Enviar SOLO el string, no un objeto JSON (más ligero)
-  try {
-    currentConn.send(dataUrl);
-  } catch (e) {
-    console.error('❌ Error enviando:', e);
+  // Verificar que no exceda 12 KB
+  if (sizeKB > 12) {
+    console.warn('⚠️ Imagen muy grande (' + sizeKB + ' KB), reduciendo más...');
+    // Si es muy grande, reducirla aún más
+    const smallerCanvas = document.createElement('canvas');
+    smallerCanvas.width = 240;
+    smallerCanvas.height = 180;
+    const sCtx = smallerCanvas.getContext('2d');
+    sCtx.drawImage(tempCanvas, 0, 0, 240, 180);
+    const newDataUrl = smallerCanvas.toDataURL('image/jpeg', 0.2);
+    try {
+      currentConn.send(newDataUrl);
+      console.log('✅ Imagen reducida enviada');
+    } catch (e) {
+      console.error('❌ Error:', e);
+    }
+  } else {
+    // Enviar normal
+    try {
+      currentConn.send(dataUrl);
+      console.log('✅ Imagen enviada');
+    } catch (e) {
+      console.error('❌ Error enviando:', e);
+    }
   }
 }
 
