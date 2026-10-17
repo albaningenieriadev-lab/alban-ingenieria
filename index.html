@@ -2364,6 +2364,14 @@ let layerCounter = 0;
             if (saved) { cart = JSON.parse(saved); updateQuoteBar(); }
           } catch (e) { }
         }
+        // Verificar tamaño del layerCanvas al cargar
+        setTimeout(function() {
+        const layerCanvas = document.getElementById('layerCanvas');
+        if (layerCanvas) {
+          console.log(' layerCanvas al cargar:', layerCanvas.width, 'x', layerCanvas.height);
+          }
+        }, 1000);
+
 
         // ==========================================
 // CONTROLES TÁCTILES PARA CAPAS
@@ -3472,18 +3480,22 @@ function saveSample() {
   if (!currentCapture) return;
   
   const sampleName = document.getElementById('sampleName').value.trim() || 
-                    (currentCameraMode === 'fondo' ? 'Espacio_' + Date.now() : 'Material_' + Date.now());
+  (currentCameraMode === 'fondo' ? 'Espacio_' + Date.now() : 'Material_' + Date.now());
   
   if (currentCameraMode === 'fondo') {
-    // Guardar como fondo
-    fondoImage = new Image();
-    fondoImage.onload = function() {
-      // Ajustar canvas al tamaño del fondo
-      const mainCanvas = document.getElementById('mainCanvas');
-      const zoneCanvas = document.getElementById('zoneCanvas');
-      const layerCanvas = document.getElementById('layerCanvas');
-      
-      // Tamaño máximo para mantener rendimiento
+  // Guardar como fondo
+  fondoImage = new Image();
+  fondoImage.onload = function() {
+    const mainCanvas = document.getElementById('mainCanvas');
+    const zoneCanvas = document.getElementById('zoneCanvas');
+    const layerCanvas = document.getElementById('layerCanvas');
+    
+    if (!layerCanvas) {
+      console.error('❌ No existe layerCanvas en el HTML');
+      return;
+    }
+    
+    // Tamaño máximo
     const MAX_WIDTH = 1200;
     const MAX_HEIGHT = 800;
     
@@ -3493,36 +3505,42 @@ function saveSample() {
     if (w > MAX_WIDTH) { h = h * (MAX_WIDTH / w); w = MAX_WIDTH; }
     if (h > MAX_HEIGHT) { w = w * (MAX_HEIGHT / h); h = MAX_HEIGHT; }
     
-    // Establecer tamaño de TODOS los canvas
-    mainCanvas.width = Math.floor(w);
-    mainCanvas.height = Math.floor(h);
-    zoneCanvas.width = Math.floor(w);
-    zoneCanvas.height = Math.floor(h);
-    layerCanvas.width = Math.floor(w);
-    layerCanvas.height = Math.floor(h);
+    w = Math.floor(w);
+    h = Math.floor(h);
     
-    console.log('📐 Canvas redimensionados a:', Math.floor(w), 'x', Math.floor(h));
+    // FORZAR tamaño de TODOS los canvas
+    mainCanvas.width = w;
+    mainCanvas.height = h;
+    zoneCanvas.width = w;
+    zoneCanvas.height = h;
+    layerCanvas.width = w;
+    layerCanvas.height = h;
+    
+    // Verificar que se cambió el tamaño
+    console.log('📐 Canvas redimensionados:', {
+      mainCanvas: `${mainCanvas.width}x${mainCanvas.height}`,
+      zoneCanvas: `${zoneCanvas.width}x${zoneCanvas.height}`,
+      layerCanvas: `${layerCanvas.width}x${layerCanvas.height}`
+    });
     
     const ctx = mainCanvas.getContext('2d');
-    ctx.drawImage(fondoImage, 0, 0, Math.floor(w), Math.floor(h));
-      
-      // Limpiar capas anteriores
-      materialesLayers = [];
-      selectedLayer = null;
-      
-      console.log('✅ Fondo establecido:', sampleName);
-      showNotification('✅ Foto del espacio guardada');
-      
-      // Cerrar modal
-      capturePreview.classList.add('hidden');
-      currentCapture = null;
-      closeCamera();
-      
-      // Actualizar visualización
-      broadcastToScreen();
-    };
-    fondoImage.src = currentCapture;
+    ctx.drawImage(fondoImage, 0, 0, w, h);
     
+    // Limpiar capas
+    materialesLayers = [];
+    selectedLayer = null;
+    
+    console.log('✅ Fondo establecido:', sampleName);
+    showNotification('✅ Foto del espacio guardada');
+    
+    capturePreview.classList.add('hidden');
+    currentCapture = null;
+    closeCamera();
+    
+    broadcastToScreen();
+  };
+  fondoImage.src = currentCapture;
+
   } else {
     // Agregar como material (capa)
     const materialImg = new Image();
@@ -3675,34 +3693,23 @@ if (btnBringToFront) {
 
 function renderLayers() {
   const layerCanvas = document.getElementById('layerCanvas');
-  const ctx = layerCanvas.getContext('2d');
+  if (!layerCanvas) {
+    console.error('❌ layerCanvas no existe');
+    return;
+  }
   
-  // Limpiar canvas de capas
+  console.log('🎨 Renderizando capas en canvas:', layerCanvas.width, 'x', layerCanvas.height);
+  
+  const ctx = layerCanvas.getContext('2d');
   ctx.clearRect(0, 0, layerCanvas.width, layerCanvas.height);
   
-  // Dibujar todas las capas
   materialesLayers.forEach(layer => {
     ctx.save();
-    
-    // Trasladar al centro de la imagen
     ctx.translate(layer.x, layer.y);
-    
-    // Rotar
     ctx.rotate(layer.rotation * Math.PI / 180);
-    
-    // Escalar
     ctx.scale(layer.scale, layer.scale);
+    ctx.drawImage(layer.image, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
     
-    // Dibujar imagen centrada
-    ctx.drawImage(
-      layer.image,
-      -layer.width / 2,
-      -layer.height / 2,
-      layer.width,
-      layer.height
-    );
-    
-    // Si está seleccionada, dibujar borde
     if (layer === selectedLayer) {
       ctx.strokeStyle = '#FFC700';
       ctx.lineWidth = 3;
@@ -3710,11 +3717,9 @@ function renderLayers() {
       ctx.strokeRect(-layer.width / 2, -layer.height / 2, layer.width, layer.height);
       ctx.setLineDash([]);
     }
-    
     ctx.restore();
   });
-}
-            function clearAllSamples() {
+}            function clearAllSamples() {
               if (capturedSamples.length === 0) return;
               if (confirm('¿Eliminar todas las muestras?')) {
                 capturedSamples = [];
