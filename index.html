@@ -2727,23 +2727,42 @@
     return;
   }
 
+  // Crear canvas temporal con tamaño reducido (máximo 800x600)
   const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = mainCanvas.width;
-  tempCanvas.height = mainCanvas.height;
+  const MAX_WIDTH = 800;
+  const MAX_HEIGHT = 600;
+  
+  let width = mainCanvas.width;
+  let height = mainCanvas.height;
+  
+  // Redimensionar manteniendo proporción
+  if (width > MAX_WIDTH) {
+    height = height * (MAX_WIDTH / width);
+    width = MAX_WIDTH;
+  }
+  if (height > MAX_HEIGHT) {
+    width = width * (MAX_HEIGHT / height);
+    height = MAX_HEIGHT;
+  }
+  
+  tempCanvas.width = width;
+  tempCanvas.height = height;
   const ctx = tempCanvas.getContext('2d');
   
-  // Combinar canvas principal y de zonas
-  ctx.drawImage(mainCanvas, 0, 0);
-  ctx.drawImage(zoneCanvas, 0, 0);
+  // Dibujar y combinar los canvas
+  ctx.drawImage(mainCanvas, 0, 0, width, height);
+  ctx.drawImage(zoneCanvas, 0, 0, width, height);
   
-  // Convertir a JPEG comprimido (85% calidad)
-  const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.85);
+  // Convertir a JPEG con calidad MUY BAJA (30%) para reducir tamaño
+  const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.3);
+  
+  console.log('📸 Imagen a enviar:', dataUrl.length, 'bytes (', Math.round(dataUrl.length / 1024), 'KB )');
   
   try { 
     currentConn.send({ type: 'image-update', image: dataUrl });
-    console.log('📸 Imagen enviada a pantalla:', dataUrl.length, 'bytes');
+    console.log('✅ Imagen enviada exitosamente');
   } catch (e) { 
-    console.error('❌ Error al enviar imagen:', e); 
+    console.error(' Error al enviar imagen:', e); 
   }
 }
 
