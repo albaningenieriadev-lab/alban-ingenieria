@@ -2363,20 +2363,20 @@ let layerCounter = 0;
           } catch (e) { }
         }
         // Verificar tamaño del layerCanvas al cargar
-        setTimeout(function() {
+        /*setTimeout(function() {
         const layerCanvas = document.getElementById('layerCanvas');
         if (layerCanvas) {
           console.log(' layerCanvas al cargar:', layerCanvas.width, 'x', layerCanvas.height);
           }
-        }, 1000);
+        }, 1000);*/
 
 
         // ==========================================
 // CONTROLES TÁCTILES PARA CAPAS
 // ==========================================
-const layerCanvas = document.getElementById('layerCanvas');
+//const layerCanvas = document.getElementById('layerCanvas');
 
-if (layerCanvas) {
+/*if (layerCanvas) {
 console.log('✅ lanyerCanvas encontrado, tamaño:', layerCanvas.width, 'x', layerCanvas.height);
 // Función para obtener coordenadas correctas
   function getTouchCoords(touch) {
@@ -2386,10 +2386,10 @@ console.log('✅ lanyerCanvas encontrado, tamaño:', layerCanvas.width, 'x', lay
     const x = (touch.clientX - rect.left) * scaleX;
     const y = (touch.clientY - rect.top) * scaleY;
     return { x, y };
-  }  
+  } */
 
 // Touch start
-  layerCanvas.addEventListener('touchstart', function(e) {
+ /* layerCanvas.addEventListener('touchstart', function(e) {
     e.preventDefault();
     console.log('👆 TOUCH START - Dedos:', e.touches.length);
     console.log(' Capas disponibles:', materialesLayers.length);
@@ -2474,7 +2474,7 @@ console.log('✅ lanyerCanvas encontrado, tamaño:', layerCanvas.width, 'x', lay
   });
 } else {
   console.error('❌ NO se encontró el layerCanvas');
-}
+}*/
 
 // Función auxiliar: verificar si un punto está dentro de una capa
 function isPointInLayer(x, y, layer) {
