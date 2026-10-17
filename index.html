@@ -1039,8 +1039,6 @@
  <!-- Canvas de zonas detectadas -->
 <canvas id="zoneCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
 
-<canvas id="layerCanvas" class="absolute top-0 left-0 w-full h-full" style="pointer-events: all;"></canvas>
-
 <!-- Controles de transformación (ocultos al inicio) -->
 <div id="transformControls" class="hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-alban-black/90 backdrop-blur border border-gray-700 rounded-lg p-3 flex gap-2">
   <button id="btnBringToFront" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs" title="Traer al frente">
@@ -2896,19 +2894,12 @@ function getAngle(touch1, touch2) {
 
         function broadcastToScreen() {
   if (!currentConn || !currentConn.open) {
-    console.log('⚠️ No hay conexión activa');
     return;
   }
   
   const mainCanvas = document.getElementById('mainCanvas');
-  const zoneCanvas = document.getElementById('zoneCanvas');
-  const layerCanvas = document.getElementById('layerCanvas'); //esta se agregó para el mini photoshop
-  
-  if (!mainCanvas || !zoneCanvas || mainCanvas.width === 0) {
-    return;
-  }
+  if (!mainCanvas || mainCanvas.width === 0) return;
 
- // Canvas tamaño razonable (800x600)
   const tempCanvas = document.createElement('canvas');
   const MAX_W = 800;
   const MAX_H = 600;
@@ -2916,7 +2907,6 @@ function getAngle(touch1, touch2) {
   let w = mainCanvas.width;
   let h = mainCanvas.height;
   
-  // Redimensionar manteniendo proporción
   if (w > MAX_W) { h = h * (MAX_W / w); w = MAX_W; }
   if (h > MAX_H) { w = w * (MAX_H / h); h = MAX_H; }
   
@@ -2924,44 +2914,24 @@ function getAngle(touch1, touch2) {
   tempCanvas.height = Math.floor(h);
   const ctx = tempCanvas.getContext('2d');
   
-  // Fondo negro
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+  // Solo dibujar el mainCanvas (ya tiene fondo + capas)
+  ctx.drawImage(mainCanvas, 0, 0, w, h);
   
-  // Dibujar ambos canvas
-  ctx.drawImage(mainCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
-  ctx.drawImage(zoneCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
-  
-  // Dibujar zonas detectadas (si las hay) estas dos lineas las agregue
-  ctx.drawImage(zoneCanvas, 0, 0, w, h);
-  
-  // Dibujar capas de materiales
-  ctx.drawImage(layerCanvas, 0, 0, w, h);
-  
-  // Convertir a BLOB binario (NO DataURL)
   tempCanvas.toBlob(function(blob) {
     if (!blob) return;
-    
-    console.log('📸 Blob size:', Math.round(blob.size / 1024), 'KB');
-    
-    // Enviar como ArrayBuffer (binary channel lo acepta)
     const reader = new FileReader();
     reader.onload = function() {
       try {
-        // Enviar objeto con metadatos + datos binarios
         currentConn.send({
           type: 'image-binary',
-          data: reader.result,  // ArrayBuffer
-          width: tempCanvas.width,
-          height: tempCanvas.height
+          data: reader.result
         });
-        console.log('✅ Blob binario enviado');
       } catch (e) {
-        console.error('❌ Error enviando blob:', e);
+        console.error('Error:', e);
       }
     };
     reader.readAsArrayBuffer(blob);
-  }, 'image/jpeg', 0.6);  // 50% calidad - mucho mejor visualmente
+  }, 'image/jpeg', 0.6);
 }
 
         function hasAppliedMaterials() {
@@ -3483,19 +3453,11 @@ function saveSample() {
   (currentCameraMode === 'fondo' ? 'Espacio_' + Date.now() : 'Material_' + Date.now());
   
   if (currentCameraMode === 'fondo') {
-  // Guardar como fondo
   fondoImage = new Image();
   fondoImage.onload = function() {
     const mainCanvas = document.getElementById('mainCanvas');
     const zoneCanvas = document.getElementById('zoneCanvas');
-    const layerCanvas = document.getElementById('layerCanvas');
     
-    if (!layerCanvas) {
-      console.error('❌ No existe layerCanvas en el HTML');
-      return;
-    }
-    
-    // Tamaño máximo
     const MAX_WIDTH = 1200;
     const MAX_HEIGHT = 800;
     
@@ -3508,29 +3470,22 @@ function saveSample() {
     w = Math.floor(w);
     h = Math.floor(h);
     
-    // FORZAR tamaño de TODOS los canvas
+    // Solo redimensionar mainCanvas y zoneCanvas
     mainCanvas.width = w;
     mainCanvas.height = h;
     zoneCanvas.width = w;
     zoneCanvas.height = h;
-    layerCanvas.width = w;
-    layerCanvas.height = h;
     
-    // Verificar que se cambió el tamaño
-    console.log('📐 Canvas redimensionados:', {
-      mainCanvas: `${mainCanvas.width}x${mainCanvas.height}`,
-      zoneCanvas: `${zoneCanvas.width}x${zoneCanvas.height}`,
-      layerCanvas: `${layerCanvas.width}x${layerCanvas.height}`
-    });
+    console.log(' Canvas redimensionados:', w, 'x', h);
     
+    // Dibujar fondo
     const ctx = mainCanvas.getContext('2d');
     ctx.drawImage(fondoImage, 0, 0, w, h);
     
-    // Limpiar capas
     materialesLayers = [];
     selectedLayer = null;
     
-    console.log('✅ Fondo establecido:', sampleName);
+    console.log('✅ Fondo establecido');
     showNotification('✅ Foto del espacio guardada');
     
     capturePreview.classList.add('hidden');
@@ -3540,7 +3495,6 @@ function saveSample() {
     broadcastToScreen();
   };
   fondoImage.src = currentCapture;
-
   } else {
     // Agregar como material (capa)
     const materialImg = new Image();
@@ -3692,17 +3646,20 @@ if (btnBringToFront) {
 } //Agregado para el pequeño photoshop
 
 function renderLayers() {
-  const layerCanvas = document.getElementById('layerCanvas');
-  if (!layerCanvas) {
-    console.error('❌ layerCanvas no existe');
+  const mainCanvas = document.getElementById('mainCanvas');
+  if (!mainCanvas) {
+    console.error('❌ mainCanvas no existe');
     return;
   }
   
-  console.log('🎨 Renderizando capas en canvas:', layerCanvas.width, 'x', layerCanvas.height);
+  const ctx = mainCanvas.getContext('2d');
   
-  const ctx = layerCanvas.getContext('2d');
-  ctx.clearRect(0, 0, layerCanvas.width, layerCanvas.height);
+  // Si hay fondo, redibujarlo primero
+  if (fondoImage) {
+    ctx.drawImage(fondoImage, 0, 0, mainCanvas.width, mainCanvas.height);
+  }
   
+  // Dibujar todas las capas encima
   materialesLayers.forEach(layer => {
     ctx.save();
     ctx.translate(layer.x, layer.y);
@@ -3710,6 +3667,7 @@ function renderLayers() {
     ctx.scale(layer.scale, layer.scale);
     ctx.drawImage(layer.image, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
     
+    // Borde de selección
     if (layer === selectedLayer) {
       ctx.strokeStyle = '#FFC700';
       ctx.lineWidth = 3;
@@ -3719,7 +3677,10 @@ function renderLayers() {
     }
     ctx.restore();
   });
-}            function clearAllSamples() {
+  
+  console.log('🎨 Capas renderizadas en mainCanvas');
+}
+            function clearAllSamples() {
               if (capturedSamples.length === 0) return;
               if (confirm('¿Eliminar todas las muestras?')) {
                 capturedSamples = [];
@@ -3807,9 +3768,9 @@ function renderLayers() {
             // ==========================================
             // 3.6. INTERACCIÓN DEL VISUALIZADOR (CANVAS Y ZONAS)
             // ==========================================
-            var mainCanvas = document.getElementById('mainCanvas');
+            const mainCanvas = document.getElementById('mainCanvas');
             if (mainCanvas) {
-              mainCanvas.addEventListener('click', handleCanvasClick);
+              console.log('✅ mainCanvas listo para eventos unificados');
             }
 
             var toleranceSlider = document.getElementById('toleranceSlider');
