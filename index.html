@@ -3696,23 +3696,38 @@
               });
 
               // Lógica al hacer clic en una categoría del menú
-              const megaItems = megaMenu.querySelectorAll('.mega-item');
-              megaItems.forEach(item => {
-                item.addEventListener('click', function () {
-                  const cat = this.getAttribute('data-cat');
-                  const sub = this.getAttribute('data-sub');
-                  console.log('🔍 Filtrando por:', cat, sub);
+const megaItems = megaMenu.querySelectorAll('.mega-item');
+megaItems.forEach(item => {
+  item.addEventListener('click', function () {
+    const cat = this.getAttribute('data-cat');
+    const sub = this.getAttribute('data-sub');
+    console.log('🔍 Filtrando por:', cat, sub);
 
-                  const filterLabel = document.getElementById('filterLabel');
-                  if (filterLabel) {
-                    filterLabel.textContent = (cat === 'all') ? 'Todos los productos' : (sub === 'all' ? cat : cat + ' - ' + sub);
-                  }
+    // ACTUALIZAR los filtros globales
+    currentFilter.categoria = cat;
+    currentFilter.subcategoria = sub;
 
-                  // Cerrar el menú después de seleccionar
-                  megaMenu.style.display = 'none';
-                  megaMenu.classList.add('hidden');
-                });
-              });
+    // Actualizar la etiqueta visual
+    const filterLabel = document.getElementById('filterLabel');
+    if (filterLabel) {
+      filterLabel.textContent = (cat === 'all') ? 'Todos los productos' : (sub === 'all' ? cat : cat + ' - ' + sub);
+    }
+
+    // ACTUALIZAR el hero/banner de la categoría
+    if (typeof updateCategoryHero === 'function') {
+      updateCategoryHero();
+    }
+
+    // APLICAR el filtro a los productos
+    if (typeof applyFilters === 'function') {
+      applyFilters();
+    }
+
+    // Cerrar el menú después de seleccionar
+    megaMenu.style.display = 'none';
+    megaMenu.classList.add('hidden');
+  });
+});
 
             } else {
               console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML.');
