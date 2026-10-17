@@ -2708,6 +2708,7 @@
               }
 
             });
+          }
 
             // 2. Botón WhatsApp (unificado)
             var btnWhatsApp = document.getElementById('btnWhatsApp');
@@ -3324,43 +3325,44 @@
             } else {
               console.error('❌ NO se encontró el modal con ID "quoteReviewModal" en el HTML');
             }
-// ==========================================
-// MENÚ CATÁLOGO (CÓDIGO JAVASCRIPT LIMPIO)
+            // ==========================================
+// MENÚ CATÁLOGO (CÓDIGO DEFINITIVO Y SEGURO)
 // ==========================================
 const btnMegaMenu = document.getElementById('btnMegaMenu');
 const megaMenu = document.getElementById('megaMenu');
 
 if (btnMegaMenu && megaMenu) {
-  console.log('✅ Botón y Menú de Catálogo encontrados correctamente');
-  
-  // Aseguramos que el menú tenga el z-index correcto para no quedar tapado
+  console.log('✅ Menú Catálogo: Elementos encontrados correctamente');
+
+  // Asegurar que tenga prioridad visual
   megaMenu.style.zIndex = '100';
 
   btnMegaMenu.addEventListener('click', function (e) {
     e.preventDefault();
     e.stopPropagation();
-    console.log('📂 Clic en botón Catálogo ejecutado');
+    console.log('📂 Clic en botón Catálogo');
     
-    // Forzamos la visibilidad directamente, ignorando la clase 'hidden' de Tailwind
+    // Forzamos la visibilidad ignorando conflictos de clases CSS
     if (megaMenu.style.display === 'none' || megaMenu.style.display === '') {
       megaMenu.style.display = 'block';
-      megaMenu.classList.remove('hidden'); 
-      console.log('👁️ Menú MOSTRADO forzosamente (display: block)');
+      megaMenu.classList.remove('hidden');
+      console.log('👁️ Menú MOSTRADO');
     } else {
       megaMenu.style.display = 'none';
       megaMenu.classList.add('hidden');
-      console.log('🙈 Menú OCULTADO (display: none)');
+      console.log('🙈 Menú OCULTADO');
     }
   });
 
   // Cerrar menú al hacer clic fuera de él
   document.addEventListener('click', function (e) {
     if (!btnMegaMenu.contains(e.target) && !megaMenu.contains(e.target)) {
+      megaMenu.style.display = 'none';
       megaMenu.classList.add('hidden');
     }
   });
 
-  // Lógica para los items del menú
+  // Lógica al hacer clic en una categoría del menú
   const megaItems = megaMenu.querySelectorAll('.mega-item');
   megaItems.forEach(item => {
     item.addEventListener('click', function () {
@@ -3372,53 +3374,64 @@ if (btnMegaMenu && megaMenu) {
       if (filterLabel) {
         filterLabel.textContent = (cat === 'all') ? 'Todos los productos' : (sub === 'all' ? cat : cat + ' - ' + sub);
       }
+      
+      // Cerrar el menú después de seleccionar
+      megaMenu.style.display = 'none';
       megaMenu.classList.add('hidden');
     });
   });
 } else {
   console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML.');
 }
+  });
+  </script>
+  <!-- ========================================== -->
+  <!-- MODALES HTML (DEBEN IR DESPUÉS DE </script>) -->
+  <!-- ========================================== -->
 
-}); // ← CIERRA DOMContentLoaded
-
-})(); // ← CIERRA FUNCIÓN PRINCIPAL
-</script>
-<!-- ========================================== -->
-<!-- MODALES HTML (DEBEN IR DESPUÉS DE </script>) -->
-<!-- ========================================== -->
-
-<!-- MODAL DETALLE PRODUCTO -->
-<div class="product-detail-modal" id="productDetailModal">
-  <div class="product-detail-content">
-    <div class="product-detail-image">
-      <button class="product-detail-close" id="btnCloseProductDetail"><i class="fas fa-times"></i></button>
-      <img id="detailProductImage" src="" alt="">
-    </div>
-    <div class="product-detail-info">
-      <img src="imagenes/logo-alban.png" alt="Alban Ingeniería" class="h-8 w-auto object-contain mb-3" onerror="this.style.display='none'">
-      <p class="text-xs text-alban-yellow uppercase tracking-wider font-bold mb-2" id="detailProductCategory"></p>
-      <h2 class="text-2xl font-bold text-white mb-3" id="detailProductName"></h2>
-      <div class="flex items-center gap-3 mb-4 text-sm text-gray-400">
-        <span>Tipo: <span class="text-white font-semibold underline" id="detailProductType"></span></span>
-        <span class="text-gray-600">|</span>
-        <span>SKU: <span class="text-white font-mono" id="detailProductSku"></span></span>
+  <!-- MODAL DETALLE PRODUCTO -->
+  <div class="product-detail-modal" id="productDetailModal">
+    <div class="product-detail-content">
+      <div class="product-detail-image">
+        <button class="product-detail-close" id="btnCloseProductDetail"><i class="fas fa-times"></i></button>
+        <img id="detailProductImage" src="" alt="">
       </div>
-      <div class="mb-4">
-        <p class="text-xs text-gray-400 mb-2 font-semibold">DISPONIBILIDAD POR SUCURSAL:</p>
-        <div id="detailStockByBranch" class="space-y-2"></div>
-      </div>
-      <div class="text-gray-300 text-sm leading-relaxed mb-6" id="detailProductDescription"></div>
-      <div class="grid grid-cols-2 gap-3 mb-6 text-xs">
-        <div class="bg-alban-black rounded-lg p-3 border border-gray-700"><p class="text-gray-400 mb-1"><i class="fas fa-ruler-combined mr-1"></i>Medidas</p><p class="text-white font-semibold" id="detailProductMeasures"></p></div>
-        <div class="bg-alban-black rounded-lg p-3 border border-gray-700"><p class="text-gray-400 mb-1"><i class="fas fa-palette mr-1"></i>Ambiente</p><p class="text-white font-semibold" id="detailProductAmbiente"></p></div>
-      </div>
-      <div class="flex gap-3">
-        <button id="btnAddToCartDetail" class="flex-1 px-6 py-3 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 transition flex items-center justify-center gap-2"><i class="fas fa-cart-plus"></i><span>Agregar al Carrito</span></button>
-        <button id="btnVisualizeProduct" class="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 border border-gray-700 transition flex items-center gap-2"><i class="fas fa-magic"></i><span>Visualizar</span></button>
+      <div class="product-detail-info">
+        <img src="imagenes/logo-alban.png" alt="Alban Ingeniería" class="h-8 w-auto object-contain mb-3"
+          onerror="this.style.display='none'">
+        <p class="text-xs text-alban-yellow uppercase tracking-wider font-bold mb-2" id="detailProductCategory"></p>
+        <h2 class="text-2xl font-bold text-white mb-3" id="detailProductName"></h2>
+        <div class="flex items-center gap-3 mb-4 text-sm text-gray-400">
+          <span>Tipo: <span class="text-white font-semibold underline" id="detailProductType"></span></span>
+          <span class="text-gray-600">|</span>
+          <span>SKU: <span class="text-white font-mono" id="detailProductSku"></span></span>
+        </div>
+        <div class="mb-4">
+          <p class="text-xs text-gray-400 mb-2 font-semibold">DISPONIBILIDAD POR SUCURSAL:</p>
+          <div id="detailStockByBranch" class="space-y-2"></div>
+        </div>
+        <div class="text-gray-300 text-sm leading-relaxed mb-6" id="detailProductDescription"></div>
+        <div class="grid grid-cols-2 gap-3 mb-6 text-xs">
+          <div class="bg-alban-black rounded-lg p-3 border border-gray-700">
+            <p class="text-gray-400 mb-1"><i class="fas fa-ruler-combined mr-1"></i>Medidas</p>
+            <p class="text-white font-semibold" id="detailProductMeasures"></p>
+          </div>
+          <div class="bg-alban-black rounded-lg p-3 border border-gray-700">
+            <p class="text-gray-400 mb-1"><i class="fas fa-palette mr-1"></i>Ambiente</p>
+            <p class="text-white font-semibold" id="detailProductAmbiente"></p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <button id="btnAddToCartDetail"
+            class="flex-1 px-6 py-3 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 transition flex items-center justify-center gap-2"><i
+              class="fas fa-cart-plus"></i><span>Agregar al Carrito</span></button>
+          <button id="btnVisualizeProduct"
+            class="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 border border-gray-700 transition flex items-center gap-2"><i
+              class="fas fa-magic"></i><span>Visualizar</span></button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
   <!-- MODAL DE CÁMARA -->
   <div id="cameraModal" class="hidden fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-4">
