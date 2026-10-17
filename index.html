@@ -3557,27 +3557,45 @@ const modoActualInfo = document.getElementById('modoActualInfo');
 if (btnModoFondo && btnModoMaterial) {
   btnModoFondo.addEventListener('click', function() {
     currentCameraMode = 'fondo';
+    
+    // Actualizar estilos visuales
     btnModoFondo.classList.add('bg-blue-600');
     btnModoFondo.classList.remove('bg-gray-600');
     btnModoMaterial.classList.remove('bg-green-600');
     btnModoMaterial.classList.add('bg-gray-600');
+    
     if (modoActualInfo) {
       modoActualInfo.innerHTML = '<i class="fas fa-home mr-2"></i>Modo actual: <strong>Foto del Espacio</strong>';
-  }
-  console.log('📷 Modo cambiado a: Fondo');
-});
-  
+    }
+    
+    console.log('📷 Modo cambiado a: Fondo');
+    
+    // ABRIR LA CÁMARA AUTOMÁTICAMENTE
+    if (typeof openCamera === 'function') {
+      openCamera();
+    }
+  });
+
   btnModoMaterial.addEventListener('click', function() {
     currentCameraMode = 'material';
+    
+    // Actualizar estilos visuales
     btnModoMaterial.classList.add('bg-green-600');
     btnModoMaterial.classList.remove('bg-gray-600');
     btnModoFondo.classList.remove('bg-blue-600');
     btnModoFondo.classList.add('bg-gray-600');
+    
     if (modoActualInfo) {
       modoActualInfo.innerHTML = '<i class="fas fa-cube mr-2"></i>Modo actual: <strong>Foto del Material</strong>';
     }
-      console.log('📷 Modo cambiado a: Material');
-    });
+    
+    console.log(' Modo cambiado a: Material');
+    
+    // ABRIR LA CÁMARA AUTOMÁTICAMENTE
+    if (typeof openCamera === 'function') {
+      openCamera();
+    }
+  });
 } else {
   console.error('❌ No se encontraron los botones btnModoFondo o btnModoMaterial');
 }
