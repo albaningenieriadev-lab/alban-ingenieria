@@ -2524,25 +2524,22 @@
     });
     
     conn.on('data', function(data) {
-  if (data.type === 'image-update') {
-    console.log('📥 TV: Imagen recibida, tamaño:', data.image.length, 'bytes');
-    
+  // Si data es un string, es una imagen
+  if (typeof data === 'string' && data.startsWith('data:image')) {
+    console.log('📥 TV: Imagen recibida');
     const remoteImage = document.getElementById('remoteImage');
     const remoteView = document.getElementById('remoteView');
     const remotePlaceholder = document.getElementById('remotePlaceholder');
     
     if (remoteImage) {
-      remoteImage.src = data.image;
+      remoteImage.src = data;
       remoteImage.classList.remove('hidden');
-      console.log('✅ TV: Imagen mostrada en pantalla');
     }
-    
     if (remoteView) remoteView.classList.remove('hidden');
     if (remotePlaceholder) remotePlaceholder.classList.add('hidden');
   }
-  
-  if (data.type === 'request-image') {
-    console.log('📸 TV: Tablet solicita imagen');
+  // Si es un objeto, es un comando
+  else if (data && data.type === 'request-image') {
     broadcastToScreen();
   }
 });
@@ -2642,19 +2639,16 @@
     });
     
     conn.on('data', function(data) {
-      if (data.type === 'image-update') {
-        const remoteImage = document.getElementById('remoteImage');
-        const remoteView = document.getElementById('remoteView');
-        const remotePlaceholder = document.getElementById('remotePlaceholder');
-        
-        if (remoteImage) {
-          remoteImage.src = data.image;
-          remoteImage.classList.remove('hidden');
-        }
-        if (remoteView) remoteView.classList.remove('hidden');
-        if (remotePlaceholder) remotePlaceholder.classList.add('hidden');
-      }
-    });
+  if (typeof data === 'string' && data.startsWith('data:image')) {
+    const remoteImage = document.getElementById('remoteImage');
+    const remoteView = document.getElementById('remoteView');
+    if (remoteImage) {
+      remoteImage.src = data;
+      remoteImage.classList.remove('hidden');
+    }
+    if (remoteView) remoteView.classList.remove('hidden');
+  }
+});
     
     conn.on('close', function() {
       console.log('❌ Tablet: Conexión cerrada');
@@ -2709,60 +2703,49 @@
 
         function broadcastToScreen() {
   if (!currentConn || !currentConn.open) {
-    console.log('⚠️ No hay conexión activa para enviar imagen');
+    console.log('⚠️ No hay conexión activa');
     return;
   }
   
   const mainCanvas = document.getElementById('mainCanvas');
   const zoneCanvas = document.getElementById('zoneCanvas');
   
-  if (!mainCanvas || !zoneCanvas) {
-    console.log('⚠️ Canvas no encontrados');
+  if (!mainCanvas || !zoneCanvas || mainCanvas.width === 0) {
     return;
   }
 
-  // Verificar que el canvas tenga contenido
-  if (mainCanvas.width === 0 || mainCanvas.height === 0) {
-    console.log('️ Canvas vacío, no hay imagen para enviar');
-    return;
-  }
-
-  // Crear canvas temporal con tamaño reducido (máximo 800x600)
+  // Canvas temporal MUY PEQUEÑO (400x300 máximo)
   const tempCanvas = document.createElement('canvas');
-  const MAX_WIDTH = 800;
-  const MAX_HEIGHT = 600;
+  const MAX_W = 400;
+  const MAX_H = 300;
   
-  let width = mainCanvas.width;
-  let height = mainCanvas.height;
+  let w = mainCanvas.width;
+  let h = mainCanvas.height;
   
   // Redimensionar manteniendo proporción
-  if (width > MAX_WIDTH) {
-    height = height * (MAX_WIDTH / width);
-    width = MAX_WIDTH;
-  }
-  if (height > MAX_HEIGHT) {
-    width = width * (MAX_HEIGHT / height);
-    height = MAX_HEIGHT;
-  }
+  if (w > MAX_W) { h = h * (MAX_W / w); w = MAX_W; }
+  if (h > MAX_H) { w = w * (MAX_H / h); h = MAX_H; }
   
-  tempCanvas.width = width;
-  tempCanvas.height = height;
+  tempCanvas.width = Math.floor(w);
+  tempCanvas.height = Math.floor(h);
   const ctx = tempCanvas.getContext('2d');
   
-  // Dibujar y combinar los canvas
-  ctx.drawImage(mainCanvas, 0, 0, width, height);
-  ctx.drawImage(zoneCanvas, 0, 0, width, height);
+  // Dibujar ambos canvas
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+  ctx.drawImage(mainCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
+  ctx.drawImage(zoneCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
   
-  // Convertir a JPEG con calidad MUY BAJA (30%) para reducir tamaño
-  const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.3);
+  // JPEG con calidad MÍNIMA (15%)
+  const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.15);
   
-  console.log('📸 Imagen a enviar:', dataUrl.length, 'bytes (', Math.round(dataUrl.length / 1024), 'KB )');
+  console.log('📸 Imagen:', Math.round(dataUrl.length / 1024), 'KB');
   
-  try { 
-    currentConn.send({ type: 'image-update', image: dataUrl });
-    console.log('✅ Imagen enviada exitosamente');
-  } catch (e) { 
-    console.error(' Error al enviar imagen:', e); 
+  // Enviar SOLO el string, no un objeto JSON (más ligero)
+  try {
+    currentConn.send(dataUrl);
+  } catch (e) {
+    console.error('❌ Error enviando:', e);
   }
 }
 
