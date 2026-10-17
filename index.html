@@ -2462,57 +2462,221 @@
         function generateCode() { return Math.floor(1000 + Math.random() * 9000).toString(); }
 
         function initPeerAsHost() {
-          if (peer) { peer.destroy(); }
-          myCode = generateCode();
-          var peerId = 'alban-screen-' + myCode;
-          peer = new Peer(peerId, { debug: 2 });
-          peer.on('open', function (id) {
-            document.getElementById('codeDisplay').textContent = myCode;
-            document.getElementById('generatedCode').classList.remove('hidden');
-            document.getElementById('connectionStatus').innerHTML = '<p class="text-green-400"><i class="fas fa-check-circle mr-1"></i>Código generado. La pantalla se conectará automáticamente...</p>';
-          });
-          peer.on('connection', function (conn) {
-            currentConn = conn;
-            conn.on('open', function () {
-              document.getElementById('connectionStatus').innerHTML = '<p class="text-green-400 text-lg"><i class="fas fa-check-circle mr-1"></i>¡Pantalla conectada exitosamente!</p>';
-              showNotification('Pantalla conectada');
-              broadcastToScreen();
-            });
-            conn.on('data', function (data) {
-              if (data.type === 'request-image') broadcastToScreen();
-            });
-          });
-          peer.on('error', function (err) {
-            document.getElementById('connectionStatus').innerHTML = '<p class="text-red-400"><i class="fas fa-exclamation-circle mr-1"></i>Error: ' + err.type + '</p>';
-          });
-        }
+  // Destruir conexión anterior si existe
+  if (peer) {
+    peer.destroy();
+    peer = null;
+  }
+  
+  if (!myCode) {
+    myCode = Math.floor(1000 + Math.random() * 9000).toString();
+  }
+  
+  const peerId = 'alban-screen-' + myCode;
+  console.log('📺 TV: Creando peer con ID:', peerId);
+  
+  peer = new Peer(peerId, {
+    debug: 2,
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' }
+      ]
+    }
+  });
+  
+  peer.on('open', function(id) {
+    console.log('✅ TV: Peer abierto:', id);
+    const remoteStatus = document.getElementById('remoteStatus');
+    if (remoteStatus) {
+      remoteStatus.innerHTML = `
+        <p class="text-xl text-gray-300 mb-2">Tu código de conexión es:</p>
+        <span class="text-7xl font-bold text-white block tracking-widest my-4 bg-purple-900/50 py-4 rounded-lg border-2 border-purple-500">${myCode}</span>
+        <p class="text-lg text-green-400 animate-pulse">✓ Listo para recibir conexión de la tablet</p>
+      `;
+    }
+  });
+  
+  peer.on('connection', function(conn) {
+    console.log('🔗 TV: Conexión entrante detectada');
+    currentConn = conn;
+    
+    conn.on('open', function() {
+      console.log('✅ TV: Tablet conectada!');
+      const remoteStatus = document.getElementById('remoteStatus');
+      if (remoteStatus) {
+        remoteStatus.innerHTML = '<p class="text-2xl text-green-400 font-bold">✓ Tablet conectada</p>';
+      }
+      // Enviar imagen inicial
+      setTimeout(broadcastToScreen, 1000);
+    });
+    
+    conn.on('data', function(data) {
+      if (data.type === 'request-image') {
+        console.log('📸 TV: Tablet solicita imagen');
+        broadcastToScreen();
+      }
+    });
+    
+    conn.on('close', function() {
+      console.log('❌ TV: Tablet desconectada');
+      currentConn = null;
+      const remoteStatus = document.getElementById('remoteStatus');
+      if (remoteStatus) {
+        remoteStatus.innerHTML = '<p class="text-xl text-yellow-400">⚠ Tablet desconectada. Esperando reconexión...</p>';
+      }
+    });
+    
+    conn.on('error', function(err) {
+      console.error('❌ TV: Error de conexión:', err);
+    });
+  });
+  
+  peer.on('error', function(err) {
+    console.error('❌ TV: Error PeerJS:', err);
+    const remoteStatus = document.getElementById('remoteStatus');
+    if (remoteStatus) {
+      remoteStatus.innerHTML = `<p class="text-xl text-red-400">Error: ${err.type}</p>`;
+    }
+    
+    // Reintentar después de 3 segundos
+    setTimeout(function() {
+      console.log('🔄 TV: Reintentando conexión...');
+      initPeerAsHost();
+    }, 3000);
+  });
+  
+  peer.on('disconnected', function() {
+    console.log('⚠️ TV: Peer desconectado, reconectando...');
+    peer.reconnect();
+  });
+}
 
         function initPeerAsClient(code) {
-          if (peer) { peer.destroy(); }
-          var peerId = 'alban-client-' + Date.now();
-          var hostId = 'alban-screen-' + code;
-          peer = new Peer(peerId, { debug: 2 });
-          peer.on('open', function () {
-            var conn = peer.connect(hostId, { reliable: true });
-            conn.on('open', function () {
-              currentConn = conn;
-              document.getElementById('remoteStatus').textContent = '✓ Conectado a la tablet';
-              document.getElementById('remoteView').classList.remove('hidden');
-              conn.send({ type: 'request-image' });
-            });
-            conn.on('data', function (data) {
-              if (data.type === 'image-update') document.getElementById('remoteImage').src = data.image;
-            });
-            conn.on('close', function () {
-              document.getElementById('remoteStatus').textContent = 'Desconectado. Esperando reconexión...';
-              document.getElementById('remoteView').classList.add('hidden');
-            });
-          });
-          peer.on('error', function (err) {
-            document.getElementById('remoteStatus').textContent = 'Error de conexión. Reintentando...';
-            setTimeout(function () { initPeerAsClient(code); }, 3000);
-          });
+  // Destruir conexión anterior si existe
+  if (peer) {
+    peer.destroy();
+    peer = null;
+  }
+  
+  const peerId = 'alban-client-' + Date.now();
+  const hostId = 'alban-screen-' + code;
+  
+  console.log('📱 Tablet: Conectando a:', hostId);
+  
+  const remoteStatus = document.getElementById('remoteStatus');
+  if (remoteStatus) {
+    remoteStatus.innerHTML = '<p class="text-xl text-purple-400 animate-pulse"><i class="fas fa-circle-notch fa-spin mr-2"></i>Conectando a la pantalla...</p>';
+  }
+  
+  peer = new Peer(peerId, {
+    debug: 2,
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
+      ]
+    }
+  });
+  
+  peer.on('open', function() {
+    console.log('✅ Tablet: Peer abierto, intentando conectar...');
+    const conn = peer.connect(hostId, {
+      reliable: true,
+      serialization: 'json'
+    });
+    
+    let connectionAttempts = 0;
+    const maxAttempts = 5;
+    
+    conn.on('open', function() {
+      console.log('✅ Tablet: ¡Conectado a la pantalla!');
+      currentConn = conn;
+      
+      if (remoteStatus) {
+        remoteStatus.innerHTML = '<p class="text-2xl text-green-400 font-bold">✓ Conectado a la pantalla</p>';
+      }
+      
+      // Solicitar imagen inicial
+      conn.send({ type: 'request-image' });
+      
+      // Solicitar actualizaciones cada 2 segundos
+      setInterval(function() {
+        if (conn.open) {
+          conn.send({ type: 'request-image' });
         }
+      }, 2000);
+    });
+    
+    conn.on('data', function(data) {
+      if (data.type === 'image-update') {
+        const remoteImage = document.getElementById('remoteImage');
+        const remoteView = document.getElementById('remoteView');
+        const remotePlaceholder = document.getElementById('remotePlaceholder');
+        
+        if (remoteImage) {
+          remoteImage.src = data.image;
+          remoteImage.classList.remove('hidden');
+        }
+        if (remoteView) remoteView.classList.remove('hidden');
+        if (remotePlaceholder) remotePlaceholder.classList.add('hidden');
+      }
+    });
+    
+    conn.on('close', function() {
+      console.log('❌ Tablet: Conexión cerrada');
+      currentConn = null;
+      if (remoteStatus) {
+        remoteStatus.innerHTML = '<p class="text-xl text-yellow-400">⚠ Conexión perdida. Reintentando...</p>';
+      }
+      
+      // Reintentar después de 3 segundos
+      setTimeout(function() {
+        initPeerAsClient(code);
+      }, 3000);
+    });
+    
+    conn.on('error', function(err) {
+      console.error('❌ Tablet: Error de conexión:', err);
+    });
+  });
+  
+  peer.on('error', function(err) {
+    console.error('❌ Tablet: Error PeerJS:', err);
+    
+    if (err.type === 'peer-unavailable') {
+      if (remoteStatus) {
+        remoteStatus.innerHTML = `<p class="text-xl text-red-400">❌ No se encontró la pantalla con código: ${code}</p>`;
+      }
+    } else if (err.type === 'network') {
+      if (remoteStatus) {
+        remoteStatus.innerHTML = '<p class="text-xl text-red-400">⚠ Error de red. Reintentando...</p>';
+      }
+    } else {
+      if (remoteStatus) {
+        remoteStatus.innerHTML = `<p class="text-xl text-red-400">Error: ${err.type}</p>`;
+      }
+    }
+    
+    // Reintentar después de 3 segundos (máximo 5 intentos)
+    connectionAttempts++;
+    if (connectionAttempts < maxAttempts) {
+      setTimeout(function() {
+        console.log(`🔄 Tablet: Reintentando conexión (${connectionAttempts}/${maxAttempts})...`);
+        initPeerAsClient(code);
+      }, 3000);
+    }
+  });
+  
+  peer.on('disconnected', function() {
+    console.log('⚠️ Tablet: Peer desconectado, reconectando...');
+    peer.reconnect();
+  });
+}
 
         function broadcastToScreen() {
           if (!currentConn || !currentConn.open) return;
