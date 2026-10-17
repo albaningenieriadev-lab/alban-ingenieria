@@ -2372,27 +2372,36 @@ const layerCanvas = document.getElementById('layerCanvas');
 
 if (layerCanvas) {
 console.log('✅ lanyerCanvas encontrado, tamaño:', layerCanvas.width, 'x', layerCanvas.height);
-  
+// Función para obtener coordenadas correctas
+  function getTouchCoords(touch) {
+    const rect = layerCanvas.getBoundingClientRect();
+    const scaleX = layerCanvas.width / rect.width;
+    const scaleY = layerCanvas.height / rect.height;
+    const x = (touch.clientX - rect.left) * scaleX;
+    const y = (touch.clientY - rect.top) * scaleY;
+    return { x, y };
+  }  
+
 // Touch start
   layerCanvas.addEventListener('touchstart', function(e) {
-    console.log('👆 TOUCH START - Dedos:', e.touches.length);
     e.preventDefault();
+    console.log('👆 TOUCH START - Dedos:', e.touches.length);
+    console.log(' Capas disponibles:', materialesLayers.length);
     
     if (e.touches.length === 1) {
-      // Un dedo: arrastrar o seleccionar
-      const touch = e.touches[0];
-      const rect = layerCanvas.getBoundingClientRect();
-      const x = (touch.clientX - rect.left) * (layerCanvas.width / rect.width);
-      const y = (touch.clientY - rect.top) * (layerCanvas.height / rect.height);
+      const coords = getTouchCoords(e.touches[0]);
+      console.log('📍 Toque en:', coords.x, coords.y);
       
-      console.log(' Toque en coordenadas:', x, y);
-      console.log('📦 Total de capas:', materialesLayers.length);
-
-      // Buscar si tocó alguna capa (de arriba hacia abajo)
       let touchedLayer = null;
       for (let i = materialesLayers.length - 1; i >= 0; i--) {
         const layer = materialesLayers[i];
-        if (isPointInLayer(x, y, layer)) {
+        const halfW = (layer.width * layer.scale) / 2;
+        const halfH = (layer.height * layer.scale) / 2;
+        
+        console.log('  Capa', layer.id, 'en', layer.x, layer.y, 'tamaño:', halfW * 2, 'x', halfH * 2);
+        
+        if (coords.x >= layer.x - halfW && coords.x <= layer.x + halfW &&
+            coords.y >= layer.y - halfH && coords.y <= layer.y + halfH) {
           touchedLayer = layer;
           console.log('✅ Capa tocada:', layer.id);
           break;
@@ -2402,12 +2411,12 @@ console.log('✅ lanyerCanvas encontrado, tamaño:', layerCanvas.width, 'x', lay
       if (touchedLayer) {
         selectedLayer = touchedLayer;
         isDragging = true;
-        dragStart.x = x - touchedLayer.x;
-        dragStart.y = y - touchedLayer.y;
+        dragStart.x = coords.x - touchedLayer.x;
+        dragStart.y = coords.y - touchedLayer.y;
         renderLayers();
         const controls = document.getElementById('transformControls');
         if (controls) controls.classList.remove('hidden');
-        console.log('🎯 Capa seleccionada, arrastrando...');
+        console.log('🎯 Capa seleccionada, lista para arrastrar');
       } else {
         selectedLayer = null;
         const controls = document.getElementById('transformControls');
@@ -2417,12 +2426,11 @@ console.log('✅ lanyerCanvas encontrado, tamaño:', layerCanvas.width, 'x', lay
       }
       
     } else if (e.touches.length === 2) {
-      // Dos dedos: pinza/zoom o rotación
-      console.log('🤏 PINCH START - Distancia inicial:', getDistance(e.touches[0], e.touches[1]));
       isPinching = true;
       initialDistance = getDistance(e.touches[0], e.touches[1]);
       initialScale = selectedLayer ? selectedLayer.scale : 1;
       initialRotation = selectedLayer ? selectedLayer.rotation : 0;
+      console.log('🤏 Pinch start, distancia:', initialDistance);
     }
   }, { passive: false });
   
@@ -2431,40 +2439,35 @@ console.log('✅ lanyerCanvas encontrado, tamaño:', layerCanvas.width, 'x', lay
     e.preventDefault();
     
     if (isDragging && selectedLayer && e.touches.length === 1) {
-      const touch = e.touches[0];
-      const rect = layerCanvas.getBoundingClientRect();
-      const x = (touch.clientX - rect.left) * (layerCanvas.width / rect.width);
-      const y = (touch.clientY - rect.top) * (layerCanvas.height / rect.height);
-      
-      selectedLayer.x = x - dragStart.x;
-      selectedLayer.y = y - dragStart.y;
+      const coords = getTouchCoords(e.touches[0]);
+      selectedLayer.x = coords.x - dragStart.x;
+      selectedLayer.y = coords.y - dragStart.y;
       renderLayers();
       broadcastToScreen();
-      console.log('🔄 Arrastrando capa a:', selectedLayer.x, selectedLayer.y);
+      console.log('🔄 Moviendo capa a:', selectedLayer.x.toFixed(0), selectedLayer.y.toFixed(0));
       
     } else if (isPinching && selectedLayer && e.touches.length === 2) {
       const distance = getDistance(e.touches[0], e.touches[1]);
       const scale = initialScale * (distance / initialDistance);
-      selectedLayer.scale = Math.max(0.1, Math.min(scale, 5)); // Limitar entre 0.1x y 5x
+      selectedLayer.scale = Math.max(0.1, Math.min(scale, 5));
       
-      // Calcular rotación
       const angle = getAngle(e.touches[0], e.touches[1]);
       selectedLayer.rotation = initialRotation + angle;
       
       renderLayers();
       broadcastToScreen();
-      console.log('🔄 Escala:', selectedLayer.scale, 'Rotación:', selectedLayer.rotation);
+      console.log(' Escala:', selectedLayer.scale.toFixed(2), 'Rotación:', selectedLayer.rotation.toFixed(0));
     }
   }, { passive: false });
   
   // Touch end
   layerCanvas.addEventListener('touchend', function(e) {
-    console.log('👆 TOUCH END');
+    console.log(' TOUCH END');
     isDragging = false;
     isPinching = false;
   });
-}else {
-  console.error('❌ NO se encontró el layerCanvas en el HTML');
+} else {
+  console.error('❌ NO se encontró el layerCanvas');
 }
 
 // Función auxiliar: verificar si un punto está dentro de una capa
@@ -3480,17 +3483,28 @@ function saveSample() {
       const zoneCanvas = document.getElementById('zoneCanvas');
       const layerCanvas = document.getElementById('layerCanvas');
       
-      mainCanvas.width = fondoImage.width;
-      mainCanvas.height = fondoImage.height;
-      
-      const ctx = mainCanvas.getContext('2d');
-      ctx.drawImage(fondoImage, 0, 0);
-      
-      // Ajustar canvas de zonas y capas al mismo tamaño
-      zoneCanvas.width = fondoImage.width;
-      zoneCanvas.height = fondoImage.height;
-      layerCanvas.width = fondoImage.width;
-      layerCanvas.height = fondoImage.height;
+      // Tamaño máximo para mantener rendimiento
+    const MAX_WIDTH = 1200;
+    const MAX_HEIGHT = 800;
+    
+    let w = fondoImage.width;
+    let h = fondoImage.height;
+    
+    if (w > MAX_WIDTH) { h = h * (MAX_WIDTH / w); w = MAX_WIDTH; }
+    if (h > MAX_HEIGHT) { w = w * (MAX_HEIGHT / h); h = MAX_HEIGHT; }
+    
+    // Establecer tamaño de TODOS los canvas
+    mainCanvas.width = Math.floor(w);
+    mainCanvas.height = Math.floor(h);
+    zoneCanvas.width = Math.floor(w);
+    zoneCanvas.height = Math.floor(h);
+    layerCanvas.width = Math.floor(w);
+    layerCanvas.height = Math.floor(h);
+    
+    console.log('📐 Canvas redimensionados a:', Math.floor(w), 'x', Math.floor(h));
+    
+    const ctx = mainCanvas.getContext('2d');
+    ctx.drawImage(fondoImage, 0, 0, Math.floor(w), Math.floor(h));
       
       // Limpiar capas anteriores
       materialesLayers = [];
