@@ -2670,7 +2670,48 @@
               });
             }
           } // <--- ¡ESTA LLAVE ES OBLIGATORIA! CIERRA EL if (isScreenMode)
+          // ==========================================
+          // 2. EVENT LISTENERS PARA CONECTAR PANTALLA (TABLET)
+          // ==========================================
+          const btnConnectScreen = document.getElementById('btnConnectScreen');
+          const screenModal = document.getElementById('screenModal');
+          const btnCloseScreenModal = document.getElementById('btnCloseScreenModal');
+          const btnGenerateCode = document.getElementById('btnGenerateCode');
+          const codeDisplay = document.getElementById('codeDisplay');
+          const generatedCode = document.getElementById('generatedCode');
+          const connectionStatus = document.getElementById('connectionStatus');
 
+          // Abrir modal al hacer clic en "Conectar Pantalla"
+          if (btnConnectScreen && screenModal) {
+            btnConnectScreen.addEventListener('click', function() {
+              screenModal.classList.remove('hidden');
+            });
+          }
+
+          // Cerrar modal y limpiar conexión
+          if (btnCloseScreenModal && screenModal) {
+            btnCloseScreenModal.addEventListener('click', function() {
+              screenModal.classList.add('hidden');
+              if (typeof peer !== 'undefined' && peer) {
+                peer.destroy();
+                peer = null;
+              }
+            });
+          }
+
+          // Generar código y activar el Host (Tablet)
+          if (btnGenerateCode) {
+            btnGenerateCode.addEventListener('click', function() {
+              // Generar código de 4 dígitos
+              myCode = Math.floor(1000 + Math.random() * 9000).toString();
+              codeDisplay.textContent = myCode;
+              generatedCode.classList.remove('hidden');
+              connectionStatus.innerHTML = '<p class="text-purple-400"><i class="fas fa-spinner fa-spin mr-2"></i>Esperando conexión de la pantalla...</p>';
+              
+              // Llamar a la función initPeerAsHost() que YA TIENES en tu código
+              initPeerAsHost();
+            });
+          }
           // ==========================================
           // 2. EVENT LISTENERS PRINCIPALES (Se ejecutan SIEMPRE)
           // ==========================================
