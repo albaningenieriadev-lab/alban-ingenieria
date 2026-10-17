@@ -2371,8 +2371,11 @@ let layerCounter = 0;
 const layerCanvas = document.getElementById('layerCanvas');
 
 if (layerCanvas) {
-  // Touch start
+console.log('✅ lanyerCanvas encontrado, tamaño:', layerCanvas.width, 'x', layerCanvas.height);
+  
+// Touch start
   layerCanvas.addEventListener('touchstart', function(e) {
+    console.log('👆 TOUCH START - Dedos:', e.touches.length);
     e.preventDefault();
     
     if (e.touches.length === 1) {
@@ -2382,12 +2385,16 @@ if (layerCanvas) {
       const x = (touch.clientX - rect.left) * (layerCanvas.width / rect.width);
       const y = (touch.clientY - rect.top) * (layerCanvas.height / rect.height);
       
+      console.log(' Toque en coordenadas:', x, y);
+      console.log('📦 Total de capas:', materialesLayers.length);
+
       // Buscar si tocó alguna capa (de arriba hacia abajo)
       let touchedLayer = null;
       for (let i = materialesLayers.length - 1; i >= 0; i--) {
         const layer = materialesLayers[i];
         if (isPointInLayer(x, y, layer)) {
           touchedLayer = layer;
+          console.log('✅ Capa tocada:', layer.id);
           break;
         }
       }
@@ -2398,15 +2405,20 @@ if (layerCanvas) {
         dragStart.x = x - touchedLayer.x;
         dragStart.y = y - touchedLayer.y;
         renderLayers();
-        document.getElementById('transformControls').classList.remove('hidden');
+        const controls = document.getElementById('transformControls');
+        if (controls) controls.classList.remove('hidden');
+        console.log('🎯 Capa seleccionada, arrastrando...');
       } else {
         selectedLayer = null;
-        document.getElementById('transformControls').classList.add('hidden');
+        const controls = document.getElementById('transformControls');
+        if (controls) controls.classList.add('hidden');
         renderLayers();
+        console.log('❌ No se tocó ninguna capa');
       }
       
     } else if (e.touches.length === 2) {
       // Dos dedos: pinza/zoom o rotación
+      console.log('🤏 PINCH START - Distancia inicial:', getDistance(e.touches[0], e.touches[1]));
       isPinching = true;
       initialDistance = getDistance(e.touches[0], e.touches[1]);
       initialScale = selectedLayer ? selectedLayer.scale : 1;
@@ -2428,6 +2440,7 @@ if (layerCanvas) {
       selectedLayer.y = y - dragStart.y;
       renderLayers();
       broadcastToScreen();
+      console.log('🔄 Arrastrando capa a:', selectedLayer.x, selectedLayer.y);
       
     } else if (isPinching && selectedLayer && e.touches.length === 2) {
       const distance = getDistance(e.touches[0], e.touches[1]);
@@ -2440,14 +2453,18 @@ if (layerCanvas) {
       
       renderLayers();
       broadcastToScreen();
+      console.log('🔄 Escala:', selectedLayer.scale, 'Rotación:', selectedLayer.rotation);
     }
   }, { passive: false });
   
   // Touch end
   layerCanvas.addEventListener('touchend', function(e) {
+    console.log('👆 TOUCH END');
     isDragging = false;
     isPinching = false;
   });
+}else {
+  console.error('❌ NO se encontró el layerCanvas en el HTML');
 }
 
 // Función auxiliar: verificar si un punto está dentro de una capa
