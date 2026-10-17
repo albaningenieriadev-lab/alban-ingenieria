@@ -1035,6 +1035,28 @@
         <div class="flex-1 relative bg-black flex items-center justify-center p-4 overflow-hidden">
           <div class="relative" id="canvasContainer">
             <canvas id="mainCanvas"
+            //estamos editando para agregar canvas para visualizador tipo photoshop
+<!-- Canvas para capas de materiales -->
+<canvas id="layerCanvas" class="absolute top-0 left-0 w-full h-full" style="pointer-events: all;"></canvas>
+
+<!-- Controles de transformación (ocultos al inicio) -->
+<div id="transformControls" class="hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-alban-black/90 backdrop-blur border border-gray-700 rounded-lg p-3 flex gap-2">
+  <button id="btnBringToFront" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs" title="Traer al frente">
+    <i class="fas fa-layer-group"></i>
+  </button>
+  <button id="btnDeleteLayer" class="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs" title="Eliminar">
+    <i class="fas fa-trash"></i>
+  </button>
+  <button id="btnRotateLeft" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs" title="Rotar izquierda">
+    <i class="fas fa-rotate-left"></i>
+  </button>
+  <button id="btnRotateRight" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs" title="Rotar derecha">
+    <i class="fas fa-rotate-right"></i>
+  </button>
+</div>
+
+//aqui termina la edicion
+
               class="max-w-full max-h-[calc(100vh-140px)] object-contain rounded-lg shadow-2xl"></canvas>
             <canvas id="zoneCanvas" class="zone-canvas"></canvas>
             <div
@@ -1091,6 +1113,22 @@
                 <i class="fas fa-camera mr-1"></i> CAPTURAR MUESTRA FÍSICA
               </p>
               <p class="text-xs text-gray-300 mb-3">Toma una foto del producto físico para agregarlo al proyecto</p>
+              //Edicion de botón para abrir la cámara
+<!-- Selector de modo de cámara -->
+<div class="mb-4 flex gap-2">
+  <button id="btnModoFondo" class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition">
+    <i class="fas fa-home mr-2"></i>Foto del Espacio
+  </button>
+  <button id="btnModoMaterial" class="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition">
+    <i class="fas fa-cube mr-2"></i>Foto del Material
+  </button>
+</div>
+
+<div id="modoActualInfo" class="mb-4 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg text-blue-300 text-sm">
+  <i class="fas fa-info-circle mr-2"></i>Modo actual: <strong>Foto del Espacio</strong>
+</div>
+//aqui termina la edicion del boton para abrir la camara
+
               <button id="btnOpenCamera"
                 class="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 font-bold text-sm shadow-lg">
                 <i class="fas fa-camera text-lg"></i>
@@ -1547,6 +1585,20 @@
         let capturedSamples = [];
         let cameraStream = null;
         let currentCapture = null;
+        //Agregamos variables de capas siguiendo con el pequeño editor de photoshop
+        // Variables para el sistema de capas
+let fondoImage = null;           // Imagen del espacio del cliente
+let materialesLayers = [];       // Array de objetos {image, x, y, scale, rotation, id}
+let selectedLayer = null;        // Capa seleccionada actualmente
+let currentCameraMode = 'fondo'; // 'fondo' o 'material'
+let isDragging = false;
+let isPinching = false;
+let dragStart = { x: 0, y: 0 };
+let initialScale = 1;
+let initialRotation = 0;
+let initialDistance = 0;
+let layerCounter = 0;
+//aqui termina la edicion de variables para el sistema de capas
 
         var categoryImages = {
           'all': { img: 'imagenes/categorias/catalogo.jpg', label: 'CATÁLOGO COMPLETO', title: 'Todos nuestros productos', desc: 'Más de 240 productos de ingeniería y acabados premium' },
@@ -2311,6 +2363,113 @@
           } catch (e) { }
         }
 
+        // ==========================================
+// CONTROLES TÁCTILES PARA CAPAS
+// ==========================================
+const layerCanvas = document.getElementById('layerCanvas');
+
+if (layerCanvas) {
+  // Touch start
+  layerCanvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    
+    if (e.touches.length === 1) {
+      // Un dedo: arrastrar o seleccionar
+      const touch = e.touches[0];
+      const rect = layerCanvas.getBoundingClientRect();
+      const x = (touch.clientX - rect.left) * (layerCanvas.width / rect.width);
+      const y = (touch.clientY - rect.top) * (layerCanvas.height / rect.height);
+      
+      // Buscar si tocó alguna capa (de arriba hacia abajo)
+      let touchedLayer = null;
+      for (let i = materialesLayers.length - 1; i >= 0; i--) {
+        const layer = materialesLayers[i];
+        if (isPointInLayer(x, y, layer)) {
+          touchedLayer = layer;
+          break;
+        }
+      }
+      
+      if (touchedLayer) {
+        selectedLayer = touchedLayer;
+        isDragging = true;
+        dragStart.x = x - touchedLayer.x;
+        dragStart.y = y - touchedLayer.y;
+        renderLayers();
+        document.getElementById('transformControls').classList.remove('hidden');
+      } else {
+        selectedLayer = null;
+        document.getElementById('transformControls').classList.add('hidden');
+        renderLayers();
+      }
+      
+    } else if (e.touches.length === 2) {
+      // Dos dedos: pinza/zoom o rotación
+      isPinching = true;
+      initialDistance = getDistance(e.touches[0], e.touches[1]);
+      initialScale = selectedLayer ? selectedLayer.scale : 1;
+      initialRotation = selectedLayer ? selectedLayer.rotation : 0;
+    }
+  }, { passive: false });
+  
+  // Touch move
+  layerCanvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    
+    if (isDragging && selectedLayer && e.touches.length === 1) {
+      const touch = e.touches[0];
+      const rect = layerCanvas.getBoundingClientRect();
+      const x = (touch.clientX - rect.left) * (layerCanvas.width / rect.width);
+      const y = (touch.clientY - rect.top) * (layerCanvas.height / rect.height);
+      
+      selectedLayer.x = x - dragStart.x;
+      selectedLayer.y = y - dragStart.y;
+      renderLayers();
+      broadcastToScreen();
+      
+    } else if (isPinching && selectedLayer && e.touches.length === 2) {
+      const distance = getDistance(e.touches[0], e.touches[1]);
+      const scale = initialScale * (distance / initialDistance);
+      selectedLayer.scale = Math.max(0.1, Math.min(scale, 5)); // Limitar entre 0.1x y 5x
+      
+      // Calcular rotación
+      const angle = getAngle(e.touches[0], e.touches[1]);
+      selectedLayer.rotation = initialRotation + angle;
+      
+      renderLayers();
+      broadcastToScreen();
+    }
+  }, { passive: false });
+  
+  // Touch end
+  layerCanvas.addEventListener('touchend', function(e) {
+    isDragging = false;
+    isPinching = false;
+  });
+}
+
+// Función auxiliar: verificar si un punto está dentro de una capa
+function isPointInLayer(x, y, layer) {
+  const halfW = (layer.width * layer.scale) / 2;
+  const halfH = (layer.height * layer.scale) / 2;
+  return x >= layer.x - halfW && x <= layer.x + halfW &&
+         y >= layer.y - halfH && y <= layer.y + halfH;
+}
+
+// Función auxiliar: distancia entre 2 puntos táctiles
+function getDistance(touch1, touch2) {
+  const dx = touch1.clientX - touch2.clientX;
+  const dy = touch1.clientY - touch2.clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+// Función auxiliar: ángulo entre 2 puntos táctiles
+function getAngle(touch1, touch2) {
+  const dx = touch2.clientX - touch1.clientX;
+  const dy = touch2.clientY - touch1.clientY;
+  return Math.atan2(dy, dx) * 180 / Math.PI;
+} //hasta aqui se realiza la parte de controles tactiles para capas
+        
         function toggleChatbot() { document.getElementById('chatbot').classList.toggle('active'); }
 
         // ==========================================
@@ -2713,12 +2872,13 @@
   
   const mainCanvas = document.getElementById('mainCanvas');
   const zoneCanvas = document.getElementById('zoneCanvas');
+  const layerCanvas = document.getElementById('layerCanvas'); //esta se agregó para el mini photoshop
   
   if (!mainCanvas || !zoneCanvas || mainCanvas.width === 0) {
     return;
   }
 
- // Canvas tamaño razonable (640x480)
+ // Canvas tamaño razonable (800x600)
   const tempCanvas = document.createElement('canvas');
   const MAX_W = 800;
   const MAX_H = 600;
@@ -2741,6 +2901,12 @@
   // Dibujar ambos canvas
   ctx.drawImage(mainCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
   ctx.drawImage(zoneCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
+  
+  // Dibujar zonas detectadas (si las hay) estas dos lineas las agregue
+  ctx.drawImage(zoneCanvas, 0, 0, w, h);
+  
+  // Dibujar capas de materiales
+  ctx.drawImage(layerCanvas, 0, 0, w, h);
   
   // Convertir a BLOB binario (NO DataURL)
   tempCanvas.toBlob(function(blob) {
@@ -3259,9 +3425,11 @@
               currentCapture = cameraCanvas.toDataURL('image/jpeg', 0.9);
               previewImg.src = currentCapture;
               capturePreview.classList.remove('hidden');
+
+              console.log('📸 Foto capturada en modo:', currentCameraMode);  //agregue esta linea para el editor de pequeño photoshop
             }
 
-            function saveSample() {
+             /*function saveSample() { Se omite esta funcion para poner una nueva por lo de pequeño photoshop
               if (!currentCapture) return;
               const sampleName = document.getElementById('sampleName').value.trim() || 'Muestra ' + (capturedSamples.length + 1);
               capturedSamples.push({ id: Date.now(), name: sampleName, image: currentCapture });
@@ -3275,8 +3443,218 @@
             window.deleteSample = function (id) {
               capturedSamples = capturedSamples.filter(s => s.id !== id);
               renderSamples();
-            };
+            };*/
 
+            //vamos a poner la nueva funcion de guardar muestra con el editor de pequeño photoshop
+function saveSample() {
+  if (!currentCapture) return;
+  
+  const sampleName = document.getElementById('sampleName').value.trim() || 
+                    (currentCameraMode === 'fondo' ? 'Espacio_' + Date.now() : 'Material_' + Date.now());
+  
+  if (currentCameraMode === 'fondo') {
+    // Guardar como fondo
+    fondoImage = new Image();
+    fondoImage.onload = function() {
+      // Ajustar canvas al tamaño del fondo
+      const mainCanvas = document.getElementById('mainCanvas');
+      const zoneCanvas = document.getElementById('zoneCanvas');
+      const layerCanvas = document.getElementById('layerCanvas');
+      
+      mainCanvas.width = fondoImage.width;
+      mainCanvas.height = fondoImage.height;
+      
+      const ctx = mainCanvas.getContext('2d');
+      ctx.drawImage(fondoImage, 0, 0);
+      
+      // Ajustar canvas de zonas y capas al mismo tamaño
+      zoneCanvas.width = fondoImage.width;
+      zoneCanvas.height = fondoImage.height;
+      layerCanvas.width = fondoImage.width;
+      layerCanvas.height = fondoImage.height;
+      
+      // Limpiar capas anteriores
+      materialesLayers = [];
+      selectedLayer = null;
+      
+      console.log('✅ Fondo establecido:', sampleName);
+      showNotification('✅ Foto del espacio guardada');
+      
+      // Cerrar modal
+      capturePreview.classList.add('hidden');
+      currentCapture = null;
+      closeCamera();
+      
+      // Actualizar visualización
+      broadcastToScreen();
+    };
+    fondoImage.src = currentCapture;
+    
+  } else {
+    // Agregar como material (capa)
+    const materialImg = new Image();
+    materialImg.onload = function() {
+      const layer = {
+        id: ++layerCounter,
+        image: materialImg,
+        x: materialImg.width / 2,  // Centro del canvas
+        y: materialImg.height / 2,
+        scale: 1,
+        rotation: 0,
+        width: materialImg.width,
+        height: materialImg.height
+      };
+      
+      materialesLayers.push(layer);
+      selectedLayer = layer;
+      
+      console.log('✅ Material agregado:', sampleName, 'Capa #', layer.id);
+      showNotification('✅ Material agregado - Arrástralo para posicionarlo');
+      
+      // Mostrar controles
+      document.getElementById('transformControls').classList.remove('hidden');
+      
+      // Renderizar capas
+      renderLayers();
+      
+      // Cerrar modal
+      capturePreview.classList.add('hidden');
+      currentCapture = null;
+      closeCamera();
+      
+      // Actualizar visualización en TV
+      broadcastToScreen();
+    };
+    materialImg.src = currentCapture;
+  }
+}
+//Función para renderizar todas las capas pequeño photoshop
+//Abajo se agrego para la camara del pequeño photoshop
+// Botones de modo de cámara
+const btnModoFondo = document.getElementById('btnModoFondo');
+const btnModoMaterial = document.getElementById('btnModoMaterial');
+const modoActualInfo = document.getElementById('modoActualInfo');
+
+if (btnModoFondo && btnModoMaterial) {
+  btnModoFondo.addEventListener('click', function() {
+    currentCameraMode = 'fondo';
+    btnModoFondo.classList.add('bg-blue-600');
+    btnModoFondo.classList.remove('bg-gray-600');
+    btnModoMaterial.classList.remove('bg-green-600');
+    btnModoMaterial.classList.add('bg-gray-600');
+    modoActualInfo.innerHTML = '<i class="fas fa-home mr-2"></i>Modo actual: <strong>Foto del Espacio</strong>';
+  });
+  
+  btnModoMaterial.addEventListener('click', function() {
+    currentCameraMode = 'material';
+    btnModoMaterial.classList.add('bg-green-600');
+    btnModoMaterial.classList.remove('bg-gray-600');
+    btnModoFondo.classList.remove('bg-blue-600');
+    btnModoFondo.classList.add('bg-gray-600');
+    modoActualInfo.innerHTML = '<i class="fas fa-cube mr-2"></i>Modo actual: <strong>Foto del Material</strong>';
+  });
+}
+
+// Botón eliminar capa
+const btnDeleteLayer = document.getElementById('btnDeleteLayer');
+if (btnDeleteLayer) {
+  btnDeleteLayer.addEventListener('click', function() {
+    if (selectedLayer) {
+      const index = materialesLayers.indexOf(selectedLayer);
+      if (index > -1) {
+        materialesLayers.splice(index, 1);
+        selectedLayer = null;
+        renderLayers();
+        broadcastToScreen();
+        document.getElementById('transformControls').classList.add('hidden');
+        showNotification('✅ Capa eliminada');
+      }
+    }
+  });
+}
+
+// Botones de rotación
+const btnRotateLeft = document.getElementById('btnRotateLeft');
+const btnRotateRight = document.getElementById('btnRotateRight');
+
+if (btnRotateLeft) {
+  btnRotateLeft.addEventListener('click', function() {
+    if (selectedLayer) {
+      selectedLayer.rotation -= 15;
+      renderLayers();
+      broadcastToScreen();
+    }
+  });
+}
+
+if (btnRotateRight) {
+  btnRotateRight.addEventListener('click', function() {
+    if (selectedLayer) {
+      selectedLayer.rotation += 15;
+      renderLayers();
+      broadcastToScreen();
+    }
+  });
+}
+
+// Botón traer al frente
+const btnBringToFront = document.getElementById('btnBringToFront');
+if (btnBringToFront) {
+  btnBringToFront.addEventListener('click', function() {
+    if (selectedLayer) {
+      const index = materialesLayers.indexOf(selectedLayer);
+      if (index > -1) {
+        materialesLayers.splice(index, 1);
+        materialesLayers.push(selectedLayer);
+        renderLayers();
+        broadcastToScreen();
+        showNotification('✅ Capa movida al frente');
+      }
+    }
+  });
+} //Agregado para el pequeño photoshop
+
+function renderLayers() {
+  const layerCanvas = document.getElementById('layerCanvas');
+  const ctx = layerCanvas.getContext('2d');
+  
+  // Limpiar canvas de capas
+  ctx.clearRect(0, 0, layerCanvas.width, layerCanvas.height);
+  
+  // Dibujar todas las capas
+  materialesLayers.forEach(layer => {
+    ctx.save();
+    
+    // Trasladar al centro de la imagen
+    ctx.translate(layer.x, layer.y);
+    
+    // Rotar
+    ctx.rotate(layer.rotation * Math.PI / 180);
+    
+    // Escalar
+    ctx.scale(layer.scale, layer.scale);
+    
+    // Dibujar imagen centrada
+    ctx.drawImage(
+      layer.image,
+      -layer.width / 2,
+      -layer.height / 2,
+      layer.width,
+      layer.height
+    );
+    
+    // Si está seleccionada, dibujar borde
+    if (layer === selectedLayer) {
+      ctx.strokeStyle = '#FFC700';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(-layer.width / 2, -layer.height / 2, layer.width, layer.height);
+      ctx.setLineDash([]);
+    }
+    
+    ctx.restore();
+  });
+}
             function clearAllSamples() {
               if (capturedSamples.length === 0) return;
               if (confirm('¿Eliminar todas las muestras?')) {
