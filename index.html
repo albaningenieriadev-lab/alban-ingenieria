@@ -2720,8 +2720,8 @@
 
  // Canvas tamaño razonable (640x480)
   const tempCanvas = document.createElement('canvas');
-  const MAX_W = 640;
-  const MAX_H = 480;
+  const MAX_W = 800;
+  const MAX_H = 600;
   
   let w = mainCanvas.width;
   let h = mainCanvas.height;
@@ -2765,7 +2765,7 @@
       }
     };
     reader.readAsArrayBuffer(blob);
-  }, 'image/jpeg', 0.5);  // 50% calidad - mucho mejor visualmente
+  }, 'image/jpeg', 0.6);  // 50% calidad - mucho mejor visualmente
 }
 
         function hasAppliedMaterials() {
