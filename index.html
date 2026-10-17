@@ -891,37 +891,40 @@
       class="fas fa-robot text-2xl"></i></button>
 
   <!-- MODAL CONECTAR PANTALLA -->
-<div id="screenModal" class="hidden fixed inset-0 bg-black/90 z-[300] flex items-center justify-center backdrop-blur-sm">
-  <div class="bg-alban-card p-8 rounded-2xl border-2 border-purple-500 text-center max-w-md w-full shadow-2xl">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-white"><i class="fas fa-tv mr-3 text-purple-400"></i>Conectar Pantalla</h2>
-      <button id="btnCloseScreenModal" class="text-gray-400 hover:text-white text-2xl">
-        <i class="fas fa-times"></i>
+  <div id="screenModal"
+    class="hidden fixed inset-0 bg-black/90 z-[300] flex items-center justify-center backdrop-blur-sm">
+    <div class="bg-alban-card p-8 rounded-2xl border-2 border-purple-500 text-center max-w-md w-full shadow-2xl">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-white"><i class="fas fa-tv mr-3 text-purple-400"></i>Conectar Pantalla</h2>
+        <button id="btnCloseScreenModal" class="text-gray-400 hover:text-white text-2xl">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="text-center">
+        <div class="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-wifi text-4xl text-white"></i>
+        </div>
+        <p class="text-gray-300 mb-6" id="modalInstruction">Conexión en tiempo real</p>
+
+        <div id="generatedCode" class="hidden">
+          <p class="text-sm text-gray-400 mb-2" id="codeLabel">Código de conexión:</p>
+          <p class="text-6xl font-mono font-bold text-purple-400 bg-alban-black py-6 rounded-lg border-2 border-purple-500 mb-4 tracking-widest"
+            id="codeDisplay">----</p>
+          <div id="connectionStatus" class="text-sm mb-4"></div>
+        </div>
+
+        <div id="tabletInstructions" class="hidden">
+          <p class="text-xs text-gray-400 mb-4">La tablet ingresará este código para conectarse</p>
+        </div>
+      </div>
+
+      <button id="btnCloseScreenModal2"
+        class="w-full px-6 py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 transition">
+        <i class="fas fa-times mr-2"></i> Cerrar
       </button>
     </div>
-    
-    <div class="text-center">
-      <div class="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-        <i class="fas fa-wifi text-4xl text-white"></i>
-      </div>
-      <p class="text-gray-300 mb-6" id="modalInstruction">Conexión en tiempo real</p>
-      
-      <div id="generatedCode" class="hidden">
-        <p class="text-sm text-gray-400 mb-2" id="codeLabel">Código de conexión:</p>
-        <p class="text-6xl font-mono font-bold text-purple-400 bg-alban-black py-6 rounded-lg border-2 border-purple-500 mb-4 tracking-widest" id="codeDisplay">----</p>
-        <div id="connectionStatus" class="text-sm mb-4"></div>
-      </div>
-      
-      <div id="tabletInstructions" class="hidden">
-        <p class="text-xs text-gray-400 mb-4">La tablet ingresará este código para conectarse</p>
-      </div>
-    </div>
-    
-    <button id="btnCloseScreenModal2" class="w-full px-6 py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 transition">
-      <i class="fas fa-times mr-2"></i> Cerrar
-    </button>
   </div>
-</div>
 
   <!-- MODAL SELECCIÓN DE ESPACIO -->
   <div class="modal-overlay" id="roomModal">
@@ -1033,161 +1036,174 @@
 
       <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
         <div class="flex-1 relative bg-black flex items-center justify-center p-4 overflow-hidden">
-          <div class="relative" id="canvasContainer">
-            <canvas id="mainCanvas" class="w-full h-full"></canvas>      <!-- estamos editando para agregar canvas para visualizador tipo photoshop --> 
-<!-- Canvas para capas de materiales -->
- <!-- Canvas de zonas detectadas -->
-<canvas id="zoneCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
-
-<!-- Controles de transformación (ocultos al inicio) -->
-<div id="transformControls" class="hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-alban-black/90 backdrop-blur border border-gray-700 rounded-lg p-3 flex gap-2">
-  <button id="btnBringToFront" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs" title="Traer al frente">
-    <i class="fas fa-layer-group"></i>
-  </button>
-  <button id="btnDeleteLayer" class="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs" title="Eliminar">
-    <i class="fas fa-trash"></i>
-  </button>
-  <button id="btnRotateLeft" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs" title="Rotar izquierda">
-    <i class="fas fa-rotate-left"></i>
-  </button>
-  <button id="btnRotateRight" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs" title="Rotar derecha">
-    <i class="fas fa-rotate-right"></i>
-  </button>
-</div>
-
-//aqui termina la edicion
-
-              class="max-w-full max-h-[calc(100vh-140px)] object-contain rounded-lg shadow-2xl"></canvas>
-            <canvas id="zoneCanvas" class="zone-canvas"></canvas>
-            <div
-              class="absolute top-4 left-4 bg-alban-black/90 backdrop-blur px-4 py-2 rounded-lg border-l-4 border-alban-yellow">
-              <p class="text-xs text-gray-400 uppercase font-bold">Modo:</p>
-              <p class="font-bold text-white" id="modeLabel">🖱️ Haz clic en una zona</p>
-            </div>
-            <div id="zoneIndicator"
-              class="hidden absolute top-4 right-4 bg-green-600/90 backdrop-blur px-4 py-2 rounded-lg">
-              <p class="text-xs text-white uppercase font-bold">Zona detectada:</p>
-              <p class="font-bold text-white text-sm" id="zoneTypeLabel">Pared</p>
-            </div>
-            <div class="absolute bottom-4 left-4 flex gap-2">
-              <button id="btnUndoZone"
-                class="px-4 py-2 bg-alban-black/90 text-white rounded-lg border border-gray-700 text-sm hover:bg-gray-800">
-                <i class="fas fa-undo mr-1"></i>Deshacer zona
-              </button>
-              <button id="btnClearZones"
-                class="px-4 py-2 bg-alban-black/90 text-white rounded-lg border border-gray-700 text-sm hover:bg-gray-800">
-                <i class="fas fa-trash mr-1"></i>Limpiar zonas
-              </button>
-            </div>
-            <div
-              class="absolute bottom-4 right-4 bg-alban-black/90 backdrop-blur px-3 py-2 rounded-lg border border-gray-700">
-              <p class="text-xs text-gray-400 mb-1">Tolerancia de detección:</p>
-              <input type="range" id="toleranceSlider" min="10" max="100" value="40" class="w-32 accent-alban-yellow">
-              <p class="text-xs text-alban-yellow text-right" id="toleranceValue">40</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="w-full lg:w-96 bg-alban-card border-l border-gray-800 flex flex-col overflow-hidden">
-          <div class="p-4 border-b border-gray-800 bg-alban-black flex-shrink-0">
-            <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-th-large mr-2 text-alban-yellow"></i>Catálogo
-            </h3>
-            <p class="text-xs text-gray-400">Selecciona un producto para aplicar su textura</p>
+          <!-- Contenedor del canvas de Fabric -->
+          <div class="relative w-full h-full flex items-center justify-center bg-black">
+            <canvas id="fabricCanvas" style="border: 1px solid #333; max-width: 100%; max-height: 100%;"></canvas>
           </div>
 
-          <div class="flex-1 overflow-y-auto p-4 space-y-4">
-            <div class="bg-alban-yellow/10 border border-alban-yellow/30 rounded-lg p-3">
-              <p class="text-xs text-alban-yellow font-bold mb-1"><i class="fas fa-lightbulb mr-1"></i> INSTRUCCIONES
-              </p>
-              <ol class="text-xs text-gray-300 space-y-1 list-decimal list-inside">
-                <li>Haz clic en una zona de la imagen</li>
-                <li>El sistema detectará automáticamente la pared/piso</li>
-                <li>Selecciona un producto del catálogo</li>
-                <li>La textura real se aplicará sobre la zona</li>
-                <li>Usa el botón 🛒 en la zona para agregar al carrito</li>
-              </ol>
-            </div>
-            <!-- BOTÓN DE CÁMARA PARA CAPTURAR MUESTRAS -->
-            <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-              <p class="text-xs text-green-400 font-bold mb-2">
-                <i class="fas fa-camera mr-1"></i> CAPTURAR MUESTRA FÍSICA
-              </p>
-              <p class="text-xs text-gray-300 mb-3">Toma una foto del producto físico para agregarlo al proyecto</p>
-              //Edicion de botón para abrir la cámara
-<!-- Selector de modo de cámara -->
-<div class="mb-4 flex gap-2">
-  <button id="btnModoFondo" class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition">
-    <i class="fas fa-home mr-2"></i>Foto del Espacio
-  </button>
-  <button id="btnModoMaterial" class="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition">
-    <i class="fas fa-cube mr-2"></i>Foto del Material
-  </button>
-</div>
+          <!-- Canvas oculto para detección de zonas (si aún lo necesitas) -->
+          <canvas id="zoneCanvas" class="hidden"></canvas>
 
-<div id="modoActualInfo" class="mb-4 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg text-blue-300 text-sm">
-  <i class="fas fa-info-circle mr-2"></i>Modo actual: <strong>Foto del Espacio</strong>
-</div>
-//aqui termina la edicion del boton para abrir la camara
-
-              <button id="btnOpenCamera"
-                class="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 font-bold text-sm shadow-lg">
-                <i class="fas fa-camera text-lg"></i>
-                <span>Abrir cámara</span>
-              </button>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Zonas detectadas <span id="zoneCount"
-                  class="text-alban-yellow">(0)</span></p>
-              <div id="zonesList" class="space-y-2 max-h-40 overflow-y-auto">
-                <p class="text-xs text-gray-500">Haz clic en la imagen para detectar zonas</p>
-              </div>
-            </div>
-
-            <div>
-              <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Filtrar por categoría</p>
-              <select id="catalogFilter"
-                class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 text-sm focus:border-alban-yellow focus:outline-none">
-                <option value="all">Todas las categorías</option>
-                <option value="Muros y Revestimientos">Muros y Revestimientos</option>
-                <option value="Placas y Paneles">Placas y Paneles</option>
-                <option value="Plafones">Plafones</option>
-                <option value="Pisos">Pisos</option>
-                <option value="Muebles">Muebles</option>
-                <option value="Materiales de Construccion">Materiales</option>
-                <option value="Exterior">Exterior</option>
-                <option value="Panel Decorativo">Panel Decorativo</option>
-                <option value="ALBAN">ALBAN</option>
-                <option value="Puertas y Canceles">Puertas y Canceles</option>
-              </select>
-            </div>
-
-            <div>
-              <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Buscar producto</p>
-              <div class="relative">
-                <input type="text" id="catalogSearch" placeholder="Nombre o SKU..."
-                  class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 pl-8 text-sm focus:border-alban-yellow focus:outline-none">
-                <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-500 text-xs"></i>
-              </div>
-            </div>
-
-            <div>
-              <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">
-                Productos <span id="catalogCount" class="text-alban-yellow">(0)</span>
-              </p>
-              <div id="visualizerCatalog" class="space-y-2 max-h-[250px] overflow-y-auto pr-1">
-                <p class="text-xs text-gray-500">Cargando productos...</p>
-              </div>
-            </div>
+          <!-- Controles de transformación (ocultos al inicio) -->
+          <div id="transformControls"
+            class="hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-alban-black/90 backdrop-blur border border-gray-700 rounded-lg p-3 flex gap-2">
+            <button id="btnBringToFront" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs"
+              title="Traer al frente">
+              <i class="fas fa-layer-group"></i>
+            </button>
+            <button id="btnDeleteLayer" class="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
+              title="Eliminar">
+              <i class="fas fa-trash"></i>
+            </button>
+            <button id="btnRotateLeft" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs"
+              title="Rotar izquierda">
+              <i class="fas fa-rotate-left"></i>
+            </button>
+            <button id="btnRotateRight" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs"
+              title="Rotar derecha">
+              <i class="fas fa-rotate-right"></i>
+            </button>
           </div>
 
-          <div class="p-3 border-t border-gray-800 bg-alban-yellow/5 flex-shrink-0">
-            <p class="text-xs text-alban-yellow font-bold mb-1"><i class="fas fa-info-circle mr-1"></i> TIP</p>
-            <p class="text-xs text-gray-300">Las texturas reales se aplican sobre las zonas detectadas. Usa el botón 🛒
-              en cada zona para agregar al carrito.</p>
+          //aqui termina la edicion
+
+          class="max-w-full max-h-[calc(100vh-140px)] object-contain rounded-lg shadow-2xl"></canvas>
+          <canvas id="zoneCanvas" class="zone-canvas"></canvas>
+          <div
+            class="absolute top-4 left-4 bg-alban-black/90 backdrop-blur px-4 py-2 rounded-lg border-l-4 border-alban-yellow">
+            <p class="text-xs text-gray-400 uppercase font-bold">Modo:</p>
+            <p class="font-bold text-white" id="modeLabel">🖱️ Haz clic en una zona</p>
+          </div>
+          <div id="zoneIndicator"
+            class="hidden absolute top-4 right-4 bg-green-600/90 backdrop-blur px-4 py-2 rounded-lg">
+            <p class="text-xs text-white uppercase font-bold">Zona detectada:</p>
+            <p class="font-bold text-white text-sm" id="zoneTypeLabel">Pared</p>
+          </div>
+          <div class="absolute bottom-4 left-4 flex gap-2">
+            <button id="btnUndoZone"
+              class="px-4 py-2 bg-alban-black/90 text-white rounded-lg border border-gray-700 text-sm hover:bg-gray-800">
+              <i class="fas fa-undo mr-1"></i>Deshacer zona
+            </button>
+            <button id="btnClearZones"
+              class="px-4 py-2 bg-alban-black/90 text-white rounded-lg border border-gray-700 text-sm hover:bg-gray-800">
+              <i class="fas fa-trash mr-1"></i>Limpiar zonas
+            </button>
+          </div>
+          <button id="btnLimpiarFabric" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+            <i class="fas fa-trash mr-2"></i>Limpiar Todo
+          </button>
+          <div
+            class="absolute bottom-4 right-4 bg-alban-black/90 backdrop-blur px-3 py-2 rounded-lg border border-gray-700">
+            <p class="text-xs text-gray-400 mb-1">Tolerancia de detección:</p>
+            <input type="range" id="toleranceSlider" min="10" max="100" value="40" class="w-32 accent-alban-yellow">
+            <p class="text-xs text-alban-yellow text-right" id="toleranceValue">40</p>
           </div>
         </div>
       </div>
+
+      <div class="w-full lg:w-96 bg-alban-card border-l border-gray-800 flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-gray-800 bg-alban-black flex-shrink-0">
+          <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-th-large mr-2 text-alban-yellow"></i>Catálogo
+          </h3>
+          <p class="text-xs text-gray-400">Selecciona un producto para aplicar su textura</p>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <div class="bg-alban-yellow/10 border border-alban-yellow/30 rounded-lg p-3">
+            <p class="text-xs text-alban-yellow font-bold mb-1"><i class="fas fa-lightbulb mr-1"></i> INSTRUCCIONES
+            </p>
+            <ol class="text-xs text-gray-300 space-y-1 list-decimal list-inside">
+              <li>Haz clic en una zona de la imagen</li>
+              <li>El sistema detectará automáticamente la pared/piso</li>
+              <li>Selecciona un producto del catálogo</li>
+              <li>La textura real se aplicará sobre la zona</li>
+              <li>Usa el botón 🛒 en la zona para agregar al carrito</li>
+            </ol>
+          </div>
+          <!-- BOTÓN DE CÁMARA PARA CAPTURAR MUESTRAS -->
+          <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+            <p class="text-xs text-green-400 font-bold mb-2">
+              <i class="fas fa-camera mr-1"></i> CAPTURAR MUESTRA FÍSICA
+            </p>
+            <p class="text-xs text-gray-300 mb-3">Toma una foto del producto físico para agregarlo al proyecto</p>
+            //Edicion de botón para abrir la cámara
+            <!-- Selector de modo de cámara -->
+            <div class="mb-4 flex gap-2">
+              <button id="btnModoFondo"
+                class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition">
+                <i class="fas fa-home mr-2"></i>Foto del Espacio
+              </button>
+              <button id="btnModoMaterial"
+                class="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition">
+                <i class="fas fa-cube mr-2"></i>Foto del Material
+              </button>
+            </div>
+
+            <div id="modoActualInfo"
+              class="mb-4 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg text-blue-300 text-sm">
+              <i class="fas fa-info-circle mr-2"></i>Modo actual: <strong>Foto del Espacio</strong>
+            </div>
+            //aqui termina la edicion del boton para abrir la camara
+
+            <button id="btnOpenCamera"
+              class="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 font-bold text-sm shadow-lg">
+              <i class="fas fa-camera text-lg"></i>
+              <span>Abrir cámara</span>
+            </button>
+          </div>
+          <div>
+            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Zonas detectadas <span id="zoneCount"
+                class="text-alban-yellow">(0)</span></p>
+            <div id="zonesList" class="space-y-2 max-h-40 overflow-y-auto">
+              <p class="text-xs text-gray-500">Haz clic en la imagen para detectar zonas</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Filtrar por categoría</p>
+            <select id="catalogFilter"
+              class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 text-sm focus:border-alban-yellow focus:outline-none">
+              <option value="all">Todas las categorías</option>
+              <option value="Muros y Revestimientos">Muros y Revestimientos</option>
+              <option value="Placas y Paneles">Placas y Paneles</option>
+              <option value="Plafones">Plafones</option>
+              <option value="Pisos">Pisos</option>
+              <option value="Muebles">Muebles</option>
+              <option value="Materiales de Construccion">Materiales</option>
+              <option value="Exterior">Exterior</option>
+              <option value="Panel Decorativo">Panel Decorativo</option>
+              <option value="ALBAN">ALBAN</option>
+              <option value="Puertas y Canceles">Puertas y Canceles</option>
+            </select>
+          </div>
+
+          <div>
+            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Buscar producto</p>
+            <div class="relative">
+              <input type="text" id="catalogSearch" placeholder="Nombre o SKU..."
+                class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 pl-8 text-sm focus:border-alban-yellow focus:outline-none">
+              <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-500 text-xs"></i>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">
+              Productos <span id="catalogCount" class="text-alban-yellow">(0)</span>
+            </p>
+            <div id="visualizerCatalog" class="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+              <p class="text-xs text-gray-500">Cargando productos...</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 border-t border-gray-800 bg-alban-yellow/5 flex-shrink-0">
+          <p class="text-xs text-alban-yellow font-bold mb-1"><i class="fas fa-info-circle mr-1"></i> TIP</p>
+          <p class="text-xs text-gray-300">Las texturas reales se aplican sobre las zonas detectadas. Usa el botón 🛒
+            en cada zona para agregar al carrito.</p>
+        </div>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- MODAL REVISIÓN DE COTIZACIÓN -->
@@ -1285,29 +1301,31 @@
 
   <!-- MODO PANTALLA -->
   <div id="screenMode" class="hidden fixed inset-0 bg-black z-[200] flex items-center justify-center">
-  <div class="text-center w-full max-w-6xl px-4">
-    <div class="flex justify-between items-center mb-4">
-      <img src="imagenes/logo-alban.png" alt="Alban" class="h-12 w-auto" onerror="this.style.display='none'">
-      <div id="remoteStatus" class="text-2xl text-purple-400">Esperando conexión...</div>
-      <button id="btnExitScreen" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">
-        <i class="fas fa-power-off mr-1"></i> Salir
-      </button>
-    </div>
-    
-    <div class="relative rounded-xl overflow-hidden border-2 border-gray-800 shadow-2xl bg-gray-900">
-      <!-- Placeholder mientras no hay imagen -->
-      <div id="remotePlaceholder" class="py-32 text-gray-500">
-        <i class="fas fa-wifi text-6xl mb-4 opacity-50"></i>
-        <p class="text-xl">Esperando imagen de la tablet...</p>
+    <div class="text-center w-full max-w-6xl px-4">
+      <div class="flex justify-between items-center mb-4">
+        <img src="imagenes/logo-alban.png" alt="Alban" class="h-12 w-auto" onerror="this.style.display='none'">
+        <div id="remoteStatus" class="text-2xl text-purple-400">Esperando conexión...</div>
+        <button id="btnExitScreen" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">
+          <i class="fas fa-power-off mr-1"></i> Salir
+        </button>
       </div>
-      
-      <!-- Aquí se mostrará la imagen del canvas -->
-      <div id="remoteView" class="hidden">
-        <img id="remoteImage" class="w-full h-auto object-contain max-h-[70vh]" alt="Vista en tiempo real" />
+
+      <div class="relative rounded-xl overflow-hidden border-2 border-gray-800 shadow-2xl bg-gray-900">
+        <!-- Placeholder mientras no hay imagen -->
+        <div id="remotePlaceholder" class="py-32 text-gray-500">
+          <i class="fas fa-wifi text-6xl mb-4 opacity-50"></i>
+          <p class="text-xl">Esperando imagen de la tablet...</p>
+        </div>
+
+        <!-- Aquí se mostrará la imagen del canvas -->
+        <div id="remoteView" class="hidden">
+          <img id="remoteImage" class="w-full h-auto object-contain max-h-[70vh]" alt="Vista en tiempo real" />
+        </div>
       </div>
     </div>
   </div>
-</div>
+  <!-- Fabric.js para editor de capas profesional -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 
   <script>
       (function () {
@@ -1326,8 +1344,34 @@
         let products = [];
 
         // ==========================================
-        // FASE 1: CÁMARA + MUESTRAS CAPTURADAS
+        // FABRIC.JS: EDITOR DE CAPAS PROFESIONAL
         // ==========================================
+        let fabricCanvas = null;
+        let fondoImagen = null;
+
+        // Inicializar Fabric canvas cuando el DOM esté listo
+        function inicializarFabricCanvas() {
+          // Si ya existe, destruirlo
+          if (fabricCanvas) {
+            fabricCanvas.dispose();
+          }
+
+          // Crear nuevo canvas de Fabric
+          fabricCanvas = new fabric.Canvas('fabricCanvas', {
+            backgroundColor: '#1a1a1a',
+            preserveObjectStacking: true,
+            selection: true
+          });
+
+          // Tamaño inicial
+          fabricCanvas.setWidth(1200);
+          fabricCanvas.setHeight(800);
+
+          console.log('✅ Fabric canvas inicializado');
+        }
+
+        // Llamar al cargar la página
+        inicializarFabricCanvas();
 
         // Función para cargar productos desde la base de datos
         async function loadProducts() {
@@ -1587,18 +1631,18 @@
         let currentCapture = null;
         //Agregamos variables de capas siguiendo con el pequeño editor de photoshop
         // Variables para el sistema de capas
-let fondoImage = null;           // Imagen del espacio del cliente
-let materialesLayers = [];       // Array de objetos {image, x, y, scale, rotation, id}
-let selectedLayer = null;        // Capa seleccionada actualmente
-let currentCameraMode = 'fondo'; // 'fondo' o 'material'
-let isDragging = false;
-let isPinching = false;
-let dragStart = { x: 0, y: 0 };
-let initialScale = 1;
-let initialRotation = 0;
-let initialDistance = 0;
-let layerCounter = 0;
-//aqui termina la edicion de variables para el sistema de capas
+        let fondoImage = null;           // Imagen del espacio del cliente
+        let materialesLayers = [];       // Array de objetos {image, x, y, scale, rotation, id}
+        let selectedLayer = null;        // Capa seleccionada actualmente
+        let currentCameraMode = 'fondo'; // 'fondo' o 'material'
+        let isDragging = false;
+        let isPinching = false;
+        let dragStart = { x: 0, y: 0 };
+        let initialScale = 1;
+        let initialRotation = 0;
+        let initialDistance = 0;
+        let layerCounter = 0;
+        //aqui termina la edicion de variables para el sistema de capas
 
         var categoryImages = {
           'all': { img: 'imagenes/categorias/catalogo.jpg', label: 'CATÁLOGO COMPLETO', title: 'Todos nuestros productos', desc: 'Más de 240 productos de ingeniería y acabados premium' },
@@ -2372,132 +2416,132 @@ let layerCounter = 0;
 
 
         // ==========================================
-// CONTROLES TÁCTILES PARA CAPAS
-// ==========================================
-//const layerCanvas = document.getElementById('layerCanvas');
+        // CONTROLES TÁCTILES PARA CAPAS
+        // ==========================================
+        //const layerCanvas = document.getElementById('layerCanvas');
 
-/*if (layerCanvas) {
-console.log('✅ lanyerCanvas encontrado, tamaño:', layerCanvas.width, 'x', layerCanvas.height);
-// Función para obtener coordenadas correctas
-  function getTouchCoords(touch) {
-    const rect = layerCanvas.getBoundingClientRect();
-    const scaleX = layerCanvas.width / rect.width;
-    const scaleY = layerCanvas.height / rect.height;
-    const x = (touch.clientX - rect.left) * scaleX;
-    const y = (touch.clientY - rect.top) * scaleY;
-    return { x, y };
-  } */
+        /*if (layerCanvas) {
+        console.log('✅ lanyerCanvas encontrado, tamaño:', layerCanvas.width, 'x', layerCanvas.height);
+        // Función para obtener coordenadas correctas
+          function getTouchCoords(touch) {
+            const rect = layerCanvas.getBoundingClientRect();
+            const scaleX = layerCanvas.width / rect.width;
+            const scaleY = layerCanvas.height / rect.height;
+            const x = (touch.clientX - rect.left) * scaleX;
+            const y = (touch.clientY - rect.top) * scaleY;
+            return { x, y };
+          } */
 
-// Touch start
- /* layerCanvas.addEventListener('touchstart', function(e) {
-    e.preventDefault();
-    console.log('👆 TOUCH START - Dedos:', e.touches.length);
-    console.log(' Capas disponibles:', materialesLayers.length);
-    
-    if (e.touches.length === 1) {
-      const coords = getTouchCoords(e.touches[0]);
-      console.log('📍 Toque en:', coords.x, coords.y);
-      
-      let touchedLayer = null;
-      for (let i = materialesLayers.length - 1; i >= 0; i--) {
-        const layer = materialesLayers[i];
-        const halfW = (layer.width * layer.scale) / 2;
-        const halfH = (layer.height * layer.scale) / 2;
-        
-        console.log('  Capa', layer.id, 'en', layer.x, layer.y, 'tamaño:', halfW * 2, 'x', halfH * 2);
-        
-        if (coords.x >= layer.x - halfW && coords.x <= layer.x + halfW &&
-            coords.y >= layer.y - halfH && coords.y <= layer.y + halfH) {
-          touchedLayer = layer;
-          console.log('✅ Capa tocada:', layer.id);
-          break;
+        // Touch start
+        /* layerCanvas.addEventListener('touchstart', function(e) {
+           e.preventDefault();
+           console.log('👆 TOUCH START - Dedos:', e.touches.length);
+           console.log(' Capas disponibles:', materialesLayers.length);
+           
+           if (e.touches.length === 1) {
+             const coords = getTouchCoords(e.touches[0]);
+             console.log('📍 Toque en:', coords.x, coords.y);
+             
+             let touchedLayer = null;
+             for (let i = materialesLayers.length - 1; i >= 0; i--) {
+               const layer = materialesLayers[i];
+               const halfW = (layer.width * layer.scale) / 2;
+               const halfH = (layer.height * layer.scale) / 2;
+               
+               console.log('  Capa', layer.id, 'en', layer.x, layer.y, 'tamaño:', halfW * 2, 'x', halfH * 2);
+               
+               if (coords.x >= layer.x - halfW && coords.x <= layer.x + halfW &&
+                   coords.y >= layer.y - halfH && coords.y <= layer.y + halfH) {
+                 touchedLayer = layer;
+                 console.log('✅ Capa tocada:', layer.id);
+                 break;
+               }
+             }
+             
+             if (touchedLayer) {
+               selectedLayer = touchedLayer;
+               isDragging = true;
+               dragStart.x = coords.x - touchedLayer.x;
+               dragStart.y = coords.y - touchedLayer.y;
+               renderLayers();
+               const controls = document.getElementById('transformControls');
+               if (controls) controls.classList.remove('hidden');
+               console.log('🎯 Capa seleccionada, lista para arrastrar');
+             } else {
+               selectedLayer = null;
+               const controls = document.getElementById('transformControls');
+               if (controls) controls.classList.add('hidden');
+               renderLayers();
+               console.log('❌ No se tocó ninguna capa');
+             }
+             
+           } else if (e.touches.length === 2) {
+             isPinching = true;
+             initialDistance = getDistance(e.touches[0], e.touches[1]);
+             initialScale = selectedLayer ? selectedLayer.scale : 1;
+             initialRotation = selectedLayer ? selectedLayer.rotation : 0;
+             console.log('🤏 Pinch start, distancia:', initialDistance);
+           }
+         }, { passive: false });
+         
+         // Touch move
+         layerCanvas.addEventListener('touchmove', function(e) {
+           e.preventDefault();
+           
+           if (isDragging && selectedLayer && e.touches.length === 1) {
+             const coords = getTouchCoords(e.touches[0]);
+             selectedLayer.x = coords.x - dragStart.x;
+             selectedLayer.y = coords.y - dragStart.y;
+             renderLayers();
+             broadcastToScreen();
+             console.log('🔄 Moviendo capa a:', selectedLayer.x.toFixed(0), selectedLayer.y.toFixed(0));
+             
+           } else if (isPinching && selectedLayer && e.touches.length === 2) {
+             const distance = getDistance(e.touches[0], e.touches[1]);
+             const scale = initialScale * (distance / initialDistance);
+             selectedLayer.scale = Math.max(0.1, Math.min(scale, 5));
+             
+             const angle = getAngle(e.touches[0], e.touches[1]);
+             selectedLayer.rotation = initialRotation + angle;
+             
+             renderLayers();
+             broadcastToScreen();
+             console.log(' Escala:', selectedLayer.scale.toFixed(2), 'Rotación:', selectedLayer.rotation.toFixed(0));
+           }
+         }, { passive: false });
+         
+         // Touch end
+         layerCanvas.addEventListener('touchend', function(e) {
+           console.log(' TOUCH END');
+           isDragging = false;
+           isPinching = false;
+         });
+       } else {
+         console.error('❌ NO se encontró el layerCanvas');
+       }*/
+
+        // Función auxiliar: verificar si un punto está dentro de una capa
+        function isPointInLayer(x, y, layer) {
+          const halfW = (layer.width * layer.scale) / 2;
+          const halfH = (layer.height * layer.scale) / 2;
+          return x >= layer.x - halfW && x <= layer.x + halfW &&
+            y >= layer.y - halfH && y <= layer.y + halfH;
         }
-      }
-      
-      if (touchedLayer) {
-        selectedLayer = touchedLayer;
-        isDragging = true;
-        dragStart.x = coords.x - touchedLayer.x;
-        dragStart.y = coords.y - touchedLayer.y;
-        renderLayers();
-        const controls = document.getElementById('transformControls');
-        if (controls) controls.classList.remove('hidden');
-        console.log('🎯 Capa seleccionada, lista para arrastrar');
-      } else {
-        selectedLayer = null;
-        const controls = document.getElementById('transformControls');
-        if (controls) controls.classList.add('hidden');
-        renderLayers();
-        console.log('❌ No se tocó ninguna capa');
-      }
-      
-    } else if (e.touches.length === 2) {
-      isPinching = true;
-      initialDistance = getDistance(e.touches[0], e.touches[1]);
-      initialScale = selectedLayer ? selectedLayer.scale : 1;
-      initialRotation = selectedLayer ? selectedLayer.rotation : 0;
-      console.log('🤏 Pinch start, distancia:', initialDistance);
-    }
-  }, { passive: false });
-  
-  // Touch move
-  layerCanvas.addEventListener('touchmove', function(e) {
-    e.preventDefault();
-    
-    if (isDragging && selectedLayer && e.touches.length === 1) {
-      const coords = getTouchCoords(e.touches[0]);
-      selectedLayer.x = coords.x - dragStart.x;
-      selectedLayer.y = coords.y - dragStart.y;
-      renderLayers();
-      broadcastToScreen();
-      console.log('🔄 Moviendo capa a:', selectedLayer.x.toFixed(0), selectedLayer.y.toFixed(0));
-      
-    } else if (isPinching && selectedLayer && e.touches.length === 2) {
-      const distance = getDistance(e.touches[0], e.touches[1]);
-      const scale = initialScale * (distance / initialDistance);
-      selectedLayer.scale = Math.max(0.1, Math.min(scale, 5));
-      
-      const angle = getAngle(e.touches[0], e.touches[1]);
-      selectedLayer.rotation = initialRotation + angle;
-      
-      renderLayers();
-      broadcastToScreen();
-      console.log(' Escala:', selectedLayer.scale.toFixed(2), 'Rotación:', selectedLayer.rotation.toFixed(0));
-    }
-  }, { passive: false });
-  
-  // Touch end
-  layerCanvas.addEventListener('touchend', function(e) {
-    console.log(' TOUCH END');
-    isDragging = false;
-    isPinching = false;
-  });
-} else {
-  console.error('❌ NO se encontró el layerCanvas');
-}*/
 
-// Función auxiliar: verificar si un punto está dentro de una capa
-function isPointInLayer(x, y, layer) {
-  const halfW = (layer.width * layer.scale) / 2;
-  const halfH = (layer.height * layer.scale) / 2;
-  return x >= layer.x - halfW && x <= layer.x + halfW &&
-         y >= layer.y - halfH && y <= layer.y + halfH;
-}
+        // Función auxiliar: distancia entre 2 puntos táctiles
+        function getDistance(touch1, touch2) {
+          const dx = touch1.clientX - touch2.clientX;
+          const dy = touch1.clientY - touch2.clientY;
+          return Math.sqrt(dx * dx + dy * dy);
+        }
 
-// Función auxiliar: distancia entre 2 puntos táctiles
-function getDistance(touch1, touch2) {
-  const dx = touch1.clientX - touch2.clientX;
-  const dy = touch1.clientY - touch2.clientY;
-  return Math.sqrt(dx * dx + dy * dy);
-}
+        // Función auxiliar: ángulo entre 2 puntos táctiles
+        function getAngle(touch1, touch2) {
+          const dx = touch2.clientX - touch1.clientX;
+          const dy = touch2.clientY - touch1.clientY;
+          return Math.atan2(dy, dx) * 180 / Math.PI;
+        } //hasta aqui se realiza la parte de controles tactiles para capas
 
-// Función auxiliar: ángulo entre 2 puntos táctiles
-function getAngle(touch1, touch2) {
-  const dx = touch2.clientX - touch1.clientX;
-  const dy = touch2.clientY - touch1.clientY;
-  return Math.atan2(dy, dx) * 180 / Math.PI;
-} //hasta aqui se realiza la parte de controles tactiles para capas
-        
         function toggleChatbot() { document.getElementById('chatbot').classList.toggle('active'); }
 
         // ==========================================
@@ -2658,281 +2702,280 @@ function getAngle(touch1, touch2) {
         function generateCode() { return Math.floor(1000 + Math.random() * 9000).toString(); }
 
         function initPeerAsHost() {
-  // Destruir conexión anterior si existe
-  if (peer) {
-    peer.destroy();
-    peer = null;
-  }
-  
-  if (!myCode) {
-    myCode = Math.floor(1000 + Math.random() * 9000).toString();
-  }
-  
-  const peerId = 'alban-screen-' + myCode;
-  console.log('📺 TV: Creando peer con ID:', peerId);
-  
-  peer = new Peer(peerId, {
-    debug: 2,
-    config: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' }
-      ]
-    }
-  });
-  
-  peer.on('open', function(id) {
-    console.log('✅ TV: Peer abierto:', id);
-    const remoteStatus = document.getElementById('remoteStatus');
-    if (remoteStatus) {
-      remoteStatus.innerHTML = `
+          // Destruir conexión anterior si existe
+          if (peer) {
+            peer.destroy();
+            peer = null;
+          }
+
+          if (!myCode) {
+            myCode = Math.floor(1000 + Math.random() * 9000).toString();
+          }
+
+          const peerId = 'alban-screen-' + myCode;
+          console.log('📺 TV: Creando peer con ID:', peerId);
+
+          peer = new Peer(peerId, {
+            debug: 2,
+            config: {
+              iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+              ]
+            }
+          });
+
+          peer.on('open', function (id) {
+            console.log('✅ TV: Peer abierto:', id);
+            const remoteStatus = document.getElementById('remoteStatus');
+            if (remoteStatus) {
+              remoteStatus.innerHTML = `
         <p class="text-xl text-gray-300 mb-2">Tu código de conexión es:</p>
         <span class="text-7xl font-bold text-white block tracking-widest my-4 bg-purple-900/50 py-4 rounded-lg border-2 border-purple-500">${myCode}</span>
         <p class="text-lg text-green-400 animate-pulse">✓ Listo para recibir conexión de la tablet</p>
       `;
-    }
-  });
-  
-  peer.on('connection', function(conn) {
-    console.log('🔗 TV: Conexión entrante detectada');
-    currentConn = conn;
-    
-    conn.on('open', function() {
-      console.log('✅ TV: Tablet conectada!');
-      const remoteStatus = document.getElementById('remoteStatus');
-      if (remoteStatus) {
-        remoteStatus.innerHTML = '<p class="text-2xl text-green-400 font-bold">✓ Tablet conectada</p>';
-      }
-      // Enviar imagen inicial
-      setTimeout(broadcastToScreen, 1000);
-    });
-    
-    conn.on('data', function(data) {
-  // Si es un objeto con tipo image-binary
-  if (data && data.type === 'image-binary') {
-    console.log('📥 TV: Imagen binaria recibida:', Math.round(data.data.byteLength / 1024), 'KB');
-    
-    // Convertir ArrayBuffer a Blob
-    const blob = new Blob([data.data], { type: 'image/jpeg' });
-    const url = URL.createObjectURL(blob);
-    
-    const remoteImage = document.getElementById('remoteImage');
-    const remoteView = document.getElementById('remoteView');
-    const remotePlaceholder = document.getElementById('remotePlaceholder');
-    
-    if (remoteImage) {
-      remoteImage.src = url;
-      remoteImage.classList.remove('hidden');
-    }
-    if (remoteView) remoteView.classList.remove('hidden');
-    if (remotePlaceholder) remotePlaceholder.classList.add('hidden');
-    
-    // Liberar memoria después de 3 segundos
-    setTimeout(() => URL.revokeObjectURL(url), 3000);
-  }
-});
-    
-    conn.on('close', function() {
-      console.log('❌ TV: Tablet desconectada');
-      currentConn = null;
-      const remoteStatus = document.getElementById('remoteStatus');
-      if (remoteStatus) {
-        remoteStatus.innerHTML = '<p class="text-xl text-yellow-400">⚠ Tablet desconectada. Esperando reconexión...</p>';
-      }
-    });
-    
-    conn.on('error', function(err) {
-      console.error('❌ TV: Error de conexión:', err);
-    });
-  });
-  
-  peer.on('error', function(err) {
-    console.error('❌ TV: Error PeerJS:', err);
-    const remoteStatus = document.getElementById('remoteStatus');
-    if (remoteStatus) {
-      remoteStatus.innerHTML = `<p class="text-xl text-red-400">Error: ${err.type}</p>`;
-    }
-    
-    // Reintentar después de 3 segundos
-    setTimeout(function() {
-      console.log('🔄 TV: Reintentando conexión...');
-      initPeerAsHost();
-    }, 3000);
-  });
-  
-  peer.on('disconnected', function() {
-    console.log('⚠️ TV: Peer desconectado, reconectando...');
-    peer.reconnect();
-  });
-}
+            }
+          });
+
+          peer.on('connection', function (conn) {
+            console.log('🔗 TV: Conexión entrante detectada');
+            currentConn = conn;
+
+            conn.on('open', function () {
+              console.log('✅ TV: Tablet conectada!');
+              const remoteStatus = document.getElementById('remoteStatus');
+              if (remoteStatus) {
+                remoteStatus.innerHTML = '<p class="text-2xl text-green-400 font-bold">✓ Tablet conectada</p>';
+              }
+              // Enviar imagen inicial
+              setTimeout(broadcastToScreen, 1000);
+            });
+
+            conn.on('data', function (data) {
+              // Si es un objeto con tipo image-binary
+              if (data && data.type === 'image-binary') {
+                console.log('📥 TV: Imagen binaria recibida:', Math.round(data.data.byteLength / 1024), 'KB');
+
+                // Convertir ArrayBuffer a Blob
+                const blob = new Blob([data.data], { type: 'image/jpeg' });
+                const url = URL.createObjectURL(blob);
+
+                const remoteImage = document.getElementById('remoteImage');
+                const remoteView = document.getElementById('remoteView');
+                const remotePlaceholder = document.getElementById('remotePlaceholder');
+
+                if (remoteImage) {
+                  remoteImage.src = url;
+                  remoteImage.classList.remove('hidden');
+                }
+                if (remoteView) remoteView.classList.remove('hidden');
+                if (remotePlaceholder) remotePlaceholder.classList.add('hidden');
+
+                // Liberar memoria después de 3 segundos
+                setTimeout(() => URL.revokeObjectURL(url), 3000);
+              }
+            });
+
+            conn.on('close', function () {
+              console.log('❌ TV: Tablet desconectada');
+              currentConn = null;
+              const remoteStatus = document.getElementById('remoteStatus');
+              if (remoteStatus) {
+                remoteStatus.innerHTML = '<p class="text-xl text-yellow-400">⚠ Tablet desconectada. Esperando reconexión...</p>';
+              }
+            });
+
+            conn.on('error', function (err) {
+              console.error('❌ TV: Error de conexión:', err);
+            });
+          });
+
+          peer.on('error', function (err) {
+            console.error('❌ TV: Error PeerJS:', err);
+            const remoteStatus = document.getElementById('remoteStatus');
+            if (remoteStatus) {
+              remoteStatus.innerHTML = `<p class="text-xl text-red-400">Error: ${err.type}</p>`;
+            }
+
+            // Reintentar después de 3 segundos
+            setTimeout(function () {
+              console.log('🔄 TV: Reintentando conexión...');
+              initPeerAsHost();
+            }, 3000);
+          });
+
+          peer.on('disconnected', function () {
+            console.log('⚠️ TV: Peer desconectado, reconectando...');
+            peer.reconnect();
+          });
+        }
 
         function initPeerAsClient(code) {
-  // Destruir conexión anterior si existe
-  if (peer) {
-    peer.destroy();
-    peer = null;
-  }
-  
-  const peerId = 'alban-client-' + Date.now();
-  const hostId = 'alban-screen-' + code;
-  
-  console.log('📱 Tablet: Conectando a:', hostId);
-  
-  const remoteStatus = document.getElementById('remoteStatus');
-  if (remoteStatus) {
-    remoteStatus.innerHTML = '<p class="text-xl text-purple-400 animate-pulse"><i class="fas fa-circle-notch fa-spin mr-2"></i>Conectando a la pantalla...</p>';
-  }
-  
-  peer = new Peer(peerId, {
-    debug: 2,
-    config: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' }
-      ]
-    }
-  });
-  
-  peer.on('open', function() {
-    console.log('✅ Tablet: Peer abierto, intentando conectar...');
-    const conn = peer.connect(hostId, {
-      reliable: true,
-      serialization: 'binary'
-    });
-    
-    let connectionAttempts = 0;
-    const maxAttempts = 5;
-    
-    conn.on('open', function() {
-      console.log('✅ Tablet: ¡Conectado a la pantalla!');
-      currentConn = conn;
-      
-      if (remoteStatus) {
-        remoteStatus.innerHTML = '<p class="text-2xl text-green-400 font-bold">✓ Conectado a la pantalla</p>';
-      }
-      
-      // IMPORTANTE: Enviar imagen inicial inmediatamente
-  console.log('📤 Enviando imagen inicial a la pantalla...');
-  setTimeout(function() {
-    broadcastToScreen();
-  }, 500);
-      
-      // Solicitar actualizaciones cada 2 segundos
-  setInterval(function() {
-    if (conn.open) {
-      broadcastToScreen();
-    }
-      }, 2000);
-    });
-    
-    conn.on('data', function(data) {
-  if (typeof data === 'string' && data.startsWith('data:image')) {
-    const remoteImage = document.getElementById('remoteImage');
-    const remoteView = document.getElementById('remoteView');
-    if (remoteImage) {
-      remoteImage.src = data;
-      remoteImage.classList.remove('hidden');
-    }
-    if (remoteView) remoteView.classList.remove('hidden');
-  }
-});
-    
-    conn.on('close', function() {
-      console.log('❌ Tablet: Conexión cerrada');
-      currentConn = null;
-      if (remoteStatus) {
-        remoteStatus.innerHTML = '<p class="text-xl text-yellow-400">⚠ Conexión perdida. Reintentando...</p>';
-      }
-      
-      // Reintentar después de 3 segundos
-      setTimeout(function() {
-        initPeerAsClient(code);
-      }, 3000);
-    });
-    
-    conn.on('error', function(err) {
-      console.error('❌ Tablet: Error de conexión:', err);
-    });
-  });
-  
-  peer.on('error', function(err) {
-    console.error('❌ Tablet: Error PeerJS:', err);
-    
-    if (err.type === 'peer-unavailable') {
-      if (remoteStatus) {
-        remoteStatus.innerHTML = `<p class="text-xl text-red-400">❌ No se encontró la pantalla con código: ${code}</p>`;
-      }
-    } else if (err.type === 'network') {
-      if (remoteStatus) {
-        remoteStatus.innerHTML = '<p class="text-xl text-red-400">⚠ Error de red. Reintentando...</p>';
-      }
-    } else {
-      if (remoteStatus) {
-        remoteStatus.innerHTML = `<p class="text-xl text-red-400">Error: ${err.type}</p>`;
-      }
-    }
-    
-    // Reintentar después de 3 segundos (máximo 5 intentos)
-    connectionAttempts++;
-    if (connectionAttempts < maxAttempts) {
-      setTimeout(function() {
-        console.log(`🔄 Tablet: Reintentando conexión (${connectionAttempts}/${maxAttempts})...`);
-        initPeerAsClient(code);
-      }, 3000);
-    }
-  });
-  
-  peer.on('disconnected', function() {
-    console.log('⚠️ Tablet: Peer desconectado, reconectando...');
-    peer.reconnect();
-  });
-}
+          // Destruir conexión anterior si existe
+          if (peer) {
+            peer.destroy();
+            peer = null;
+          }
+
+          const peerId = 'alban-client-' + Date.now();
+          const hostId = 'alban-screen-' + code;
+
+          console.log('📱 Tablet: Conectando a:', hostId);
+
+          const remoteStatus = document.getElementById('remoteStatus');
+          if (remoteStatus) {
+            remoteStatus.innerHTML = '<p class="text-xl text-purple-400 animate-pulse"><i class="fas fa-circle-notch fa-spin mr-2"></i>Conectando a la pantalla...</p>';
+          }
+
+          peer = new Peer(peerId, {
+            debug: 2,
+            config: {
+              iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' }
+              ]
+            }
+          });
+
+          peer.on('open', function () {
+            console.log('✅ Tablet: Peer abierto, intentando conectar...');
+            const conn = peer.connect(hostId, {
+              reliable: true,
+              serialization: 'binary'
+            });
+
+            let connectionAttempts = 0;
+            const maxAttempts = 5;
+
+            conn.on('open', function () {
+              console.log('✅ Tablet: ¡Conectado a la pantalla!');
+              currentConn = conn;
+
+              if (remoteStatus) {
+                remoteStatus.innerHTML = '<p class="text-2xl text-green-400 font-bold">✓ Conectado a la pantalla</p>';
+              }
+
+              // IMPORTANTE: Enviar imagen inicial inmediatamente
+              console.log('📤 Enviando imagen inicial a la pantalla...');
+              setTimeout(function () {
+                broadcastToScreen();
+              }, 500);
+
+              // Solicitar actualizaciones cada 2 segundos
+              setInterval(function () {
+                if (conn.open) {
+                  broadcastToScreen();
+                }
+              }, 2000);
+            });
+
+            conn.on('data', function (data) {
+              if (typeof data === 'string' && data.startsWith('data:image')) {
+                const remoteImage = document.getElementById('remoteImage');
+                const remoteView = document.getElementById('remoteView');
+                if (remoteImage) {
+                  remoteImage.src = data;
+                  remoteImage.classList.remove('hidden');
+                }
+                if (remoteView) remoteView.classList.remove('hidden');
+              }
+            });
+
+            conn.on('close', function () {
+              console.log('❌ Tablet: Conexión cerrada');
+              currentConn = null;
+              if (remoteStatus) {
+                remoteStatus.innerHTML = '<p class="text-xl text-yellow-400">⚠ Conexión perdida. Reintentando...</p>';
+              }
+
+              // Reintentar después de 3 segundos
+              setTimeout(function () {
+                initPeerAsClient(code);
+              }, 3000);
+            });
+
+            conn.on('error', function (err) {
+              console.error('❌ Tablet: Error de conexión:', err);
+            });
+          });
+
+          peer.on('error', function (err) {
+            console.error('❌ Tablet: Error PeerJS:', err);
+
+            if (err.type === 'peer-unavailable') {
+              if (remoteStatus) {
+                remoteStatus.innerHTML = `<p class="text-xl text-red-400">❌ No se encontró la pantalla con código: ${code}</p>`;
+              }
+            } else if (err.type === 'network') {
+              if (remoteStatus) {
+                remoteStatus.innerHTML = '<p class="text-xl text-red-400">⚠ Error de red. Reintentando...</p>';
+              }
+            } else {
+              if (remoteStatus) {
+                remoteStatus.innerHTML = `<p class="text-xl text-red-400">Error: ${err.type}</p>`;
+              }
+            }
+
+            // Reintentar después de 3 segundos (máximo 5 intentos)
+            connectionAttempts++;
+            if (connectionAttempts < maxAttempts) {
+              setTimeout(function () {
+                console.log(`🔄 Tablet: Reintentando conexión (${connectionAttempts}/${maxAttempts})...`);
+                initPeerAsClient(code);
+              }, 3000);
+            }
+          });
+
+          peer.on('disconnected', function () {
+            console.log('⚠️ Tablet: Peer desconectado, reconectando...');
+            peer.reconnect();
+          });
+        }
 
         function broadcastToScreen() {
-  if (!currentConn || !currentConn.open) {
-    return;
-  }
-  
-  const mainCanvas = document.getElementById('mainCanvas');
-  if (!mainCanvas || mainCanvas.width === 0) return;
+          if (!currentConn || !currentConn.open) {
+            console.log('⚠️ No hay conexión activa');
+            return;
+          }
 
-  const tempCanvas = document.createElement('canvas');
-  const MAX_W = 800;
-  const MAX_H = 600;
-  
-  let w = mainCanvas.width;
-  let h = mainCanvas.height;
-  
-  if (w > MAX_W) { h = h * (MAX_W / w); w = MAX_W; }
-  if (h > MAX_H) { w = w * (MAX_H / h); h = MAX_H; }
-  
-  tempCanvas.width = Math.floor(w);
-  tempCanvas.height = Math.floor(h);
-  const ctx = tempCanvas.getContext('2d');
-  
-  // Solo dibujar el mainCanvas (ya tiene fondo + capas)
-  ctx.drawImage(mainCanvas, 0, 0, w, h);
-  
-  tempCanvas.toBlob(function(blob) {
-    if (!blob) return;
-    const reader = new FileReader();
-    reader.onload = function() {
-      try {
-        currentConn.send({
-          type: 'image-binary',
-          data: reader.result
-        });
-      } catch (e) {
-        console.error('Error:', e);
-      }
-    };
-    reader.readAsArrayBuffer(blob);
-  }, 'image/jpeg', 0.6);
-}
+          if (!fabricCanvas) {
+            console.log('⚠️ Fabric canvas no inicializado');
+            return;
+          }
+
+          // Exportar canvas como imagen JPEG
+          const dataURL = fabricCanvas.toDataURL({
+            format: 'jpeg',
+            quality: 0.5,
+            multiplier: 0.5 // Reduce a la mitad para envío rápido
+          });
+
+          // Convertir a blob y enviar
+          fetch(dataURL)
+            .then(res => res.blob())
+            .then(blob => {
+              const reader = new FileReader();
+              reader.onload = function () {
+                try {
+                  currentConn.send({
+                    type: 'image-binary',
+                    data: reader.result
+                  });
+                  console.log('📸 Enviado a TV:', Math.round(blob.size / 1024), 'KB');
+                } catch (e) {
+                  console.error('❌ Error enviando:', e);
+                }
+              };
+              reader.readAsArrayBuffer(blob);
+            })
+            .catch(err => {
+              console.error('❌ Error convirtiendo imagen:', err);
+            });
+        }
 
         function hasAppliedMaterials() {
           return zones.length > 0 && zones.some(function (z) { return z.material; });
@@ -3055,30 +3098,30 @@ function getAngle(touch1, touch2) {
             document.body.style.overflow = 'hidden';
 
             // 1. Generar código de 4 dígitos automáticamente
-            myCode = Math.floor(1000 + Math.random() * 9000).toString();var savedCode = localStorage.getItem('alban_screen_code');
+            myCode = Math.floor(1000 + Math.random() * 9000).toString(); var savedCode = localStorage.getItem('alban_screen_code');
             // 2. Mostrar el código en grande en la pantalla de la TV
             var remoteStatus = document.getElementById('remoteStatus');
             if (remoteStatus) {
-            remoteStatus.innerHTML = `
+              remoteStatus.innerHTML = `
             <p class="text-xl text-gray-300 mb-2">Tu código de conexión es:</p>
             <span class="text-7xl font-bold text-white block tracking-widest my-4 bg-purple-900/50 py-4 rounded-lg border-2 border-purple-500">${myCode}</span>
             <p class="text-lg text-purple-400 animate-pulse">Esperando que la tablet ingrese este código...</p>
             `;
-            } 
+            }
             // 3. Iniciar como HOST (La TV espera la conexión)
             initPeerAsHost();
 
             // 4. Botón para salir
             var btnExitScreen = document.getElementById('btnExitScreen');
             if (btnExitScreen) {
-            btnExitScreen.addEventListener('click', function () {
-            if (typeof peer !== 'undefined' && peer) {
-            peer.destroy();
-            peer = null;
+              btnExitScreen.addEventListener('click', function () {
+                if (typeof peer !== 'undefined' && peer) {
+                  peer.destroy();
+                  peer = null;
+                }
+                window.location.href = window.location.pathname;
+              });
             }
-            window.location.href = window.location.pathname;
-           });
-           }
           } // <--- ¡ESTA LLAVE ES OBLIGATORIA! CIERRA EL if (isScreenMode)
           // ==========================================
           // 2. MODO TABLET: Pide el código y se conecta (CLIENT)
@@ -3087,26 +3130,26 @@ function getAngle(touch1, touch2) {
 
           // Solo activar este botón si NO estamos en modo pantalla
           if (btnConnectScreen && !isScreenMode) {
-          btnConnectScreen.addEventListener('click', function() {
-          // Pedir el código al usuario de la tablet
-          var codeInput = prompt('Ingresa el código de 4 dígitos que muestra la pantalla del showroom:');
+            btnConnectScreen.addEventListener('click', function () {
+              // Pedir el código al usuario de la tablet
+              var codeInput = prompt('Ingresa el código de 4 dígitos que muestra la pantalla del showroom:');
 
-          if (codeInput && codeInput.length === 4) {
-          // Guardar el código
-          localStorage.setItem('alban_screen_code', codeInput);
-      
-          // Mostrar mensaje de conexión
-          alert('Conectando a la pantalla con el código: ' + codeInput + '\n\nAsegúrate de tener el visualizador abierto.');
-      
-          // Iniciar como CLIENTE (La tablet se conecta a la TV)
-        initPeerAsClient(codeInput);
-    }
-  });
-}
+              if (codeInput && codeInput.length === 4) {
+                // Guardar el código
+                localStorage.setItem('alban_screen_code', codeInput);
+
+                // Mostrar mensaje de conexión
+                alert('Conectando a la pantalla con el código: ' + codeInput + '\n\nAsegúrate de tener el visualizador abierto.');
+
+                // Iniciar como CLIENTE (La tablet se conecta a la TV)
+                initPeerAsClient(codeInput);
+              }
+            });
+          }
 
           // Cerrar modal y limpiar conexión
           if (btnCloseScreenModal && screenModal) {
-            btnCloseScreenModal.addEventListener('click', function() {
+            btnCloseScreenModal.addEventListener('click', function () {
               screenModal.classList.add('hidden');
               if (typeof peer !== 'undefined' && peer) {
                 peer.destroy();
@@ -3117,60 +3160,60 @@ function getAngle(touch1, touch2) {
 
           // Generar código desde la PANTALLA (Host)
           function generarCodigoPantalla() {
-          const screenModal = document.getElementById('screenModal');
-          const codeDisplay = document.getElementById('codeDisplay');
-          const generatedCode = document.getElementById('generatedCode');
-          const connectionStatus = document.getElementById('connectionStatus');
-  
-          if (!screenModal || !codeDisplay) {
-          alert('Error: No se encontró el modal de conexión');
-          return;
-        }
-        // Generar código de 4 dígitos
-        myCode = Math.floor(1000 + Math.random() * 9000).toString();
-        codeDisplay.textContent = myCode;
-        generatedCode.classList.remove('hidden');
-        screenModal.classList.remove('hidden');
-  
-        connectionStatus.innerHTML = '<p class="text-purple-400"><i class="fas fa-spinner fa-spin mr-2"></i>Esperando conexión de la tablet...</p>';
-  
-        // Iniciar como HOST (la pantalla espera conexión)
-        initPeerAsHost();
-  
-        console.log('📺 Pantalla generando código:', myCode);
-        }
-        // Conectar TABLET a la pantalla (Client)
-        function conectarTabletAPantalla() {
-        const screenModal = document.getElementById('screenModal');
-        const codeDisplay = document.getElementById('codeDisplay');
-        const generatedCode = document.getElementById('generatedCode');
-        const connectionStatus = document.getElementById('connectionStatus');
-  
-        if (!screenModal) {
-        alert('Error: No se encontró el modal');
-        return;
-        }
-  
-        screenModal.classList.remove('hidden');
-        generatedCode.classList.add('hidden');
-  
-        const codeInput = prompt('Ingresa el código de 4 dígitos que muestra la pantalla:');
-  
-        if (codeInput && codeInput.length === 4) {
-        // Guardar código y conectar
-        localStorage.setItem('alban_screen_code', codeInput);
-        connectionStatus.innerHTML = '<p class="text-purple-400"><i class="fas fa-spinner fa-spin mr-2"></i>Conectando a la pantalla...</p>';
-        generatedCode.classList.remove('hidden');
-        codeDisplay.textContent = codeInput;
-    
-        // Iniciar como CLIENT (la tablet se conecta)
-        initPeerAsClient(codeInput);
-    
-        console.log('📱 Tablet conectándose al código:', codeInput);
-        } else {
-        screenModal.classList.add('hidden');
-        }
-        }
+            const screenModal = document.getElementById('screenModal');
+            const codeDisplay = document.getElementById('codeDisplay');
+            const generatedCode = document.getElementById('generatedCode');
+            const connectionStatus = document.getElementById('connectionStatus');
+
+            if (!screenModal || !codeDisplay) {
+              alert('Error: No se encontró el modal de conexión');
+              return;
+            }
+            // Generar código de 4 dígitos
+            myCode = Math.floor(1000 + Math.random() * 9000).toString();
+            codeDisplay.textContent = myCode;
+            generatedCode.classList.remove('hidden');
+            screenModal.classList.remove('hidden');
+
+            connectionStatus.innerHTML = '<p class="text-purple-400"><i class="fas fa-spinner fa-spin mr-2"></i>Esperando conexión de la tablet...</p>';
+
+            // Iniciar como HOST (la pantalla espera conexión)
+            initPeerAsHost();
+
+            console.log('📺 Pantalla generando código:', myCode);
+          }
+          // Conectar TABLET a la pantalla (Client)
+          function conectarTabletAPantalla() {
+            const screenModal = document.getElementById('screenModal');
+            const codeDisplay = document.getElementById('codeDisplay');
+            const generatedCode = document.getElementById('generatedCode');
+            const connectionStatus = document.getElementById('connectionStatus');
+
+            if (!screenModal) {
+              alert('Error: No se encontró el modal');
+              return;
+            }
+
+            screenModal.classList.remove('hidden');
+            generatedCode.classList.add('hidden');
+
+            const codeInput = prompt('Ingresa el código de 4 dígitos que muestra la pantalla:');
+
+            if (codeInput && codeInput.length === 4) {
+              // Guardar código y conectar
+              localStorage.setItem('alban_screen_code', codeInput);
+              connectionStatus.innerHTML = '<p class="text-purple-400"><i class="fas fa-spinner fa-spin mr-2"></i>Conectando a la pantalla...</p>';
+              generatedCode.classList.remove('hidden');
+              codeDisplay.textContent = codeInput;
+
+              // Iniciar como CLIENT (la tablet se conecta)
+              initPeerAsClient(codeInput);
+
+              console.log('📱 Tablet conectándose al código:', codeInput);
+            } else {
+              screenModal.classList.add('hidden');
+            }
+          }
           // ==========================================
           // 2. EVENT LISTENERS PRINCIPALES (Se ejecutan SIEMPRE)
           // ==========================================
@@ -3208,1057 +3251,1085 @@ function getAngle(touch1, touch2) {
               }
 
             });
+          }
+          // 2. Botón WhatsApp (unificado)
+          var btnWhatsApp = document.getElementById('btnWhatsApp');
+          var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
+
+          function handleWhatsApp() {
+            console.log(' Enviando cotización por WhatsApp...');
+            console.log('Carrito:', cart.length, 'productos');
+            console.log('Muestras:', capturedSamples.length);
+
+            if (cart.length === 0 && capturedSamples.length === 0) {
+              alert('No hay productos ni muestras para enviar');
+              return;
             }
-            // 2. Botón WhatsApp (unificado)
-            var btnWhatsApp = document.getElementById('btnWhatsApp');
-            var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
 
-            function handleWhatsApp() {
-              console.log(' Enviando cotización por WhatsApp...');
-              console.log('Carrito:', cart.length, 'productos');
-              console.log('Muestras:', capturedSamples.length);
+            if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
+              alert('️ Por favor selecciona una sucursal destino');
+              return;
+            }
 
-              if (cart.length === 0 && capturedSamples.length === 0) {
-                alert('No hay productos ni muestras para enviar');
-                return;
-              }
+            sendQuoteWhatsApp();
 
-              if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
-                alert('️ Por favor selecciona una sucursal destino');
-                return;
-              }
+            var modal = document.getElementById('quoteReviewModal');
+            if (modal) modal.classList.remove('active');
+          }
 
-              sendQuoteWhatsApp();
+          if (btnWhatsApp) btnWhatsApp.addEventListener('click', handleWhatsApp);
+          if (btnSendWhatsApp) btnSendWhatsApp.addEventListener('click', handleWhatsApp);
 
+          // 3. Botón Editar (con pregunta inteligente)
+          var btnEditQuote = document.getElementById('btnEditQuote');
+          if (btnEditQuote) {
+            btnEditQuote.addEventListener('click', function () {
               var modal = document.getElementById('quoteReviewModal');
               if (modal) modal.classList.remove('active');
-            }
 
-            if (btnWhatsApp) btnWhatsApp.addEventListener('click', handleWhatsApp);
-            if (btnSendWhatsApp) btnSendWhatsApp.addEventListener('click', handleWhatsApp);
+              if (customImage) {
+                var opcion = confirm(
+                  'Tienes una imagen personalizada cargada en el visualizador.\n\n' +
+                  '¿Deseas volver al visualizador para continuar editando?\n\n' +
+                  'Aceptar = Volver al visualizador (conserva la imagen)\n' +
+                  'Cancelar = Ir al catálogo de productos'
+                );
 
-            // 3. Botón Editar (con pregunta inteligente)
-            var btnEditQuote = document.getElementById('btnEditQuote');
-            if (btnEditQuote) {
-              btnEditQuote.addEventListener('click', function () {
-                var modal = document.getElementById('quoteReviewModal');
-                if (modal) modal.classList.remove('active');
-
-                if (customImage) {
-                  var opcion = confirm(
-                    'Tienes una imagen personalizada cargada en el visualizador.\n\n' +
-                    '¿Deseas volver al visualizador para continuar editando?\n\n' +
-                    'Aceptar = Volver al visualizador (conserva la imagen)\n' +
-                    'Cancelar = Ir al catálogo de productos'
-                  );
-
-                  if (opcion) {
-                    console.log('🔄 Volviendo al visualizador con imagen personalizada');
-                    openVisualizer();
-                  } else {
-                    console.log('📦 Ir al catálogo');
-                    var catalogSection = document.getElementById('catalogSection') || document.getElementById('productGrid');
-                    if (catalogSection) {
-                      catalogSection.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }
+                if (opcion) {
+                  console.log('🔄 Volviendo al visualizador con imagen personalizada');
+                  openVisualizer();
                 } else {
-                  console.log('📦 No hay imagen personalizada, ir al catálogo');
+                  console.log('📦 Ir al catálogo');
                   var catalogSection = document.getElementById('catalogSection') || document.getElementById('productGrid');
                   if (catalogSection) {
                     catalogSection.scrollIntoView({ behavior: 'smooth' });
                   }
                 }
-              });
-            }
-
-            var btnCloseVisualizer = document.getElementById('btnCloseVisualizer');
-            if (btnCloseVisualizer) {
-              btnCloseVisualizer.addEventListener('click', function () {
-                if (hasAppliedMaterials()) {
-                  showExitConfirmation('close');
-                } else {
-                  closeVisualizer();
+              } else {
+                console.log('📦 No hay imagen personalizada, ir al catálogo');
+                var catalogSection = document.getElementById('catalogSection') || document.getElementById('productGrid');
+                if (catalogSection) {
+                  catalogSection.scrollIntoView({ behavior: 'smooth' });
                 }
-              });
-            }
+              }
+            });
+          }
 
-            // ==========================================
-            // BOTONES DE COTIZACIÓN Y MODALES (BLOQUE UNIFICADO)
-            // ==========================================
+          var btnCloseVisualizer = document.getElementById('btnCloseVisualizer');
+          if (btnCloseVisualizer) {
+            btnCloseVisualizer.addEventListener('click', function () {
+              if (hasAppliedMaterials()) {
+                showExitConfirmation('close');
+              } else {
+                closeVisualizer();
+              }
+            });
+          }
 
-            // 1. Botón Revisar Cotización
-            var btnReviewQuote = document.getElementById('btnReviewQuote');
-            if (btnReviewQuote) {
-              btnReviewQuote.addEventListener('click', function () {
-                if (cart.length === 0 && capturedSamples.length === 0) {
-                  alert('No hay productos ni muestras en el carrito');
-                  return;
-                }
-                showQuoteReview();
-              });
-            }
+          const btnLimpiarFabric = document.getElementById('btnLimpiarFabric');
+          if (btnLimpiarFabric) {
+            btnLimpiarFabric.addEventListener('click', function () {
+              if (confirm('¿Estás seguro de limpiar todo el canvas?')) {
+                limpiarCanvasFabric();
+              }
+            });
+          }
+          // ==========================================
+          // BOTONES DE COTIZACIÓN Y MODALES (BLOQUE UNIFICADO)
+          // ==========================================
 
-            // 2. Botón Enviar por WhatsApp (desde la barra o el modal)
-            var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
-            var btnWhatsAppBar = document.getElementById('btnWhatsApp');
-
-            // ==========================================
-            // FUNCIÓN UNIFICADA PARA ENVIAR WHATSAPP
-            // ==========================================
-            function handleSendWhatsApp() {
-              console.log('📱 Intentando enviar WhatsApp...');
-              console.log('Carrito:', cart.length, 'productos');
-              console.log('Muestras:', capturedSamples.length);
-              console.log('Sucursal seleccionada:', sucursalSeleccionada);
-
+          // 1. Botón Revisar Cotización
+          var btnReviewQuote = document.getElementById('btnReviewQuote');
+          if (btnReviewQuote) {
+            btnReviewQuote.addEventListener('click', function () {
               if (cart.length === 0 && capturedSamples.length === 0) {
-                alert('No hay productos ni muestras para enviar');
+                alert('No hay productos ni muestras en el carrito');
                 return;
               }
+              showQuoteReview();
+            });
+          }
 
-              if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
-                alert('⚠️ Por favor selecciona una sucursal destino');
-                return;
-              }
+          // 2. Botón Enviar por WhatsApp (desde la barra o el modal)
+          var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
+          var btnWhatsAppBar = document.getElementById('btnWhatsApp');
 
-              console.log('✅ Enviando a WhatsApp:', sucursalSeleccionada.whatsapp);
-              sendQuoteWhatsApp();
+          // ==========================================
+          // FUNCIÓN UNIFICADA PARA ENVIAR WHATSAPP
+          // ==========================================
+          function handleSendWhatsApp() {
+            console.log('📱 Intentando enviar WhatsApp...');
+            console.log('Carrito:', cart.length, 'productos');
+            console.log('Muestras:', capturedSamples.length);
+            console.log('Sucursal seleccionada:', sucursalSeleccionada);
 
-              var modal = document.getElementById('quoteReviewModal');
-              if (modal) modal.classList.remove('active');
+            if (cart.length === 0 && capturedSamples.length === 0) {
+              alert('No hay productos ni muestras para enviar');
+              return;
             }
 
-            // Conectar la función a TODOS los botones de WhatsApp
-            var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
-            var btnWhatsApp = document.getElementById('btnWhatsApp');
-
-            if (btnSendWhatsApp) {
-              btnSendWhatsApp.addEventListener('click', handleSendWhatsApp);
-              console.log('✅ Botón btnSendWhatsApp conectado');
+            if (!sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
+              alert('⚠️ Por favor selecciona una sucursal destino');
+              return;
             }
 
-            if (btnWhatsApp) {
-              btnWhatsApp.addEventListener('click', handleSendWhatsApp);
-              console.log('✅ Botón btnWhatsApp conectado');
-            }
+            console.log('✅ Enviando a WhatsApp:', sucursalSeleccionada.whatsapp);
+            sendQuoteWhatsApp();
 
-            // 5. Botones del modal de confirmación de salida
-            var btnSaveAndSend = document.getElementById('btnSaveAndSend');
-            if (btnSaveAndSend) {
-              btnSaveAndSend.addEventListener('click', function () {
-                saveImageAsJPG();
-                hideExitConfirmation();
-                if (pendingAction === 'change') { closeVisualizer(); openRoomModal(); }
-                else if (pendingAction === 'close') { closeVisualizer(); }
-                setTimeout(function () { showQuoteReview(); }, 300);
-              });
-            }
+            var modal = document.getElementById('quoteReviewModal');
+            if (modal) modal.classList.remove('active');
+          }
 
-            var btnSaveOnly = document.getElementById('btnSaveOnly');
-            if (btnSaveOnly) {
-              btnSaveOnly.addEventListener('click', function () {
-                saveImageAsJPG();
-                hideExitConfirmation();
-                if (pendingAction === 'change') { closeVisualizer(); openRoomModal(); }
-                else if (pendingAction === 'close') { closeVisualizer(); }
-              });
-            }
+          // Conectar la función a TODOS los botones de WhatsApp
+          var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
+          var btnWhatsApp = document.getElementById('btnWhatsApp');
 
-            // 6. Botón Descartar cambios y salir (UNIFICADO)
-            var btnDiscard = document.getElementById('btnDiscard');
-            function handleDiscard() {
-              console.log('🗑️ Descartando cambios. pendingAction:', pendingAction);
+          if (btnSendWhatsApp) {
+            btnSendWhatsApp.addEventListener('click', handleSendWhatsApp);
+            console.log('✅ Botón btnSendWhatsApp conectado');
+          }
+
+          if (btnWhatsApp) {
+            btnWhatsApp.addEventListener('click', handleSendWhatsApp);
+            console.log('✅ Botón btnWhatsApp conectado');
+          }
+
+          // 5. Botones del modal de confirmación de salida
+          var btnSaveAndSend = document.getElementById('btnSaveAndSend');
+          if (btnSaveAndSend) {
+            btnSaveAndSend.addEventListener('click', function () {
+              saveImageAsJPG();
               hideExitConfirmation();
-              if (pendingAction === 'change') {
-                closeVisualizer();
-                openRoomModal();
-              } else if (pendingAction === 'close') {
-                closeVisualizer();
-              }
+              if (pendingAction === 'change') { closeVisualizer(); openRoomModal(); }
+              else if (pendingAction === 'close') { closeVisualizer(); }
+              setTimeout(function () { showQuoteReview(); }, 300);
+            });
+          }
+
+          var btnSaveOnly = document.getElementById('btnSaveOnly');
+          if (btnSaveOnly) {
+            btnSaveOnly.addEventListener('click', function () {
+              saveImageAsJPG();
+              hideExitConfirmation();
+              if (pendingAction === 'change') { closeVisualizer(); openRoomModal(); }
+              else if (pendingAction === 'close') { closeVisualizer(); }
+            });
+          }
+
+          // 6. Botón Descartar cambios y salir (UNIFICADO)
+          var btnDiscard = document.getElementById('btnDiscard');
+          function handleDiscard() {
+            console.log('🗑️ Descartando cambios. pendingAction:', pendingAction);
+            hideExitConfirmation();
+            if (pendingAction === 'change') {
+              closeVisualizer();
+              openRoomModal();
+            } else if (pendingAction === 'close') {
+              closeVisualizer();
             }
-            if (btnDiscard) btnDiscard.addEventListener('click', handleDiscard);
+          }
+          if (btnDiscard) btnDiscard.addEventListener('click', handleDiscard);
 
-            // ==========================================
-            // 3. FASE 1: CÁMARA + MUESTRAS
-            // ==========================================
-            const cameraModal = document.getElementById('cameraModal');
-            const cameraVideo = document.getElementById('cameraVideo');
-            const cameraCanvas = document.getElementById('cameraCanvas');
-            const capturePreview = document.getElementById('capturePreview');
-            const previewImg = document.getElementById('previewImg');
-            const samplesPanel = document.getElementById('samplesPanel');
-            const samplesList = document.getElementById('samplesList');
-            const samplesCount = document.getElementById('samplesCount');
+          // ==========================================
+          // 3. FASE 1: CÁMARA + MUESTRAS
+          // ==========================================
+          const cameraModal = document.getElementById('cameraModal');
+          const cameraVideo = document.getElementById('cameraVideo');
+          const cameraCanvas = document.getElementById('cameraCanvas');
+          const capturePreview = document.getElementById('capturePreview');
+          const previewImg = document.getElementById('previewImg');
+          const samplesPanel = document.getElementById('samplesPanel');
+          const samplesList = document.getElementById('samplesList');
+          const samplesCount = document.getElementById('samplesCount');
 
-            async function openCamera() {
-              try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                  video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+          async function openCamera() {
+            try {
+              cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+              });
+              cameraVideo.srcObject = cameraStream;
+              cameraModal.classList.remove('hidden');
+              capturePreview.classList.add('hidden');
+              currentCapture = null;
+              console.log('✅ Cámara abierta');
+            } catch (error) {
+              console.error('Error cámara:', error);
+              alert('⚠️ No se pudo acceder a la cámara: ' + error.message);
+            }
+          }
+
+          function closeCamera() {
+            if (cameraStream) {
+              cameraStream.getTracks().forEach(track => track.stop());
+              cameraStream = null;
+            }
+            cameraModal.classList.add('hidden');
+            capturePreview.classList.add('hidden');
+            currentCapture = null;
+          }
+
+          function capturePhoto() {
+            const context = cameraCanvas.getContext('2d');
+            cameraCanvas.width = cameraVideo.videoWidth;
+            cameraCanvas.height = cameraVideo.videoHeight;
+            context.drawImage(cameraVideo, 0, 0);
+            currentCapture = cameraCanvas.toDataURL('image/jpeg', 0.9);
+            previewImg.src = currentCapture;
+            capturePreview.classList.remove('hidden');
+
+            console.log('📸 Foto capturada en modo:', currentCameraMode);  //agregue esta linea para el editor de pequeño photoshop
+          }
+
+          /*function saveSample() { Se omite esta funcion para poner una nueva por lo de pequeño photoshop
+           if (!currentCapture) return;
+           const sampleName = document.getElementById('sampleName').value.trim() || 'Muestra ' + (capturedSamples.length + 1);
+           capturedSamples.push({ id: Date.now(), name: sampleName, image: currentCapture });
+           renderSamples();
+           document.getElementById('sampleName').value = '';
+           capturePreview.classList.add('hidden');
+           currentCapture = null;
+           showNotification('✅ Muestra "' + sampleName + '" guardada');
+         }
+
+         window.deleteSample = function (id) {
+           capturedSamples = capturedSamples.filter(s => s.id !== id);
+           renderSamples();
+         };*/
+
+          //vamos a poner la nueva funcion de guardar muestra con el editor de pequeño photoshop
+          // ==========================================
+          // FUNCIÓN saveSample() PARA FABRIC.JS
+          // ==========================================
+          function saveSample() {
+            if (!currentCapture) return;
+
+            const sampleName = document.getElementById('sampleName').value.trim() ||
+              (currentCameraMode === 'fondo' ? 'Espacio_' + Date.now() : 'Material_' + Date.now());
+
+            if (currentCameraMode === 'fondo') {
+              // === MODO FONDO: Establecer imagen de fondo ===
+              fabric.Image.fromURL(currentCapture, function (img) {
+                // Calcular tamaño manteniendo proporción
+                const maxW = 1200, maxH = 800;
+                let w = img.width, h = img.height;
+
+                if (w > maxW) { h = h * (maxW / w); w = maxW; }
+                if (h > maxH) { w = w * (maxH / h); h = maxH; }
+
+                // Ajustar tamaño del canvas
+                fabricCanvas.setWidth(w);
+                fabricCanvas.setHeight(h);
+
+                // Configurar imagen como fondo (no seleccionable)
+                img.set({
+                  selectable: false,
+                  evented: false,
+                  hoverCursor: 'default'
                 });
-                cameraVideo.srcObject = cameraStream;
-                cameraModal.classList.remove('hidden');
-                capturePreview.classList.add('hidden');
-                currentCapture = null;
-                console.log('✅ Cámara abierta');
-              } catch (error) {
-                console.error('Error cámara:', error);
-                alert('⚠️ No se pudo acceder a la cámara: ' + error.message);
+
+                // Establecer como fondo
+                fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas), {
+                  originX: 'left',
+                  originY: 'top',
+                  scaleX: w / img.width,
+                  scaleY: h / img.height
+                });
+
+                fondoImagen = img;
+
+                console.log('✅ Fondo establecido:', sampleName, '- Tamaño:', w, 'x', h);
+                showNotification('✅ Foto del espacio guardada');
+              });
+
+            } else {
+              // === MODO MATERIAL: Agregar como capa ===
+              fabric.Image.fromURL(currentCapture, function (img) {
+                // Escalar al 30% del canvas para que quepa bien
+                const scale = Math.min(
+                  (fabricCanvas.width * 0.3) / img.width,
+                  (fabricCanvas.height * 0.3) / img.height
+                );
+
+                // Configurar la imagen con controles visuales
+                img.set({
+                  left: fabricCanvas.width / 2,
+                  top: fabricCanvas.height / 2,
+                  originX: 'center',
+                  originY: 'center',
+                  scaleX: scale,
+                  scaleY: scale,
+                  cornerColor: '#FFC700',
+                  cornerStrokeColor: '#FFC700',
+                  borderColor: '#FFC700',
+                  cornerSize: 12,
+                  transparentCorners: false,
+                  hasRotatingPoint: true,
+                  rotatingPointOffset: 20,
+                  name: sampleName
+                });
+
+                // Agregar al canvas
+                fabricCanvas.add(img);
+                fabricCanvas.setActiveObject(img);
+                fabricCanvas.renderAll();
+
+                console.log('✅ Material agregado:', sampleName);
+                showNotification('✅ Material agregado - Usa los controles para ajustar');
+              });
+            }
+
+            // Función para limpiar el canvas y empezar de nuevo
+            function limpiarCanvasFabric() {
+              if (!fabricCanvas) return;
+
+              // Eliminar todas las capas (objetos)
+              const objects = fabricCanvas.getObjects();
+              objects.forEach(obj => fabricCanvas.remove(obj));
+
+              // Limpiar fondo
+              fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
+              fondoImagen = null;
+
+              fabricCanvas.renderAll();
+
+              console.log('️ Canvas limpiado');
+              showNotification('✅ Canvas limpiado');
+            }
+
+            // Cerrar modal de cámara
+            capturePreview.classList.add('hidden');
+            currentCapture = null;
+            closeCamera();
+
+            // Actualizar TV
+            setTimeout(broadcastToScreen, 500);
+          }
+          //Función para renderizar todas las capas pequeño photoshop
+          //Abajo se agrego para la camara del pequeño photoshop
+          // Botones de modo de cámara
+          const btnModoFondo = document.getElementById('btnModoFondo');
+          const btnModoMaterial = document.getElementById('btnModoMaterial');
+          const modoActualInfo = document.getElementById('modoActualInfo');
+
+          if (btnModoFondo && btnModoMaterial) {
+            btnModoFondo.addEventListener('click', function () {
+              currentCameraMode = 'fondo';
+
+              // Actualizar estilos visuales
+              btnModoFondo.classList.add('bg-blue-600');
+              btnModoFondo.classList.remove('bg-gray-600');
+              btnModoMaterial.classList.remove('bg-green-600');
+              btnModoMaterial.classList.add('bg-gray-600');
+
+              if (modoActualInfo) {
+                modoActualInfo.innerHTML = '<i class="fas fa-home mr-2"></i>Modo actual: <strong>Foto del Espacio</strong>';
               }
-            }
 
-            function closeCamera() {
-              if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
+              console.log('📷 Modo cambiado a: Fondo');
+
+              // ABRIR LA CÁMARA AUTOMÁTICAMENTE
+              if (typeof openCamera === 'function') {
+                openCamera();
               }
-              cameraModal.classList.add('hidden');
-              capturePreview.classList.add('hidden');
-              currentCapture = null;
-            }
-
-            function capturePhoto() {
-              const context = cameraCanvas.getContext('2d');
-              cameraCanvas.width = cameraVideo.videoWidth;
-              cameraCanvas.height = cameraVideo.videoHeight;
-              context.drawImage(cameraVideo, 0, 0);
-              currentCapture = cameraCanvas.toDataURL('image/jpeg', 0.9);
-              previewImg.src = currentCapture;
-              capturePreview.classList.remove('hidden');
-
-              console.log('📸 Foto capturada en modo:', currentCameraMode);  //agregue esta linea para el editor de pequeño photoshop
-            }
-
-             /*function saveSample() { Se omite esta funcion para poner una nueva por lo de pequeño photoshop
-              if (!currentCapture) return;
-              const sampleName = document.getElementById('sampleName').value.trim() || 'Muestra ' + (capturedSamples.length + 1);
-              capturedSamples.push({ id: Date.now(), name: sampleName, image: currentCapture });
-              renderSamples();
-              document.getElementById('sampleName').value = '';
-              capturePreview.classList.add('hidden');
-              currentCapture = null;
-              showNotification('✅ Muestra "' + sampleName + '" guardada');
-            }
-
-            window.deleteSample = function (id) {
-              capturedSamples = capturedSamples.filter(s => s.id !== id);
-              renderSamples();
-            };*/
-
-            //vamos a poner la nueva funcion de guardar muestra con el editor de pequeño photoshop
-function saveSample() {
-  if (!currentCapture) return;
-  
-  const sampleName = document.getElementById('sampleName').value.trim() || 
-  (currentCameraMode === 'fondo' ? 'Espacio_' + Date.now() : 'Material_' + Date.now());
-  
-  if (currentCameraMode === 'fondo') {
-  fondoImage = new Image();
-  fondoImage.onload = function() {
-    const mainCanvas = document.getElementById('mainCanvas');
-    const zoneCanvas = document.getElementById('zoneCanvas');
-    
-    const MAX_WIDTH = 1200;
-    const MAX_HEIGHT = 800;
-    
-    let w = fondoImage.width;
-    let h = fondoImage.height;
-    
-    if (w > MAX_WIDTH) { h = h * (MAX_WIDTH / w); w = MAX_WIDTH; }
-    if (h > MAX_HEIGHT) { w = w * (MAX_HEIGHT / h); h = MAX_HEIGHT; }
-    
-    w = Math.floor(w);
-    h = Math.floor(h);
-    
-    // Solo redimensionar mainCanvas y zoneCanvas
-    mainCanvas.width = w;
-    mainCanvas.height = h;
-    zoneCanvas.width = w;
-    zoneCanvas.height = h;
-    
-    console.log(' Canvas redimensionados:', w, 'x', h);
-    
-    // Dibujar fondo
-    const ctx = mainCanvas.getContext('2d');
-    ctx.drawImage(fondoImage, 0, 0, w, h);
-    
-    materialesLayers = [];
-    selectedLayer = null;
-    
-    console.log('✅ Fondo establecido');
-    showNotification('✅ Foto del espacio guardada');
-    
-    capturePreview.classList.add('hidden');
-    currentCapture = null;
-    closeCamera();
-    
-    broadcastToScreen();
-  };
-  fondoImage.src = currentCapture;
-  } else {
-    // Agregar como material (capa)
-    const materialImg = new Image();
-    materialImg.onload = function() {
-      const layer = {
-        id: ++layerCounter,
-        image: materialImg,
-        x: materialImg.width / 2,  // Centro del canvas
-        y: materialImg.height / 2,
-        scale: 1,
-        rotation: 0,
-        width: materialImg.width,
-        height: materialImg.height
-      };
-      
-      materialesLayers.push(layer);
-      selectedLayer = layer;
-      
-      console.log('✅ Material agregado:', sampleName, 'Capa #', layer.id);
-      showNotification('✅ Material agregado - Arrástralo para posicionarlo');
-      
-      // Mostrar controles
-      document.getElementById('transformControls').classList.remove('hidden');
-      
-      // Renderizar capas
-      renderLayers();
-      
-      // Cerrar modal
-      capturePreview.classList.add('hidden');
-      currentCapture = null;
-      closeCamera();
-      
-      // Actualizar visualización en TV
-      broadcastToScreen();
-    };
-    materialImg.src = currentCapture;
-  }
-}
-//Función para renderizar todas las capas pequeño photoshop
-//Abajo se agrego para la camara del pequeño photoshop
-// Botones de modo de cámara
-const btnModoFondo = document.getElementById('btnModoFondo');
-const btnModoMaterial = document.getElementById('btnModoMaterial');
-const modoActualInfo = document.getElementById('modoActualInfo');
-
-if (btnModoFondo && btnModoMaterial) {
-  btnModoFondo.addEventListener('click', function() {
-    currentCameraMode = 'fondo';
-    
-    // Actualizar estilos visuales
-    btnModoFondo.classList.add('bg-blue-600');
-    btnModoFondo.classList.remove('bg-gray-600');
-    btnModoMaterial.classList.remove('bg-green-600');
-    btnModoMaterial.classList.add('bg-gray-600');
-    
-    if (modoActualInfo) {
-      modoActualInfo.innerHTML = '<i class="fas fa-home mr-2"></i>Modo actual: <strong>Foto del Espacio</strong>';
-    }
-    
-    console.log('📷 Modo cambiado a: Fondo');
-    
-    // ABRIR LA CÁMARA AUTOMÁTICAMENTE
-    if (typeof openCamera === 'function') {
-      openCamera();
-    }
-  });
-
-  btnModoMaterial.addEventListener('click', function() {
-    currentCameraMode = 'material';
-    
-    // Actualizar estilos visuales
-    btnModoMaterial.classList.add('bg-green-600');
-    btnModoMaterial.classList.remove('bg-gray-600');
-    btnModoFondo.classList.remove('bg-blue-600');
-    btnModoFondo.classList.add('bg-gray-600');
-    
-    if (modoActualInfo) {
-      modoActualInfo.innerHTML = '<i class="fas fa-cube mr-2"></i>Modo actual: <strong>Foto del Material</strong>';
-    }
-    
-    console.log(' Modo cambiado a: Material');
-    
-    // ABRIR LA CÁMARA AUTOMÁTICAMENTE
-    if (typeof openCamera === 'function') {
-      openCamera();
-    }
-  });
-} else {
-  console.error('❌ No se encontraron los botones btnModoFondo o btnModoMaterial');
-}
-
-// Botón eliminar capa
-const btnDeleteLayer = document.getElementById('btnDeleteLayer');
-if (btnDeleteLayer) {
-  btnDeleteLayer.addEventListener('click', function() {
-    if (selectedLayer) {
-      const index = materialesLayers.indexOf(selectedLayer);
-      if (index > -1) {
-        materialesLayers.splice(index, 1);
-        selectedLayer = null;
-        renderLayers();
-        broadcastToScreen();
-        document.getElementById('transformControls').classList.add('hidden');
-        showNotification('✅ Capa eliminada');
-      }
-    }
-  });
-}
-
-// Botones de rotación
-const btnRotateLeft = document.getElementById('btnRotateLeft');
-const btnRotateRight = document.getElementById('btnRotateRight');
-
-if (btnRotateLeft) {
-  btnRotateLeft.addEventListener('click', function() {
-    if (selectedLayer) {
-      selectedLayer.rotation -= 15;
-      renderLayers();
-      broadcastToScreen();
-    }
-  });
-}
-
-if (btnRotateRight) {
-  btnRotateRight.addEventListener('click', function() {
-    if (selectedLayer) {
-      selectedLayer.rotation += 15;
-      renderLayers();
-      broadcastToScreen();
-    }
-  });
-}
-
-// Botón traer al frente
-const btnBringToFront = document.getElementById('btnBringToFront');
-if (btnBringToFront) {
-  btnBringToFront.addEventListener('click', function() {
-    if (selectedLayer) {
-      const index = materialesLayers.indexOf(selectedLayer);
-      if (index > -1) {
-        materialesLayers.splice(index, 1);
-        materialesLayers.push(selectedLayer);
-        renderLayers();
-        broadcastToScreen();
-        showNotification('✅ Capa movida al frente');
-      }
-    }
-  });
-} //Agregado para el pequeño photoshop
-
-function renderLayers() {
-  const mainCanvas = document.getElementById('mainCanvas');
-  if (!mainCanvas) {
-    console.error('❌ mainCanvas no existe');
-    return;
-  }
-  
-  const ctx = mainCanvas.getContext('2d');
-  
-  // Si hay fondo, redibujarlo primero
-  if (fondoImage) {
-    ctx.drawImage(fondoImage, 0, 0, mainCanvas.width, mainCanvas.height);
-  }
-  
-  // Dibujar todas las capas encima
-  materialesLayers.forEach(layer => {
-    ctx.save();
-    ctx.translate(layer.x, layer.y);
-    ctx.rotate(layer.rotation * Math.PI / 180);
-    ctx.scale(layer.scale, layer.scale);
-    ctx.drawImage(layer.image, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
-    
-    // Borde de selección
-    if (layer === selectedLayer) {
-      ctx.strokeStyle = '#FFC700';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([5, 5]);
-      ctx.strokeRect(-layer.width / 2, -layer.height / 2, layer.width, layer.height);
-      ctx.setLineDash([]);
-    }
-    ctx.restore();
-  });
-  
-  console.log('🎨 Capas renderizadas en mainCanvas');
-}
-            function clearAllSamples() {
-              if (capturedSamples.length === 0) return;
-              if (confirm('¿Eliminar todas las muestras?')) {
-                capturedSamples = [];
-                renderSamples();
-              }
-            }
-
-            const btnOpenCamera = document.getElementById('btnOpenCamera');
-            if (btnOpenCamera) btnOpenCamera.addEventListener('click', openCamera);
-
-            const btnCloseCamera = document.getElementById('btnCloseCamera');
-            if (btnCloseCamera) btnCloseCamera.addEventListener('click', closeCamera);
-
-            const btnCapture = document.getElementById('btnCapture');
-            if (btnCapture) btnCapture.addEventListener('click', capturePhoto);
-
-            const btnSaveSample = document.getElementById('btnSaveSample');
-            if (btnSaveSample) btnSaveSample.addEventListener('click', saveSample);
-
-            const btnRetake = document.getElementById('btnRetake');
-            if (btnRetake) btnRetake.addEventListener('click', () => {
-              capturePreview.classList.add('hidden');
-              currentCapture = null;
             });
 
-            const btnClearSamples = document.getElementById('btnClearSamples');
-            if (btnClearSamples) btnClearSamples.addEventListener('click', clearAllSamples);
+            btnModoMaterial.addEventListener('click', function () {
+              currentCameraMode = 'material';
 
-            // ==========================================
-            // 3.5. SUBIDA DE IMAGEN PERSONALIZADA (VISUALIZADOR)
-            // ==========================================
-            var roomOptions = document.querySelectorAll('.room-option');
-            var uploadedPreview = document.getElementById('uploadedPreview');
-            var previewImage = document.getElementById('previewImage');
-            var uploadZone = document.getElementById('uploadZone');
-            var imageUpload = document.getElementById('imageUpload');
+              // Actualizar estilos visuales
+              btnModoMaterial.classList.add('bg-green-600');
+              btnModoMaterial.classList.remove('bg-gray-600');
+              btnModoFondo.classList.remove('bg-blue-600');
+              btnModoFondo.classList.add('bg-gray-600');
 
-            if (roomOptions) {
-              roomOptions.forEach(function (option) {
-                option.addEventListener('click', function () {
-                  roomOptions.forEach(function (o) { o.classList.remove('selected'); });
-                  option.classList.add('selected');
-                  currentRoom = option.getAttribute('data-room');
-                  customImage = null;
-                  if (uploadedPreview) uploadedPreview.classList.add('hidden');
-                  if (previewImage) previewImage.src = '';
-                });
-              });
-            }
+              if (modoActualInfo) {
+                modoActualInfo.innerHTML = '<i class="fas fa-cube mr-2"></i>Modo actual: <strong>Foto del Material</strong>';
+              }
 
-            if (uploadZone && imageUpload) {
-              uploadZone.addEventListener('click', function () { imageUpload.click(); });
-              uploadZone.addEventListener('dragover', function (e) {
-                e.preventDefault();
-                uploadZone.style.background = 'rgba(255,199,0,0.1)';
-              });
-              uploadZone.addEventListener('dragleave', function () {
-                uploadZone.style.background = '';
-              });
-              uploadZone.addEventListener('drop', function (e) {
-                e.preventDefault();
-                uploadZone.style.background = '';
-                var file = e.dataTransfer.files[0];
-                if (file && file.type.startsWith('image/')) handleImageUpload(file);
-              });
-              imageUpload.addEventListener('change', function (e) {
-                var file = e.target.files[0];
-                if (file) handleImageUpload(file);
-              });
-            }
+              console.log(' Modo cambiado a: Material');
 
-            function handleImageUpload(file) {
-              var reader = new FileReader();
-              reader.onload = function (e) {
-                if (previewImage) previewImage.src = e.target.result;
-                customImage = e.target.result;
-                if (uploadedPreview) uploadedPreview.classList.remove('hidden');
-                if (roomOptions) {
-                  roomOptions.forEach(function (o) { o.classList.remove('selected'); });
-                }
-                currentRoom = 'personalizado';
-              };
-              reader.readAsDataURL(file);
-            }
+              // ABRIR LA CÁMARA AUTOMÁTICAMENTE
+              if (typeof openCamera === 'function') {
+                openCamera();
+              }
+            });
+          } else {
+            console.error('❌ No se encontraron los botones btnModoFondo o btnModoMaterial');
+          }
 
-
-            
-            // ==========================================
-// EVENTOS UNIFICADOS: Zonas + Capas (CORREGIDO)
-// ==========================================
-const mainCanvas = document.getElementById('mainCanvas');
-
-if (mainCanvas) {
-  console.log('✅ mainCanvas listo para eventos unificados');
-  
-  // Función para obtener coordenadas correctas del canvas
-  function getCanvasCoords(e) {
-    const rect = mainCanvas.getBoundingClientRect();
-    const scaleX = mainCanvas.width / rect.width;
-    const scaleY = mainCanvas.height / rect.height;
-    
-    let clientX, clientY;
-    if (e.touches && e.touches.length > 0) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-    
-    return {
-      x: Math.floor((clientX - rect.left) * scaleX),
-      y: Math.floor((clientY - rect.top) * scaleY)
-    };
-  }
-  
-  // START (Clic o Toque)
-  function handleStart(e) {
-    // Si es un toque de 2 dedos, no prevenimos default para permitir zoom del navegador si es necesario
-    if (e.touches && e.touches.length === 2) {
-      isPinching = true;
-      initialDistance = getDistance(e.touches[0], e.touches[1]);
-      initialScale = selectedLayer ? selectedLayer.scale : 1;
-      initialRotation = selectedLayer ? selectedLayer.rotation : 0;
-      return;
-    }
-    
-    e.preventDefault();
-    const coords = getCanvasCoords(e);
-    console.log('👆 Start en coordenadas canvas:', coords.x, coords.y);
-    
-    // 1. Verificar si tocó una capa existente
-    let touchedLayer = null;
-    for (let i = materialesLayers.length - 1; i >= 0; i--) {
-      const layer = materialesLayers[i];
-      const halfW = (layer.width * layer.scale) / 2;
-      const halfH = (layer.height * layer.scale) / 2;
-      
-      if (coords.x >= layer.x - halfW && coords.x <= layer.x + halfW &&
-          coords.y >= layer.y - halfH && coords.y <= layer.y + halfH) {
-        touchedLayer = layer;
-        break;
-      }
-    }
-    
-    if (touchedLayer) {
-      // MODO: Manipular capa
-      console.log('✅ Capa tocada:', touchedLayer.id);
-      selectedLayer = touchedLayer;
-      isDragging = true;
-      dragStart.x = coords.x - touchedLayer.x;
-      dragStart.y = coords.y - touchedLayer.y;
-      
-      // Traer al frente
-      const idx = materialesLayers.indexOf(touchedLayer);
-      if (idx > -1) {
-        materialesLayers.splice(idx, 1);
-        materialesLayers.push(touchedLayer);
-      }
-      
-      renderLayers();
-      broadcastToScreen();
-      
-    } else {
-      // MODO: Detectar zona (no hay capa aquí)
-      console.log('🔍 No hay capa, detectando zona...');
-      selectedLayer = null;
-      triggerZoneDetection(coords.x, coords.y);
-    }
-  }
-  
-  // MOVE (Arrastrar o Pinch)
-  function handleMove(e) {
-    if (isDragging && selectedLayer && e.touches && e.touches.length === 1) {
-      e.preventDefault();
-      const coords = getCanvasCoords(e);
-      selectedLayer.x = coords.x - dragStart.x;
-      selectedLayer.y = coords.y - dragStart.y;
-      renderLayers();
-      broadcastToScreen();
-      
-    } else if (isPinching && selectedLayer && e.touches && e.touches.length === 2) {
-      e.preventDefault();
-      const distance = getDistance(e.touches[0], e.touches[1]);
-      const scale = initialScale * (distance / initialDistance);
-      selectedLayer.scale = Math.max(0.1, Math.min(scale, 5));
-      
-      const angle = getAngle(e.touches[0], e.touches[1]);
-      selectedLayer.rotation = initialRotation + angle;
-      
-      renderLayers();
-      broadcastToScreen();
-    }
-  }
-  
-  // END
-  function handleEnd(e) {
-    isDragging = false;
-    isPinching = false;
-  }
-  
-  // Conectar eventos táctiles
-  mainCanvas.addEventListener('touchstart', handleStart, { passive: false });
-  mainCanvas.addEventListener('touchmove', handleMove, { passive: false });
-  mainCanvas.addEventListener('touchend', handleEnd);
-  
-  // Conectar eventos de mouse (para pruebas en PC)
-  mainCanvas.addEventListener('mousedown', handleStart);
-  mainCanvas.addEventListener('mousemove', function(e) {
-    if (isDragging) handleMove(e);
-  });
-  mainCanvas.addEventListener('mouseup', handleEnd);
-  mainCanvas.addEventListener('mouseleave', handleEnd);
-}
-            var toleranceSlider = document.getElementById('toleranceSlider');
-            if (toleranceSlider) {
-              toleranceSlider.addEventListener('input', function () {
-                tolerance = parseInt(this.value);
-                var toleranceValue = document.getElementById('toleranceValue');
-                if (toleranceValue) toleranceValue.textContent = tolerance;
-              });
-            }
-
-            var btnUndoZone = document.getElementById('btnUndoZone');
-            if (btnUndoZone) {
-              btnUndoZone.addEventListener('click', function () {
-                if (zones.length > 0) {
-                  zones.pop();
-                  currentZoneId = zones.length > 0 ? zones[zones.length - 1].id : null;
-                  renderZonesList();
-                  redrawAllZones();
+          // Botón eliminar capa
+          const btnDeleteLayer = document.getElementById('btnDeleteLayer');
+          if (btnDeleteLayer) {
+            btnDeleteLayer.addEventListener('click', function () {
+              if (selectedLayer) {
+                const index = materialesLayers.indexOf(selectedLayer);
+                if (index > -1) {
+                  materialesLayers.splice(index, 1);
+                  selectedLayer = null;
+                  renderLayers();
                   broadcastToScreen();
+                  document.getElementById('transformControls').classList.add('hidden');
+                  showNotification('✅ Capa eliminada');
                 }
-              });
+              }
+            });
+          }
+
+          // Botones de rotación
+          const btnRotateLeft = document.getElementById('btnRotateLeft');
+          const btnRotateRight = document.getElementById('btnRotateRight');
+
+          if (btnRotateLeft) {
+            btnRotateLeft.addEventListener('click', function () {
+              if (selectedLayer) {
+                selectedLayer.rotation -= 15;
+                renderLayers();
+                broadcastToScreen();
+              }
+            });
+          }
+
+          if (btnRotateRight) {
+            btnRotateRight.addEventListener('click', function () {
+              if (selectedLayer) {
+                selectedLayer.rotation += 15;
+                renderLayers();
+                broadcastToScreen();
+              }
+            });
+          }
+
+          // Botón traer al frente
+          const btnBringToFront = document.getElementById('btnBringToFront');
+          if (btnBringToFront) {
+            btnBringToFront.addEventListener('click', function () {
+              if (selectedLayer) {
+                const index = materialesLayers.indexOf(selectedLayer);
+                if (index > -1) {
+                  materialesLayers.splice(index, 1);
+                  materialesLayers.push(selectedLayer);
+                  renderLayers();
+                  broadcastToScreen();
+                  showNotification('✅ Capa movida al frente');
+                }
+              }
+            });
+          } //Agregado para el pequeño photoshop
+
+          function renderLayers() {
+            const mainCanvas = document.getElementById('mainCanvas');
+            if (!mainCanvas) {
+              console.error('❌ mainCanvas no existe');
+              return;
             }
 
-            var btnClearZones = document.getElementById('btnClearZones');
-            if (btnClearZones) {
-              btnClearZones.addEventListener('click', function () {
-                zones = [];
-                currentZoneId = null;
-                var currentZoneEl = document.getElementById('currentZone');
-                if (currentZoneEl) currentZoneEl.textContent = 'Ninguna';
-                var zoneIndicator = document.getElementById('zoneIndicator');
-                if (zoneIndicator) zoneIndicator.classList.add('hidden');
+            const ctx = mainCanvas.getContext('2d');
+
+            // Si hay fondo, redibujarlo primero
+            if (fondoImage) {
+              ctx.drawImage(fondoImage, 0, 0, mainCanvas.width, mainCanvas.height);
+            }
+
+            // Dibujar todas las capas encima
+            materialesLayers.forEach(layer => {
+              ctx.save();
+              ctx.translate(layer.x, layer.y);
+              ctx.rotate(layer.rotation * Math.PI / 180);
+              ctx.scale(layer.scale, layer.scale);
+              ctx.drawImage(layer.image, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
+
+              // Borde de selección
+              if (layer === selectedLayer) {
+                ctx.strokeStyle = '#FFC700';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(-layer.width / 2, -layer.height / 2, layer.width, layer.height);
+                ctx.setLineDash([]);
+              }
+              ctx.restore();
+            });
+
+            console.log('🎨 Capas renderizadas en mainCanvas');
+          }
+          function clearAllSamples() {
+            if (capturedSamples.length === 0) return;
+            if (confirm('¿Eliminar todas las muestras?')) {
+              capturedSamples = [];
+              renderSamples();
+            }
+          }
+
+          const btnOpenCamera = document.getElementById('btnOpenCamera');
+          if (btnOpenCamera) btnOpenCamera.addEventListener('click', openCamera);
+
+          const btnCloseCamera = document.getElementById('btnCloseCamera');
+          if (btnCloseCamera) btnCloseCamera.addEventListener('click', closeCamera);
+
+          const btnCapture = document.getElementById('btnCapture');
+          if (btnCapture) btnCapture.addEventListener('click', capturePhoto);
+
+          const btnSaveSample = document.getElementById('btnSaveSample');
+          if (btnSaveSample) btnSaveSample.addEventListener('click', saveSample);
+
+          const btnRetake = document.getElementById('btnRetake');
+          if (btnRetake) btnRetake.addEventListener('click', () => {
+            capturePreview.classList.add('hidden');
+            currentCapture = null;
+          });
+
+          const btnClearSamples = document.getElementById('btnClearSamples');
+          if (btnClearSamples) btnClearSamples.addEventListener('click', clearAllSamples);
+
+          // ==========================================
+          // 3.5. SUBIDA DE IMAGEN PERSONALIZADA (VISUALIZADOR)
+          // ==========================================
+          var roomOptions = document.querySelectorAll('.room-option');
+          var uploadedPreview = document.getElementById('uploadedPreview');
+          var previewImage = document.getElementById('previewImage');
+          var uploadZone = document.getElementById('uploadZone');
+          var imageUpload = document.getElementById('imageUpload');
+
+          if (roomOptions) {
+            roomOptions.forEach(function (option) {
+              option.addEventListener('click', function () {
+                roomOptions.forEach(function (o) { o.classList.remove('selected'); });
+                option.classList.add('selected');
+                currentRoom = option.getAttribute('data-room');
+                customImage = null;
+                if (uploadedPreview) uploadedPreview.classList.add('hidden');
+                if (previewImage) previewImage.src = '';
+              });
+            });
+          }
+
+          if (uploadZone && imageUpload) {
+            uploadZone.addEventListener('click', function () { imageUpload.click(); });
+            uploadZone.addEventListener('dragover', function (e) {
+              e.preventDefault();
+              uploadZone.style.background = 'rgba(255,199,0,0.1)';
+            });
+            uploadZone.addEventListener('dragleave', function () {
+              uploadZone.style.background = '';
+            });
+            uploadZone.addEventListener('drop', function (e) {
+              e.preventDefault();
+              uploadZone.style.background = '';
+              var file = e.dataTransfer.files[0];
+              if (file && file.type.startsWith('image/')) handleImageUpload(file);
+            });
+            imageUpload.addEventListener('change', function (e) {
+              var file = e.target.files[0];
+              if (file) handleImageUpload(file);
+            });
+          }
+
+          function handleImageUpload(file) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              if (previewImage) previewImage.src = e.target.result;
+              customImage = e.target.result;
+              if (uploadedPreview) uploadedPreview.classList.remove('hidden');
+              if (roomOptions) {
+                roomOptions.forEach(function (o) { o.classList.remove('selected'); });
+              }
+              currentRoom = 'personalizado';
+            };
+            reader.readAsDataURL(file);
+          }
+
+
+
+          // ==========================================
+          // EVENTOS UNIFICADOS: Zonas + Capas (CORREGIDO)
+          // ==========================================
+          const mainCanvas = document.getElementById('mainCanvas');
+
+          if (mainCanvas) {
+            console.log('✅ mainCanvas listo para eventos unificados');
+
+            // Función para obtener coordenadas correctas del canvas
+            function getCanvasCoords(e) {
+              const rect = mainCanvas.getBoundingClientRect();
+              const scaleX = mainCanvas.width / rect.width;
+              const scaleY = mainCanvas.height / rect.height;
+
+              let clientX, clientY;
+              if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+              } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+              }
+
+              return {
+                x: Math.floor((clientX - rect.left) * scaleX),
+                y: Math.floor((clientY - rect.top) * scaleY)
+              };
+            }
+
+            // START (Clic o Toque)
+            function handleStart(e) {
+              // Si es un toque de 2 dedos, no prevenimos default para permitir zoom del navegador si es necesario
+              if (e.touches && e.touches.length === 2) {
+                isPinching = true;
+                initialDistance = getDistance(e.touches[0], e.touches[1]);
+                initialScale = selectedLayer ? selectedLayer.scale : 1;
+                initialRotation = selectedLayer ? selectedLayer.rotation : 0;
+                return;
+              }
+
+              e.preventDefault();
+              const coords = getCanvasCoords(e);
+              console.log('👆 Start en coordenadas canvas:', coords.x, coords.y);
+
+              // 1. Verificar si tocó una capa existente
+              let touchedLayer = null;
+              for (let i = materialesLayers.length - 1; i >= 0; i--) {
+                const layer = materialesLayers[i];
+                const halfW = (layer.width * layer.scale) / 2;
+                const halfH = (layer.height * layer.scale) / 2;
+
+                if (coords.x >= layer.x - halfW && coords.x <= layer.x + halfW &&
+                  coords.y >= layer.y - halfH && coords.y <= layer.y + halfH) {
+                  touchedLayer = layer;
+                  break;
+                }
+              }
+
+              if (touchedLayer) {
+                // MODO: Manipular capa
+                console.log('✅ Capa tocada:', touchedLayer.id);
+                selectedLayer = touchedLayer;
+                isDragging = true;
+                dragStart.x = coords.x - touchedLayer.x;
+                dragStart.y = coords.y - touchedLayer.y;
+
+                // Traer al frente
+                const idx = materialesLayers.indexOf(touchedLayer);
+                if (idx > -1) {
+                  materialesLayers.splice(idx, 1);
+                  materialesLayers.push(touchedLayer);
+                }
+
+                renderLayers();
+                broadcastToScreen();
+
+              } else {
+                // MODO: Detectar zona (no hay capa aquí)
+                console.log('🔍 No hay capa, detectando zona...');
+                selectedLayer = null;
+                triggerZoneDetection(coords.x, coords.y);
+              }
+            }
+
+            // MOVE (Arrastrar o Pinch)
+            function handleMove(e) {
+              if (isDragging && selectedLayer && e.touches && e.touches.length === 1) {
+                e.preventDefault();
+                const coords = getCanvasCoords(e);
+                selectedLayer.x = coords.x - dragStart.x;
+                selectedLayer.y = coords.y - dragStart.y;
+                renderLayers();
+                broadcastToScreen();
+
+              } else if (isPinching && selectedLayer && e.touches && e.touches.length === 2) {
+                e.preventDefault();
+                const distance = getDistance(e.touches[0], e.touches[1]);
+                const scale = initialScale * (distance / initialDistance);
+                selectedLayer.scale = Math.max(0.1, Math.min(scale, 5));
+
+                const angle = getAngle(e.touches[0], e.touches[1]);
+                selectedLayer.rotation = initialRotation + angle;
+
+                renderLayers();
+                broadcastToScreen();
+              }
+            }
+
+            // END
+            function handleEnd(e) {
+              isDragging = false;
+              isPinching = false;
+            }
+
+            // Conectar eventos táctiles
+            mainCanvas.addEventListener('touchstart', handleStart, { passive: false });
+            mainCanvas.addEventListener('touchmove', handleMove, { passive: false });
+            mainCanvas.addEventListener('touchend', handleEnd);
+
+            // Conectar eventos de mouse (para pruebas en PC)
+            mainCanvas.addEventListener('mousedown', handleStart);
+            mainCanvas.addEventListener('mousemove', function (e) {
+              if (isDragging) handleMove(e);
+            });
+            mainCanvas.addEventListener('mouseup', handleEnd);
+            mainCanvas.addEventListener('mouseleave', handleEnd);
+          }
+          var toleranceSlider = document.getElementById('toleranceSlider');
+          if (toleranceSlider) {
+            toleranceSlider.addEventListener('input', function () {
+              tolerance = parseInt(this.value);
+              var toleranceValue = document.getElementById('toleranceValue');
+              if (toleranceValue) toleranceValue.textContent = tolerance;
+            });
+          }
+
+          var btnUndoZone = document.getElementById('btnUndoZone');
+          if (btnUndoZone) {
+            btnUndoZone.addEventListener('click', function () {
+              if (zones.length > 0) {
+                zones.pop();
+                currentZoneId = zones.length > 0 ? zones[zones.length - 1].id : null;
                 renderZonesList();
                 redrawAllZones();
                 broadcastToScreen();
-              });
-            }
+              }
+            });
+          }
 
-            var catalogFilter = document.getElementById('catalogFilter');
-            if (catalogFilter) {
-              catalogFilter.addEventListener('change', function () {
-                var search = document.getElementById('catalogSearch').value;
-                renderVisualizerCatalog(this.value, search);
-              });
-            }
+          var btnClearZones = document.getElementById('btnClearZones');
+          if (btnClearZones) {
+            btnClearZones.addEventListener('click', function () {
+              zones = [];
+              currentZoneId = null;
+              var currentZoneEl = document.getElementById('currentZone');
+              if (currentZoneEl) currentZoneEl.textContent = 'Ninguna';
+              var zoneIndicator = document.getElementById('zoneIndicator');
+              if (zoneIndicator) zoneIndicator.classList.add('hidden');
+              renderZonesList();
+              redrawAllZones();
+              broadcastToScreen();
+            });
+          }
 
-            var catalogSearch = document.getElementById('catalogSearch');
-            if (catalogSearch) {
-              catalogSearch.addEventListener('input', function () {
-                var cat = document.getElementById('catalogFilter').value;
-                renderVisualizerCatalog(cat, this.value);
-              });
-            }
-            // ==========================================
-            // 3.8. ARRASTRAR MUESTRAS AL CANVAS (DRAG & DROP)
-            // ==========================================
+          var catalogFilter = document.getElementById('catalogFilter');
+          if (catalogFilter) {
+            catalogFilter.addEventListener('change', function () {
+              var search = document.getElementById('catalogSearch').value;
+              renderVisualizerCatalog(this.value, search);
+            });
+          }
 
-            // Reemplazar renderSamples para hacer las muestras arrastrables
-            function renderSamples() {
-              samplesList.innerHTML = '';
-              samplesCount.textContent = capturedSamples.length;
-              samplesPanel.classList.toggle('hidden', capturedSamples.length === 0);
+          var catalogSearch = document.getElementById('catalogSearch');
+          if (catalogSearch) {
+            catalogSearch.addEventListener('input', function () {
+              var cat = document.getElementById('catalogFilter').value;
+              renderVisualizerCatalog(cat, this.value);
+            });
+          }
+          // ==========================================
+          // 3.8. ARRASTRAR MUESTRAS AL CANVAS (DRAG & DROP)
+          // ==========================================
 
-              capturedSamples.forEach(function (sample) {
-                const item = document.createElement('div');
-                item.className = 'relative flex-shrink-0 group cursor-move';
-                item.draggable = true;
-                item.dataset.sampleId = sample.id;
-                item.innerHTML =
-                  '<div class="w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-700 hover:border-alban-yellow transition">' +
-                  '<img src="' + sample.image + '" alt="' + sample.name + '" class="w-full h-full object-cover pointer-events-none">' +
-                  '</div>' +
-                  '<button class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition delete-sample-btn">' +
-                  '<i class="fas fa-times"></i>' +
-                  '</button>' +
-                  '<p class="text-[10px] text-gray-400 mt-1 text-center truncate w-20">' + sample.name + '</p>';
+          // Reemplazar renderSamples para hacer las muestras arrastrables
+          function renderSamples() {
+            samplesList.innerHTML = '';
+            samplesCount.textContent = capturedSamples.length;
+            samplesPanel.classList.toggle('hidden', capturedSamples.length === 0);
 
-                // Botón de eliminar
-                const deleteBtn = item.querySelector('.delete-sample-btn');
-                if (deleteBtn) {
-                  deleteBtn.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    window.deleteSample(sample.id);
-                  });
-                }
+            capturedSamples.forEach(function (sample) {
+              const item = document.createElement('div');
+              item.className = 'relative flex-shrink-0 group cursor-move';
+              item.draggable = true;
+              item.dataset.sampleId = sample.id;
+              item.innerHTML =
+                '<div class="w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-700 hover:border-alban-yellow transition">' +
+                '<img src="' + sample.image + '" alt="' + sample.name + '" class="w-full h-full object-cover pointer-events-none">' +
+                '</div>' +
+                '<button class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition delete-sample-btn">' +
+                '<i class="fas fa-times"></i>' +
+                '</button>' +
+                '<p class="text-[10px] text-gray-400 mt-1 text-center truncate w-20">' + sample.name + '</p>';
 
-                // Hacer la muestra arrastrable
-                item.addEventListener('dragstart', function (e) {
-                  e.dataTransfer.setData('sampleId', sample.id);
-                  e.dataTransfer.effectAllowed = 'copy';
-                  item.style.opacity = '0.5';
+              // Botón de eliminar
+              const deleteBtn = item.querySelector('.delete-sample-btn');
+              if (deleteBtn) {
+                deleteBtn.addEventListener('click', function (e) {
+                  e.stopPropagation();
+                  window.deleteSample(sample.id);
                 });
+              }
 
-                item.addEventListener('dragend', function () {
-                  item.style.opacity = '1';
-                });
-
-                samplesList.appendChild(item);
+              // Hacer la muestra arrastrable
+              item.addEventListener('dragstart', function (e) {
+                e.dataTransfer.setData('sampleId', sample.id);
+                e.dataTransfer.effectAllowed = 'copy';
+                item.style.opacity = '0.5';
               });
-            }
 
-            // Configurar el canvas para recibir muestras arrastradas
-            const mainCanvasForDrop = document.getElementById('mainCanvas');
-            const zoneCanvasForDrop = document.getElementById('zoneCanvas');
+              item.addEventListener('dragend', function () {
+                item.style.opacity = '1';
+              });
 
-            if (mainCanvasForDrop && zoneCanvasForDrop) {
-              [mainCanvasForDrop, zoneCanvasForDrop].forEach(function (canvas) {
-                canvas.addEventListener('dragover', function (e) {
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = 'copy';
-                  canvas.style.cursor = 'copy';
-                });
+              samplesList.appendChild(item);
+            });
+          }
 
-                canvas.addEventListener('dragleave', function () {
-                  canvas.style.cursor = 'default';
-                });
+          // Configurar el canvas para recibir muestras arrastradas
+          const mainCanvasForDrop = document.getElementById('mainCanvas');
+          const zoneCanvasForDrop = document.getElementById('zoneCanvas');
 
-                canvas.addEventListener('drop', function (e) {
-                  e.preventDefault();
-                  canvas.style.cursor = 'default';
-                  // AGREGA ESTAS 3 LÍNEAS:
-                  console.log('🎯 DROP DETECTADO');
-                  console.log('Sample ID:', e.dataTransfer.getData('sampleId'));
-                  console.log('Total muestras:', capturedSamples.length);
-                  const sampleId = parseInt(e.dataTransfer.getData('sampleId'));
-                  const sample = capturedSamples.find(function (s) { return s.id === sampleId; });
+          if (mainCanvasForDrop && zoneCanvasForDrop) {
+            [mainCanvasForDrop, zoneCanvasForDrop].forEach(function (canvas) {
+              canvas.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                canvas.style.cursor = 'copy';
+              });
 
-                  if (sample) {
-                    // Obtener coordenadas del drop
-                    const rect = canvas.getBoundingClientRect();
-                    const scaleX = canvas.width / rect.width;
-                    const scaleY = canvas.height / rect.height;
-                    const x = Math.floor((e.clientX - rect.left) * scaleX);
-                    const y = Math.floor((e.clientY - rect.top) * scaleY);
+              canvas.addEventListener('dragleave', function () {
+                canvas.style.cursor = 'default';
+              });
 
-                    // Detectar zona en el punto de drop
-                    const zone = detectZone(x, y);
+              canvas.addEventListener('drop', function (e) {
+                e.preventDefault();
+                canvas.style.cursor = 'default';
+                // AGREGA ESTAS 3 LÍNEAS:
+                console.log('🎯 DROP DETECTADO');
+                console.log('Sample ID:', e.dataTransfer.getData('sampleId'));
+                console.log('Total muestras:', capturedSamples.length);
+                const sampleId = parseInt(e.dataTransfer.getData('sampleId'));
+                const sample = capturedSamples.find(function (s) { return s.id === sampleId; });
 
-                    if (zone) {
-                      zone.id = Date.now();
-                      zones.push(zone);
-                      currentZoneId = zone.id;
+                if (sample) {
+                  // Obtener coordenadas del drop
+                  const rect = canvas.getBoundingClientRect();
+                  const scaleX = canvas.width / rect.width;
+                  const scaleY = canvas.height / rect.height;
+                  const x = Math.floor((e.clientX - rect.left) * scaleX);
+                  const y = Math.floor((e.clientY - rect.top) * scaleY);
 
-                      // Crear un producto temporal con la muestra
-                      const tempProduct = {
-                        id: 'sample_' + sample.id,
-                        nombre: sample.name,
-                        color: '#808080',
-                        imagen_url: sample.image
-                      };
+                  // Detectar zona en el punto de drop
+                  const zone = detectZone(x, y);
 
-                      // Aplicar la muestra como textura
-                      zone.material = {
-                        product: tempProduct,
-                        color: tempProduct.color,
-                        name: tempProduct.nombre,
-                        imagen_url: tempProduct.imagen_url
-                      };
-                      zone.alpha = 0.7;
+                  if (zone) {
+                    zone.id = Date.now();
+                    zones.push(zone);
+                    currentZoneId = zone.id;
 
-                      currentMaterialColor = tempProduct.color;
-                      currentMaterialName = tempProduct.nombre;
+                    // Crear un producto temporal con la muestra
+                    const tempProduct = {
+                      id: 'sample_' + sample.id,
+                      nombre: sample.name,
+                      color: '#808080',
+                      imagen_url: sample.image
+                    };
 
-                      const currentMaterialEl = document.getElementById('currentMaterial');
-                      if (currentMaterialEl) currentMaterialEl.textContent = tempProduct.nombre;
+                    // Aplicar la muestra como textura
+                    zone.material = {
+                      product: tempProduct,
+                      color: tempProduct.color,
+                      name: tempProduct.nombre,
+                      imagen_url: tempProduct.imagen_url
+                    };
+                    zone.alpha = 0.7;
 
-                      loadTextureAndApply(zone, tempProduct);
-                      renderZonesList();
-                      broadcastToScreen();
-                      showNotification('✅ Muestra "' + sample.name + '" aplicada');
-                    } else {
-                      showNotification('⚠️ Zona muy pequeña. Intenta en otra área.');
-                    }
+                    currentMaterialColor = tempProduct.color;
+                    currentMaterialName = tempProduct.nombre;
+
+                    const currentMaterialEl = document.getElementById('currentMaterial');
+                    if (currentMaterialEl) currentMaterialEl.textContent = tempProduct.nombre;
+
+                    loadTextureAndApply(zone, tempProduct);
+                    renderZonesList();
+                    broadcastToScreen();
+                    showNotification('✅ Muestra "' + sample.name + '" aplicada');
+                  } else {
+                    showNotification('⚠️ Zona muy pequeña. Intenta en otra área.');
                   }
-                });
-              });
-            }
-            // ==========================================
-            // 4. SCROLL SUAVE Y MODALES
-            // ==========================================
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-              anchor.addEventListener('click', function (e) {
-                var target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                  e.preventDefault();
-                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
               });
             });
-
-            var sucursalSelector = document.getElementById('sucursalSelector');
-            if (sucursalSelector) {
-              sucursalSelector.addEventListener('change', function () {
-                const selectedOption = this.options[this.selectedIndex];
-                const infoDiv = document.getElementById('sucursalInfo');
-
-                if (this.value && selectedOption.dataset.telefono) {
-                  document.getElementById('sucursalTelefono').textContent = selectedOption.dataset.telefono;
-                  document.getElementById('sucursalHorario').textContent = selectedOption.dataset.horario || 'Consultar';
-                  infoDiv.classList.remove('hidden');
-                  sucursalSeleccionada = {
-                    whatsapp: this.value,
-                    nombre: selectedOption.textContent,
-                    telefono: selectedOption.dataset.telefono
-                  };
-                } else {
-                  infoDiv.classList.add('hidden');
-                  sucursalSeleccionada = null;
-                }
-              });
-            }
-
-            const btnCloseProductDetail = document.getElementById('btnCloseProductDetail');
-            if (btnCloseProductDetail) {
-              btnCloseProductDetail.addEventListener('click', closeProductDetail);
-            }
-
-            const productDetailModal = document.getElementById('productDetailModal');
-            if (productDetailModal) {
-              productDetailModal.addEventListener('click', function (e) {
-                if (e.target === productDetailModal) {
-                  closeProductDetail();
-                }
-              });
-            }
-            // ==========================================
-            // SOLUCIÓN DEFINITIVA: BOTONES DEL MODAL DE COTIZACIÓN
-            // ==========================================
-            const quoteModal = document.getElementById('quoteReviewModal');
-
-            if (quoteModal) {
-              console.log('✅ Modal de cotización encontrado en el DOM');
-
-              // 1. Botón Cerrar (X) - Busca por ID o por el ícono de la X
-              const closeBtn = document.getElementById('btnCloseReview') || quoteModal.querySelector('.fa-times')?.closest('button');
-              if (closeBtn) {
-                closeBtn.addEventListener('click', function (e) {
-                  e.preventDefault();
-                  console.log('❌ Clic en Cerrar modal');
-                  quoteModal.classList.remove('active');
-                });
+          }
+          // ==========================================
+          // 4. SCROLL SUAVE Y MODALES
+          // ==========================================
+          document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+              var target = document.querySelector(this.getAttribute('href'));
+              if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }
+            });
+          });
 
-              // 2. Botón Editar - Busca por ID o por el texto "Editar"
-              const editBtn = document.getElementById('btnEditQuote') || Array.from(quoteModal.querySelectorAll('button')).find(b => b.textContent.includes('Editar'));
-              if (editBtn) {
-                editBtn.addEventListener('click', function (e) {
-                  e.preventDefault();
-                  console.log('✏️ Clic en Editar');
-                  quoteModal.classList.remove('active');
+          var sucursalSelector = document.getElementById('sucursalSelector');
+          if (sucursalSelector) {
+            sucursalSelector.addEventListener('change', function () {
+              const selectedOption = this.options[this.selectedIndex];
+              const infoDiv = document.getElementById('sucursalInfo');
 
-                  // Pequeño delay para asegurar que el modal se cierre antes de hacer scroll
-                  setTimeout(() => {
-                    if (typeof customImage !== 'undefined' && customImage) {
-                      const opcion = confirm('Tienes una imagen personalizada.\n\nAceptar = Volver al visualizador\nCancelar = Ir al catálogo');
-                      if (opcion) {
-                        if (typeof openVisualizer === 'function') openVisualizer();
-                      } else {
-                        document.getElementById('productGrid')?.scrollIntoView({ behavior: 'smooth' });
-                      }
+              if (this.value && selectedOption.dataset.telefono) {
+                document.getElementById('sucursalTelefono').textContent = selectedOption.dataset.telefono;
+                document.getElementById('sucursalHorario').textContent = selectedOption.dataset.horario || 'Consultar';
+                infoDiv.classList.remove('hidden');
+                sucursalSeleccionada = {
+                  whatsapp: this.value,
+                  nombre: selectedOption.textContent,
+                  telefono: selectedOption.dataset.telefono
+                };
+              } else {
+                infoDiv.classList.add('hidden');
+                sucursalSeleccionada = null;
+              }
+            });
+          }
+
+          const btnCloseProductDetail = document.getElementById('btnCloseProductDetail');
+          if (btnCloseProductDetail) {
+            btnCloseProductDetail.addEventListener('click', closeProductDetail);
+          }
+
+          const productDetailModal = document.getElementById('productDetailModal');
+          if (productDetailModal) {
+            productDetailModal.addEventListener('click', function (e) {
+              if (e.target === productDetailModal) {
+                closeProductDetail();
+              }
+            });
+          }
+          // ==========================================
+          // SOLUCIÓN DEFINITIVA: BOTONES DEL MODAL DE COTIZACIÓN
+          // ==========================================
+          const quoteModal = document.getElementById('quoteReviewModal');
+
+          if (quoteModal) {
+            console.log('✅ Modal de cotización encontrado en el DOM');
+
+            // 1. Botón Cerrar (X) - Busca por ID o por el ícono de la X
+            const closeBtn = document.getElementById('btnCloseReview') || quoteModal.querySelector('.fa-times')?.closest('button');
+            if (closeBtn) {
+              closeBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                console.log('❌ Clic en Cerrar modal');
+                quoteModal.classList.remove('active');
+              });
+            }
+
+            // 2. Botón Editar - Busca por ID o por el texto "Editar"
+            const editBtn = document.getElementById('btnEditQuote') || Array.from(quoteModal.querySelectorAll('button')).find(b => b.textContent.includes('Editar'));
+            if (editBtn) {
+              editBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                console.log('✏️ Clic en Editar');
+                quoteModal.classList.remove('active');
+
+                // Pequeño delay para asegurar que el modal se cierre antes de hacer scroll
+                setTimeout(() => {
+                  if (typeof customImage !== 'undefined' && customImage) {
+                    const opcion = confirm('Tienes una imagen personalizada.\n\nAceptar = Volver al visualizador\nCancelar = Ir al catálogo');
+                    if (opcion) {
+                      if (typeof openVisualizer === 'function') openVisualizer();
                     } else {
                       document.getElementById('productGrid')?.scrollIntoView({ behavior: 'smooth' });
                     }
-                  }, 100);
-                });
-              }
-
-              // 3. Botón Enviar por WhatsApp - Busca por ID o por el texto "WhatsApp"
-              const whatsappBtn = document.getElementById('btnSendWhatsApp') || Array.from(quoteModal.querySelectorAll('button')).find(b => b.textContent.includes('WhatsApp'));
-              if (whatsappBtn) {
-                whatsappBtn.addEventListener('click', function (e) {
-                  e.preventDefault();
-                  console.log('📱 Clic en Enviar WhatsApp desde modal');
-                  console.log('Sucursal:', typeof sucursalSeleccionada !== 'undefined' ? sucursalSeleccionada : 'No definida');
-
-                  if (typeof sucursalSeleccionada === 'undefined' || !sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
-                    alert('⚠️ Selecciona una sucursal destino en el formulario de abajo');
-                    return;
+                  } else {
+                    document.getElementById('productGrid')?.scrollIntoView({ behavior: 'smooth' });
                   }
-
-                  if (typeof sendQuoteWhatsApp === 'function') {
-                    sendQuoteWhatsApp();
-                  }
-                  quoteModal.classList.remove('active');
-                });
-              }
-            } else {
-              console.error('❌ NO se encontró el modal con ID "quoteReviewModal" en el HTML');
+                }, 100);
+              });
             }
-            // ==========================================
-            // MENÚ CATÁLOGO (CÓDIGO DEFINITIVO Y SEGURO)
-            // ==========================================
-            const btnMegaMenu = document.getElementById('btnMegaMenu');
-            const megaMenu = document.getElementById('megaMenu');
 
-            if (btnMegaMenu && megaMenu) {
-              console.log('✅ Menú Catálogo: Elementos encontrados correctamente');
-
-              // Asegurar que tenga prioridad visual
-              megaMenu.style.zIndex = '100';
-
-              btnMegaMenu.addEventListener('click', function (e) {
+            // 3. Botón Enviar por WhatsApp - Busca por ID o por el texto "WhatsApp"
+            const whatsappBtn = document.getElementById('btnSendWhatsApp') || Array.from(quoteModal.querySelectorAll('button')).find(b => b.textContent.includes('WhatsApp'));
+            if (whatsappBtn) {
+              whatsappBtn.addEventListener('click', function (e) {
                 e.preventDefault();
-                e.stopPropagation();
-                console.log('📂 Clic en botón Catálogo');
+                console.log('📱 Clic en Enviar WhatsApp desde modal');
+                console.log('Sucursal:', typeof sucursalSeleccionada !== 'undefined' ? sucursalSeleccionada : 'No definida');
 
-                // Forzamos la visibilidad ignorando conflictos de clases CSS
-                if (megaMenu.style.display === 'none' || megaMenu.style.display === '') {
-                  megaMenu.style.display = 'block';
-                  megaMenu.classList.remove('hidden');
-                  console.log('👁️ Menú MOSTRADO');
-                } else {
-                  megaMenu.style.display = 'none';
-                  megaMenu.classList.add('hidden');
-                  console.log('🙈 Menú OCULTADO');
+                if (typeof sucursalSeleccionada === 'undefined' || !sucursalSeleccionada || !sucursalSeleccionada.whatsapp) {
+                  alert('⚠️ Selecciona una sucursal destino en el formulario de abajo');
+                  return;
                 }
-              });
 
-              // Cerrar menú al hacer clic fuera de él
-              document.addEventListener('click', function (e) {
-                if (!btnMegaMenu.contains(e.target) && !megaMenu.contains(e.target)) {
-                  megaMenu.style.display = 'none';
-                  megaMenu.classList.add('hidden');
+                if (typeof sendQuoteWhatsApp === 'function') {
+                  sendQuoteWhatsApp();
                 }
+                quoteModal.classList.remove('active');
               });
-
-              // Lógica al hacer clic en una categoría del menú
-const megaItems = megaMenu.querySelectorAll('.mega-item');
-megaItems.forEach(item => {
-  item.addEventListener('click', function () {
-    const cat = this.getAttribute('data-cat');
-    const sub = this.getAttribute('data-sub');
-    console.log('🔍 Filtrando por:', cat, sub);
-
-    // ACTUALIZAR los filtros globales
-    currentFilter.categoria = cat;
-    currentFilter.subcategoria = sub;
-
-    // Actualizar la etiqueta visual
-    const filterLabel = document.getElementById('filterLabel');
-    if (filterLabel) {
-      filterLabel.textContent = (cat === 'all') ? 'Todos los productos' : (sub === 'all' ? cat : cat + ' - ' + sub);
-    }
-
-    // ACTUALIZAR el hero/banner de la categoría
-    if (typeof updateCategoryHero === 'function') {
-      updateCategoryHero();
-    }
-
-    // APLICAR el filtro a los productos
-    if (typeof applyFilters === 'function') {
-      applyFilters();
-    }
-
-    // Cerrar el menú después de seleccionar
-    megaMenu.style.display = 'none';
-    megaMenu.classList.add('hidden');
-  });
-});
-
-            } else {
-              console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML.');
             }
+          } else {
+            console.error('❌ NO se encontró el modal con ID "quoteReviewModal" en el HTML');
+          }
+          // ==========================================
+          // MENÚ CATÁLOGO (CÓDIGO DEFINITIVO Y SEGURO)
+          // ==========================================
+          const btnMegaMenu = document.getElementById('btnMegaMenu');
+          const megaMenu = document.getElementById('megaMenu');
 
-          }); // ← 1. CIERRA DOMContentLoaded
+          if (btnMegaMenu && megaMenu) {
+            console.log('✅ Menú Catálogo: Elementos encontrados correctamente');
+
+            // Asegurar que tenga prioridad visual
+            megaMenu.style.zIndex = '100';
+
+            btnMegaMenu.addEventListener('click', function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('📂 Clic en botón Catálogo');
+
+              // Forzamos la visibilidad ignorando conflictos de clases CSS
+              if (megaMenu.style.display === 'none' || megaMenu.style.display === '') {
+                megaMenu.style.display = 'block';
+                megaMenu.classList.remove('hidden');
+                console.log('👁️ Menú MOSTRADO');
+              } else {
+                megaMenu.style.display = 'none';
+                megaMenu.classList.add('hidden');
+                console.log('🙈 Menú OCULTADO');
+              }
+            });
+
+            // Cerrar menú al hacer clic fuera de él
+            document.addEventListener('click', function (e) {
+              if (!btnMegaMenu.contains(e.target) && !megaMenu.contains(e.target)) {
+                megaMenu.style.display = 'none';
+                megaMenu.classList.add('hidden');
+              }
+            });
+
+            // Lógica al hacer clic en una categoría del menú
+            const megaItems = megaMenu.querySelectorAll('.mega-item');
+            megaItems.forEach(item => {
+              item.addEventListener('click', function () {
+                const cat = this.getAttribute('data-cat');
+                const sub = this.getAttribute('data-sub');
+                console.log('🔍 Filtrando por:', cat, sub);
+
+                // ACTUALIZAR los filtros globales
+                currentFilter.categoria = cat;
+                currentFilter.subcategoria = sub;
+
+                // Actualizar la etiqueta visual
+                const filterLabel = document.getElementById('filterLabel');
+                if (filterLabel) {
+                  filterLabel.textContent = (cat === 'all') ? 'Todos los productos' : (sub === 'all' ? cat : cat + ' - ' + sub);
+                }
+
+                // ACTUALIZAR el hero/banner de la categoría
+                if (typeof updateCategoryHero === 'function') {
+                  updateCategoryHero();
+                }
+
+                // APLICAR el filtro a los productos
+                if (typeof applyFilters === 'function') {
+                  applyFilters();
+                }
+
+                // Cerrar el menú después de seleccionar
+                megaMenu.style.display = 'none';
+                megaMenu.classList.add('hidden');
+              });
+            });
+
+          } else {
+            console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML.');
+          }
+
+        }); // ← 1. CIERRA DOMContentLoaded
 
       })(); // ← 2. CIERRA FUNCIÓN PRINCIPAL - ¡ESTO ES LO QUE FALTA!
   </script>
