@@ -2708,7 +2708,6 @@
               }
 
             });
-          }
 
             // 2. Botón WhatsApp (unificado)
             var btnWhatsApp = document.getElementById('btnWhatsApp');
@@ -3383,8 +3382,11 @@ if (btnMegaMenu && megaMenu) {
 } else {
   console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML.');
 }
-  });
-  </script>
+
+}); // ← 1. CIERRA DOMContentLoaded
+
+})(); // ← 2. CIERRA LA FUNCIÓN PRINCIPAL (¡ESTA FALTABA!)
+</script>
   <!-- ========================================== -->
   <!-- MODALES HTML (DEBEN IR DESPUÉS DE </script>) -->
   <!-- ========================================== -->
