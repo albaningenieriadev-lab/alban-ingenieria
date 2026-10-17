@@ -3325,68 +3325,70 @@
               console.error('❌ NO se encontró el modal con ID "quoteReviewModal" en el HTML');
             }
             // ==========================================
-// MENÚ CATÁLOGO (CÓDIGO DEFINITIVO Y SEGURO)
-// ==========================================
-const btnMegaMenu = document.getElementById('btnMegaMenu');
-const megaMenu = document.getElementById('megaMenu');
+            // MENÚ CATÁLOGO (CÓDIGO DEFINITIVO Y SEGURO)
+            // ==========================================
+            const btnMegaMenu = document.getElementById('btnMegaMenu');
+            const megaMenu = document.getElementById('megaMenu');
 
-if (btnMegaMenu && megaMenu) {
-  console.log('✅ Menú Catálogo: Elementos encontrados correctamente');
+            if (btnMegaMenu && megaMenu) {
+              console.log('✅ Menú Catálogo: Elementos encontrados correctamente');
 
-  // Asegurar que tenga prioridad visual
-  megaMenu.style.zIndex = '100';
+              // Asegurar que tenga prioridad visual
+              megaMenu.style.zIndex = '100';
 
-  btnMegaMenu.addEventListener('click', function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('📂 Clic en botón Catálogo');
-    
-    // Forzamos la visibilidad ignorando conflictos de clases CSS
-    if (megaMenu.style.display === 'none' || megaMenu.style.display === '') {
-      megaMenu.style.display = 'block';
-      megaMenu.classList.remove('hidden');
-      console.log('👁️ Menú MOSTRADO');
-    } else {
-      megaMenu.style.display = 'none';
-      megaMenu.classList.add('hidden');
-      console.log('🙈 Menú OCULTADO');
-    }
-  });
+              btnMegaMenu.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('📂 Clic en botón Catálogo');
 
-  // Cerrar menú al hacer clic fuera de él
-  document.addEventListener('click', function (e) {
-    if (!btnMegaMenu.contains(e.target) && !megaMenu.contains(e.target)) {
-      megaMenu.style.display = 'none';
-      megaMenu.classList.add('hidden');
-    }
-  });
+                // Forzamos la visibilidad ignorando conflictos de clases CSS
+                if (megaMenu.style.display === 'none' || megaMenu.style.display === '') {
+                  megaMenu.style.display = 'block';
+                  megaMenu.classList.remove('hidden');
+                  console.log('👁️ Menú MOSTRADO');
+                } else {
+                  megaMenu.style.display = 'none';
+                  megaMenu.classList.add('hidden');
+                  console.log('🙈 Menú OCULTADO');
+                }
+              });
 
-  // Lógica al hacer clic en una categoría del menú
-  const megaItems = megaMenu.querySelectorAll('.mega-item');
-  megaItems.forEach(item => {
-    item.addEventListener('click', function () {
-      const cat = this.getAttribute('data-cat');
-      const sub = this.getAttribute('data-sub');
-      console.log('🔍 Filtrando por:', cat, sub);
+              // Cerrar menú al hacer clic fuera de él
+              document.addEventListener('click', function (e) {
+                if (!btnMegaMenu.contains(e.target) && !megaMenu.contains(e.target)) {
+                  megaMenu.style.display = 'none';
+                  megaMenu.classList.add('hidden');
+                }
+              });
 
-      const filterLabel = document.getElementById('filterLabel');
-      if (filterLabel) {
-        filterLabel.textContent = (cat === 'all') ? 'Todos los productos' : (sub === 'all' ? cat : cat + ' - ' + sub);
-      }
-      
-      // Cerrar el menú después de seleccionar
-      megaMenu.style.display = 'none';
-      megaMenu.classList.add('hidden');
-    });
-  });
-} else {
-  console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML.');
-}
+              // Lógica al hacer clic en una categoría del menú
+              const megaItems = megaMenu.querySelectorAll('.mega-item');
+              megaItems.forEach(item => {
+                item.addEventListener('click', function () {
+                  const cat = this.getAttribute('data-cat');
+                  const sub = this.getAttribute('data-sub');
+                  console.log('🔍 Filtrando por:', cat, sub);
 
-}); // ← 1. CIERRA DOMContentLoaded
+                  const filterLabel = document.getElementById('filterLabel');
+                  if (filterLabel) {
+                    filterLabel.textContent = (cat === 'all') ? 'Todos los productos' : (sub === 'all' ? cat : cat + ' - ' + sub);
+                  }
 
-})(); // ← 2. CIERRA LA FUNCIÓN PRINCIPAL (¡ESTA FALTABA!)
-</script>
+                  // Cerrar el menú después de seleccionar
+                  megaMenu.style.display = 'none';
+                  megaMenu.classList.add('hidden');
+                });
+              });
+
+            } else {
+              console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML.');
+            }
+
+          }); // ← 1. CIERRA DOMContentLoaded
+
+      })(); // ← 2. CIERRA FUNCIÓN PRINCIPAL - ¡ESTO ES LO QUE FALTA!
+  </script>
+
   <!-- ========================================== -->
   <!-- MODALES HTML (DEBEN IR DESPUÉS DE </script>) -->
   <!-- ========================================== -->
