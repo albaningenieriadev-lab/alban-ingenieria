@@ -1034,9 +1034,11 @@
       <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
         <div class="flex-1 relative bg-black flex items-center justify-center p-4 overflow-hidden">
           <div class="relative" id="canvasContainer">
-            <canvas id="mainCanvas"
-            //estamos editando para agregar canvas para visualizador tipo photoshop
+            <canvas id="mainCanvas" class="w-full h-full"></canvas>      <!-- estamos editando para agregar canvas para visualizador tipo photoshop --> 
 <!-- Canvas para capas de materiales -->
+ <!-- Canvas de zonas detectadas -->
+<canvas id="zoneCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+
 <canvas id="layerCanvas" class="absolute top-0 left-0 w-full h-full" style="pointer-events: all;"></canvas>
 
 <!-- Controles de transformación (ocultos al inicio) -->
@@ -3542,8 +3544,11 @@ if (btnModoFondo && btnModoMaterial) {
     btnModoFondo.classList.remove('bg-gray-600');
     btnModoMaterial.classList.remove('bg-green-600');
     btnModoMaterial.classList.add('bg-gray-600');
-    modoActualInfo.innerHTML = '<i class="fas fa-home mr-2"></i>Modo actual: <strong>Foto del Espacio</strong>';
-  });
+    if (modoActualInfo) {
+      modoActualInfo.innerHTML = '<i class="fas fa-home mr-2"></i>Modo actual: <strong>Foto del Espacio</strong>';
+  }
+  console.log('📷 Modo cambiado a: Fondo');
+});
   
   btnModoMaterial.addEventListener('click', function() {
     currentCameraMode = 'material';
@@ -3551,8 +3556,13 @@ if (btnModoFondo && btnModoMaterial) {
     btnModoMaterial.classList.remove('bg-gray-600');
     btnModoFondo.classList.remove('bg-blue-600');
     btnModoFondo.classList.add('bg-gray-600');
-    modoActualInfo.innerHTML = '<i class="fas fa-cube mr-2"></i>Modo actual: <strong>Foto del Material</strong>';
-  });
+    if (modoActualInfo) {
+      modoActualInfo.innerHTML = '<i class="fas fa-cube mr-2"></i>Modo actual: <strong>Foto del Material</strong>';
+    }
+      console.log('📷 Modo cambiado a: Material');
+    });
+} else {
+  console.error('❌ No se encontraron los botones btnModoFondo o btnModoMaterial');
 }
 
 // Botón eliminar capa
