@@ -2648,55 +2648,55 @@
             if (screenModeEl) screenModeEl.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
 
-            var savedCode = localStorage.getItem('alban_screen_code');
-            if (savedCode) {
-              initPeerAsClient(savedCode);
-            } else {
-              var remoteStatus = document.getElementById('remoteStatus');
-              if (remoteStatus) remoteStatus.textContent = 'Ingresa el código de la tablet';
-              var codeInput = prompt('Ingresa el código de 4 dígitos de la tablet:');
-              if (codeInput && codeInput.length === 4) {
-                localStorage.setItem('alban_screen_code', codeInput);
-                initPeerAsClient(codeInput);
-              }
-            }
+            // 1. Generar código de 4 dígitos automáticamente
+            myCode = Math.floor(1000 + Math.random() * 9000).toString();var savedCode = localStorage.getItem('alban_screen_code');
+            // 2. Mostrar el código en grande en la pantalla de la TV
+            var remoteStatus = document.getElementById('remoteStatus');
+            if (remoteStatus) {
+            remoteStatus.innerHTML = `
+            <p class="text-xl text-gray-300 mb-2">Tu código de conexión es:</p>
+            <span class="text-7xl font-bold text-white block tracking-widest my-4 bg-purple-900/50 py-4 rounded-lg border-2 border-purple-500">${myCode}</span>
+            <p class="text-lg text-purple-400 animate-pulse">Esperando que la tablet ingrese este código...</p>
+            `;
+            } 
+            // 3. Iniciar como HOST (La TV espera la conexión)
+            initPeerAsHost();
 
+            // 4. Botón para salir
             var btnExitScreen = document.getElementById('btnExitScreen');
             if (btnExitScreen) {
-              btnExitScreen.addEventListener('click', function () {
-                localStorage.removeItem('alban_screen_code');
-                window.location.href = window.location.pathname;
-              });
+            btnExitScreen.addEventListener('click', function () {
+            if (typeof peer !== 'undefined' && peer) {
+            peer.destroy();
+            peer = null;
             }
+            window.location.href = window.location.pathname;
+           });
+           }
           } // <--- ¡ESTA LLAVE ES OBLIGATORIA! CIERRA EL if (isScreenMode)
           // ==========================================
-          // 2. EVENT LISTENERS PARA CONECTAR PANTALLA (TABLET)
+          // 2. MODO TABLET: Pide el código y se conecta (CLIENT)
           // ==========================================
           const btnConnectScreen = document.getElementById('btnConnectScreen');
-          const screenModal = document.getElementById('screenModal');
-          const btnCloseScreenModal = document.getElementById('btnCloseScreenModal');
-          const btnGenerateCode = document.getElementById('btnGenerateCode');
-          const codeDisplay = document.getElementById('codeDisplay');
-          const generatedCode = document.getElementById('generatedCode');
-          const connectionStatus = document.getElementById('connectionStatus');
 
-          // Abrir modal al hacer clic en "Conectar Pantalla"
-          if (btnConnectScreen) {
+          // Solo activar este botón si NO estamos en modo pantalla
+          if (btnConnectScreen && !isScreenMode) {
           btnConnectScreen.addEventListener('click', function() {
-          console.log('🔌 Clic en Conectar Pantalla');
-          // Aquí iremos a la lógica según el modo
-          const urlParams = new URLSearchParams(window.location.search);
-          const isScreenMode = urlParams.get('modo') === 'pantalla';
-    
-          if (isScreenMode) {
-          // Si estoy en modo PANTALLA, generar código
-          generarCodigoPantalla();
-          } else {
-          // Si estoy en modo TABLET, mostrar input para ingresar código
-          conectarTabletAPantalla();
-          }
-          });
-        }
+          // Pedir el código al usuario de la tablet
+          var codeInput = prompt('Ingresa el código de 4 dígitos que muestra la pantalla del showroom:');
+
+          if (codeInput && codeInput.length === 4) {
+          // Guardar el código
+          localStorage.setItem('alban_screen_code', codeInput);
+      
+          // Mostrar mensaje de conexión
+          alert('Conectando a la pantalla con el código: ' + codeInput + '\n\nAsegúrate de tener el visualizador abierto.');
+      
+          // Iniciar como CLIENTE (La tablet se conecta a la TV)
+        initPeerAsClient(codeInput);
+    }
+  });
+}
 
           // Cerrar modal y limpiar conexión
           if (btnCloseScreenModal && screenModal) {
