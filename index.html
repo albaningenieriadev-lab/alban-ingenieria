@@ -1247,20 +1247,29 @@
 
   <!-- MODO PANTALLA -->
   <div id="screenMode" class="hidden fixed inset-0 bg-black z-[200] flex items-center justify-center">
-    <div class="text-center">
-      <div class="w-32 h-32 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse"><i
-          class="fas fa-tv text-6xl text-white"></i></div>
-      <h2 class="text-4xl font-bold text-white mb-4">Pantalla Alban Ingeniería</h2>
-      <p class="text-gray-400 text-xl mb-6">Esperando conexión desde la tablet...</p>
-      <div id="remoteStatus" class="text-2xl text-purple-400 mb-6">Conectando...</div>
-      <div id="remoteView" class="hidden">
-        <img id="remoteImage" class="max-w-full max-h-[70vh] rounded-lg shadow-2xl border-4 border-purple-500 mx-auto">
-      </div>
-      <button id="btnExitScreen" class="mt-8 px-8 py-4 bg-gray-800 text-white rounded-lg hover:bg-gray-700 text-lg">
-        <i class="fas fa-times mr-2"></i>Salir
+  <div class="text-center w-full max-w-6xl px-4">
+    <div class="flex justify-between items-center mb-4">
+      <img src="imagenes/logo-alban.png" alt="Alban" class="h-12 w-auto" onerror="this.style.display='none'">
+      <div id="remoteStatus" class="text-2xl text-purple-400">Esperando conexión...</div>
+      <button id="btnExitScreen" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">
+        <i class="fas fa-power-off mr-1"></i> Salir
       </button>
     </div>
+    
+    <div class="relative rounded-xl overflow-hidden border-2 border-gray-800 shadow-2xl bg-gray-900">
+      <!-- Placeholder mientras no hay imagen -->
+      <div id="remotePlaceholder" class="py-32 text-gray-500">
+        <i class="fas fa-wifi text-6xl mb-4 opacity-50"></i>
+        <p class="text-xl">Esperando imagen de la tablet...</p>
+      </div>
+      
+      <!-- Aquí se mostrará la imagen del canvas -->
+      <div id="remoteView" class="hidden">
+        <img id="remoteImage" class="w-full h-auto object-contain max-h-[70vh]" alt="Vista en tiempo real" />
+      </div>
+    </div>
   </div>
+</div>
 
   <script>
       (function () {
@@ -2515,11 +2524,28 @@
     });
     
     conn.on('data', function(data) {
-      if (data.type === 'request-image') {
-        console.log('📸 TV: Tablet solicita imagen');
-        broadcastToScreen();
-      }
-    });
+  if (data.type === 'image-update') {
+    console.log('📥 TV: Imagen recibida, tamaño:', data.image.length, 'bytes');
+    
+    const remoteImage = document.getElementById('remoteImage');
+    const remoteView = document.getElementById('remoteView');
+    const remotePlaceholder = document.getElementById('remotePlaceholder');
+    
+    if (remoteImage) {
+      remoteImage.src = data.image;
+      remoteImage.classList.remove('hidden');
+      console.log('✅ TV: Imagen mostrada en pantalla');
+    }
+    
+    if (remoteView) remoteView.classList.remove('hidden');
+    if (remotePlaceholder) remotePlaceholder.classList.add('hidden');
+  }
+  
+  if (data.type === 'request-image') {
+    console.log('📸 TV: Tablet solicita imagen');
+    broadcastToScreen();
+  }
+});
     
     conn.on('close', function() {
       console.log('❌ TV: Tablet desconectada');
@@ -2601,14 +2627,17 @@
         remoteStatus.innerHTML = '<p class="text-2xl text-green-400 font-bold">✓ Conectado a la pantalla</p>';
       }
       
-      // Solicitar imagen inicial
-      conn.send({ type: 'request-image' });
+      // IMPORTANTE: Enviar imagen inicial inmediatamente
+  console.log('📤 Enviando imagen inicial a la pantalla...');
+  setTimeout(function() {
+    broadcastToScreen();
+  }, 500);
       
       // Solicitar actualizaciones cada 2 segundos
-      setInterval(function() {
-        if (conn.open) {
-          conn.send({ type: 'request-image' });
-        }
+  setInterval(function() {
+    if (conn.open) {
+      broadcastToScreen();
+    }
       }, 2000);
     });
     
@@ -2679,18 +2708,44 @@
 }
 
         function broadcastToScreen() {
-          if (!currentConn || !currentConn.open) return;
-          var canvas = document.getElementById('mainCanvas');
-          var zoneCanvas = document.getElementById('zoneCanvas');
-          var tempCanvas = document.createElement('canvas');
-          tempCanvas.width = canvas.width;
-          tempCanvas.height = canvas.height;
-          var ctx = tempCanvas.getContext('2d');
-          ctx.drawImage(canvas, 0, 0);
-          ctx.drawImage(zoneCanvas, 0, 0);
-          var dataUrl = tempCanvas.toDataURL('image/jpeg', 0.8);
-          try { currentConn.send({ type: 'image-update', image: dataUrl }); } catch (e) { }
-        }
+  if (!currentConn || !currentConn.open) {
+    console.log('⚠️ No hay conexión activa para enviar imagen');
+    return;
+  }
+  
+  const mainCanvas = document.getElementById('mainCanvas');
+  const zoneCanvas = document.getElementById('zoneCanvas');
+  
+  if (!mainCanvas || !zoneCanvas) {
+    console.log('⚠️ Canvas no encontrados');
+    return;
+  }
+
+  // Verificar que el canvas tenga contenido
+  if (mainCanvas.width === 0 || mainCanvas.height === 0) {
+    console.log('️ Canvas vacío, no hay imagen para enviar');
+    return;
+  }
+
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = mainCanvas.width;
+  tempCanvas.height = mainCanvas.height;
+  const ctx = tempCanvas.getContext('2d');
+  
+  // Combinar canvas principal y de zonas
+  ctx.drawImage(mainCanvas, 0, 0);
+  ctx.drawImage(zoneCanvas, 0, 0);
+  
+  // Convertir a JPEG comprimido (85% calidad)
+  const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.85);
+  
+  try { 
+    currentConn.send({ type: 'image-update', image: dataUrl });
+    console.log('📸 Imagen enviada a pantalla:', dataUrl.length, 'bytes');
+  } catch (e) { 
+    console.error('❌ Error al enviar imagen:', e); 
+  }
+}
 
         function hasAppliedMaterials() {
           return zones.length > 0 && zones.some(function (z) { return z.material; });
