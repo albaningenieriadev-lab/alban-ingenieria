@@ -3765,14 +3765,136 @@ function renderLayers() {
               };
               reader.readAsDataURL(file);
             }
-            // ==========================================
-            // 3.6. INTERACCIÓN DEL VISUALIZADOR (CANVAS Y ZONAS)
-            // ==========================================
-            const mainCanvas = document.getElementById('mainCanvas');
-            if (mainCanvas) {
-              console.log('✅ mainCanvas listo para eventos unificados');
-            }
 
+
+            
+            // ==========================================
+// EVENTOS UNIFICADOS: Zonas + Capas (CORREGIDO)
+// ==========================================
+const mainCanvas = document.getElementById('mainCanvas');
+
+if (mainCanvas) {
+  console.log('✅ mainCanvas listo para eventos unificados');
+  
+  // Función para obtener coordenadas correctas del canvas
+  function getCanvasCoords(e) {
+    const rect = mainCanvas.getBoundingClientRect();
+    const scaleX = mainCanvas.width / rect.width;
+    const scaleY = mainCanvas.height / rect.height;
+    
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    return {
+      x: Math.floor((clientX - rect.left) * scaleX),
+      y: Math.floor((clientY - rect.top) * scaleY)
+    };
+  }
+  
+  // START (Clic o Toque)
+  function handleStart(e) {
+    // Si es un toque de 2 dedos, no prevenimos default para permitir zoom del navegador si es necesario
+    if (e.touches && e.touches.length === 2) {
+      isPinching = true;
+      initialDistance = getDistance(e.touches[0], e.touches[1]);
+      initialScale = selectedLayer ? selectedLayer.scale : 1;
+      initialRotation = selectedLayer ? selectedLayer.rotation : 0;
+      return;
+    }
+    
+    e.preventDefault();
+    const coords = getCanvasCoords(e);
+    console.log('👆 Start en coordenadas canvas:', coords.x, coords.y);
+    
+    // 1. Verificar si tocó una capa existente
+    let touchedLayer = null;
+    for (let i = materialesLayers.length - 1; i >= 0; i--) {
+      const layer = materialesLayers[i];
+      const halfW = (layer.width * layer.scale) / 2;
+      const halfH = (layer.height * layer.scale) / 2;
+      
+      if (coords.x >= layer.x - halfW && coords.x <= layer.x + halfW &&
+          coords.y >= layer.y - halfH && coords.y <= layer.y + halfH) {
+        touchedLayer = layer;
+        break;
+      }
+    }
+    
+    if (touchedLayer) {
+      // MODO: Manipular capa
+      console.log('✅ Capa tocada:', touchedLayer.id);
+      selectedLayer = touchedLayer;
+      isDragging = true;
+      dragStart.x = coords.x - touchedLayer.x;
+      dragStart.y = coords.y - touchedLayer.y;
+      
+      // Traer al frente
+      const idx = materialesLayers.indexOf(touchedLayer);
+      if (idx > -1) {
+        materialesLayers.splice(idx, 1);
+        materialesLayers.push(touchedLayer);
+      }
+      
+      renderLayers();
+      broadcastToScreen();
+      
+    } else {
+      // MODO: Detectar zona (no hay capa aquí)
+      console.log('🔍 No hay capa, detectando zona...');
+      selectedLayer = null;
+      triggerZoneDetection(coords.x, coords.y);
+    }
+  }
+  
+  // MOVE (Arrastrar o Pinch)
+  function handleMove(e) {
+    if (isDragging && selectedLayer && e.touches && e.touches.length === 1) {
+      e.preventDefault();
+      const coords = getCanvasCoords(e);
+      selectedLayer.x = coords.x - dragStart.x;
+      selectedLayer.y = coords.y - dragStart.y;
+      renderLayers();
+      broadcastToScreen();
+      
+    } else if (isPinching && selectedLayer && e.touches && e.touches.length === 2) {
+      e.preventDefault();
+      const distance = getDistance(e.touches[0], e.touches[1]);
+      const scale = initialScale * (distance / initialDistance);
+      selectedLayer.scale = Math.max(0.1, Math.min(scale, 5));
+      
+      const angle = getAngle(e.touches[0], e.touches[1]);
+      selectedLayer.rotation = initialRotation + angle;
+      
+      renderLayers();
+      broadcastToScreen();
+    }
+  }
+  
+  // END
+  function handleEnd(e) {
+    isDragging = false;
+    isPinching = false;
+  }
+  
+  // Conectar eventos táctiles
+  mainCanvas.addEventListener('touchstart', handleStart, { passive: false });
+  mainCanvas.addEventListener('touchmove', handleMove, { passive: false });
+  mainCanvas.addEventListener('touchend', handleEnd);
+  
+  // Conectar eventos de mouse (para pruebas en PC)
+  mainCanvas.addEventListener('mousedown', handleStart);
+  mainCanvas.addEventListener('mousemove', function(e) {
+    if (isDragging) handleMove(e);
+  });
+  mainCanvas.addEventListener('mouseup', handleEnd);
+  mainCanvas.addEventListener('mouseleave', handleEnd);
+}
             var toleranceSlider = document.getElementById('toleranceSlider');
             if (toleranceSlider) {
               toleranceSlider.addEventListener('input', function () {
