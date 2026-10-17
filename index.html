@@ -2714,10 +2714,10 @@
     return;
   }
 
-  // Canvas temporal MUY PEQUEÑO (400x300 máximo)
-  const tempCanvas = document.createElement('canvas');
-  const MAX_W = 400;
-  const MAX_H = 300;
+  // Canvas con mejor calidad (640x480)
+const tempCanvas = document.createElement('canvas');
+const MAX_W = 640;
+const MAX_H = 480;
   
   let w = mainCanvas.width;
   let h = mainCanvas.height;
@@ -2736,8 +2736,8 @@
   ctx.drawImage(mainCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
   ctx.drawImage(zoneCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
   
-  // JPEG con calidad MÍNIMA (15%)
-  const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.15);
+  // JPEG con calidad MEDIA (40% - mejor balance)
+const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.4);
   
   console.log('📸 Imagen:', Math.round(dataUrl.length / 1024), 'KB');
   
