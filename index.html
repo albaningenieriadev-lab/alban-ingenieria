@@ -1380,11 +1380,17 @@
         }
         //Actualizar el mensaje de estado
         function actualizarEstadoFabric(mensaje) {
-          const statusEl = document.getElementById('fabricStatusText');
-          if (statusEl) {
-            statusEl.textContent = mensaje;
-          }
-        }
+  // Intentar con varios IDs posibles
+  const statusEl = document.getElementById('fabricStatusText') || 
+                   document.getElementById('fabricStatus') ||
+                   document.getElementById('modeLabel');
+  
+  if (statusEl) {
+    statusEl.textContent = mensaje;
+  } else {
+    console.log('⚠️ No se encontró elemento de estado, pero el mensaje es:', mensaje);
+  }
+}
 
         // Llamar al cargar la página
         inicializarFabricCanvas();
@@ -1873,34 +1879,86 @@
         function closeRoomModal() { document.getElementById('roomModal').classList.remove('active'); document.body.style.overflow = ''; }
 
         function openVisualizer() {
-          // === AGREGA ESTO AL INICIO ===
-          const fabricContainer = document.getElementById('fabricContainer');
-          if (fabricContainer) {
-            fabricContainer.style.display = 'block';
-            console.log('✅ Contenedor Fabric visible');
-          }
+  // 1. Cerrar modal anterior y abrir el visualizador
+  closeRoomModal();
+  document.getElementById('visualizerModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
 
-          const oldContainer = document.getElementById('oldCanvasContainer');
-          if (oldContainer) {
-            oldContainer.classList.add('hidden');
-          }
-          // === FIN DE LO AGREGADO ===
+  // 2. Hacer visible el contenedor de Fabric.js
+  const fabricWrapper = document.getElementById('fabricWrapper') || document.getElementById('fabricContainer');
+  if (fabricWrapper) {
+    fabricWrapper.style.display = 'block';
+  }
 
-          closeRoomModal();
-          document.getElementById('visualizerModal').classList.add('active');
-          document.body.style.overflow = 'hidden';
-          var bgImg = customImage || roomBackgrounds[currentRoom] || roomBackgrounds['sala'];
-          document.getElementById('modeLabel').textContent = '️ Haz clic en una zona';
-          document.getElementById('currentZone').textContent = 'Ninguna';
-          document.getElementById('currentMaterial').textContent = 'Ninguno';
-          zones = [];
-          currentZoneId = null;
-          renderVisualizerCatalog('all', '');
-          document.getElementById('catalogFilter').value = 'all';
-          document.getElementById('catalogSearch').value = '';
-          renderZonesList();
-          loadImageToCanvas(bgImg);
-        }
+  // 3. Inicializar Fabric si no existe
+  if (!fabricCanvas) {
+    inicializarFabricCanvas();
+  }
+
+  // 4. Determinar la imagen de fondo (la que subió el cliente o la predefinida)
+  var bgImg = customImage || roomBackgrounds[currentRoom] || roomBackgrounds['sala'];
+
+  // 5. Cargar la imagen usando Fabric.js (ESTO REEMPLAZA A loadImageToCanvas)
+  cargarFondoEnFabric(bgImg);
+
+  // 6. Resetear textos y listas
+  document.getElementById('currentZone').textContent = 'Ninguna';
+  document.getElementById('currentMaterial').textContent = 'Ninguno';
+  zones = [];
+  currentZoneId = null;
+  renderZonesList();
+
+  // 7. Renderizar catálogo
+  renderVisualizerCatalog('all', '');
+  document.getElementById('catalogFilter').value = 'all';
+  document.getElementById('catalogSearch').value = '';
+
+  console.log('✅ Visualizador abierto con imagen');
+}
+
+function cargarFondoEnFabric(src) {
+  if (!fabricCanvas) return;
+
+  // Usar crossOrigin para evitar errores con imágenes externas (Unsplash, etc.)
+  fabric.Image.fromURL(src, function(img) {
+    // Calcular tamaño manteniendo proporción (máximo 1200x800)
+    const maxW = 1200, maxH = 800;
+    let w = img.width, h = img.height;
+
+    if (w > maxW) { h = h * (maxW / w); w = maxW; }
+    if (h > maxH) { w = w * (maxH / h); h = maxH; }
+
+    // Ajustar tamaño del canvas
+    fabricCanvas.setWidth(w);
+    fabricCanvas.setHeight(h);
+
+    // Configurar imagen como fondo (no seleccionable ni movable)
+    img.set({
+      selectable: false,
+      evented: false,
+      hoverCursor: 'default'
+    });
+
+    // Establecer como fondo
+    fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas), {
+      originX: 'left',
+      originY: 'top',
+      scaleX: w / img.width,
+      scaleY: h / img.height
+    });
+
+    fondoImagen = img;
+    console.log('✅ Fondo cargado en Fabric:', w, 'x', h);
+    
+    // Actualizar el texto de estado (usando la función segura que creamos antes)
+    actualizarEstadoFabric('Imagen cargada - Agrega materiales con la cámara');
+    showNotification('✅ Imagen de fondo cargada correctamente');
+
+    // Enviar a la TV
+    setTimeout(broadcastToScreen, 500);
+    
+  }, { crossOrigin: 'anonymous' }); 
+}
 
         function closeVisualizer() {
           document.getElementById('visualizerModal').classList.remove('active');
@@ -1908,43 +1966,7 @@
           if (currentConn) { currentConn.close(); currentConn = null; }
         }
 
-        function loadImageToCanvas(src) {
-          var canvas = document.getElementById('mainCanvas');
-          var ctx = canvas.getContext('2d');
-          var img = new Image();
-          img.crossOrigin = 'anonymous';
-          console.log('🖼️ Cargando imagen en visualizador:', src);
-          img.onload = function () {
-            var maxW = 1200;
-            var maxH = 800;
-            var w = img.width;
-            var h = img.height;
-            if (w > maxW) { h = h * (maxW / w); w = maxW; }
-            if (h > maxH) { w = w * (maxH / h); h = maxH; }
-            canvas.width = w;
-            canvas.height = h;
-            ctx.drawImage(img, 0, 0, w, h);
-            imageData = ctx.getImageData(0, 0, w, h);
-            var zoneCanvas = document.getElementById('zoneCanvas');
-            zoneCanvas.width = w;
-            zoneCanvas.height = h;
-            zoneCanvas.style.width = w + 'px';
-            zoneCanvas.style.height = h + 'px';
-          };
-          img.onerror = function () {
-            canvas.width = 800;
-            canvas.height = 600;
-            ctx.fillStyle = '#333';
-            ctx.fillRect(0, 0, 800, 600);
-            ctx.fillStyle = '#FFC700';
-            ctx.font = '20px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('Imagen no disponible', 400, 300);
-            imageData = ctx.getImageData(0, 0, 800, 600);
-          };
-          img.src = src;
-        }
-
+        
         function rgbDistance(r1, g1, b1, r2, g2, b2) {
           return Math.sqrt(Math.pow(r1 - r2, 2) + Math.pow(g1 - g2, 2) + Math.pow(b1 - b2, 2));
         }
