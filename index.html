@@ -12,24 +12,24 @@
     tailwind.config = { theme: { extend: { colors: { alban: { yellow: '#FFC700', black: '#1a1a1a', dark: '#0a0a0a', card: '#141414' } } } } }
   </script>
   <style>
-
     /* Hacer visible el canvas de Fabric */
-#fabricCanvas {
-  display: block !important;
-  width: 100% !important;
-  height: auto !important;
-  max-width: 100% !important;
-  border: 2px solid #FFC700 !important;
-  box-shadow: 0 0 20px rgba(255, 199, 0, 0.3) !important;
-}
+    #fabricCanvas {
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
+      max-width: 100% !important;
+      border: 2px solid #FFC700 !important;
+      box-shadow: 0 0 20px rgba(255, 199, 0, 0.3) !important;
+    }
 
-#fabricContainer {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  z-index: 50 !important;
-  position: relative !important;
-}
+    #fabricContainer {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      z-index: 50 !important;
+      position: relative !important;
+    }
+
     /* Estilo para la imagen del chatbot */
     .chatbot-avatar-img {
       width: 40px;
@@ -1021,15 +1021,17 @@
   </div>
   <!-- MODAL VISUALIZADOR -->
   <div class="modal-overlay" id="visualizerModal">
-    <div class="h-screen flex flex-col">
-      <div class="bg-alban-black border-b border-alban-yellow p-4 flex justify-between items-center flex-shrink-0">
+    <div class="h-screen flex flex-col bg-alban-black">
+
+      <!-- 1. HEADER DEL VISUALIZADOR (Se mantiene intacto) -->
+      <div class="bg-alban-black border-b border-alban-yellow p-4 flex justify-between items-center flex-shrink-0 z-20">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 bg-alban-yellow rounded-md flex items-center justify-center text-alban-black font-bold">
             A</div>
           <div>
             <h2 class="text-lg font-bold text-white"><i class="fas fa-magic mr-2 text-alban-yellow"></i>Visualizador
               Inteligente</h2>
-            <p class="text-xs text-gray-400">Haz clic en una zona para detectarla automáticamente</p>
+            <p class="text-xs text-gray-400">Carga tu espacio y aplica materiales en tiempo real</p>
           </div>
         </div>
         <div class="flex items-center gap-3">
@@ -1052,189 +1054,128 @@
         </div>
       </div>
 
+      <!-- 2. CUERPO PRINCIPAL: Canvas a la izquierda, Panel a la derecha -->
       <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        <div class="flex-1 relative bg-black flex items-center justify-center p-4 overflow-hidden">
-          <!-- Contenedor principal del editor Fabric.js -->
-<div id="fabricContainer" class="relative w-full h-full min-h-[400px] bg-black rounded-lg overflow-hidden border-2 border-gray-700" style="display: block">
-  <canvas id="fabricCanvas"></canvas>
-  
-  <!-- Overlay informativo -->
-  <div id="fabricInfo" class="absolute top-2 left-2 bg-black/80 text-white px-3 py-2 rounded text-xs pointer-events-none">
-    <i class="fas fa-info-circle mr-1"></i>
-    <span id="fabricStatus">Listo para cargar imagen</span>
-  </div>
-</div>
 
-<!-- Canvas antiguo (oculto pero necesario para otras funciones) -->
-<div id="oldCanvasContainer" class="hidden">
-  <canvas id="mainCanvas" class="w-full h-full"></canvas>
-  <canvas id="zoneCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
-</div>
-          <!-- Controles de transformación (ocultos al inicio) -->
-          <div id="transformControls"
-            class="hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-alban-black/90 backdrop-blur border border-gray-700 rounded-lg p-3 flex gap-2">
-            <button id="btnBringToFront" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs"
-              title="Traer al frente">
-              <i class="fas fa-layer-group"></i>
-            </button>
-            <button id="btnDeleteLayer" class="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
-              title="Eliminar">
-              <i class="fas fa-trash"></i>
-            </button>
-            <button id="btnRotateLeft" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs"
-              title="Rotar izquierda">
-              <i class="fas fa-rotate-left"></i>
-            </button>
-            <button id="btnRotateRight" class="px-3 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs"
-              title="Rotar derecha">
-              <i class="fas fa-rotate-right"></i>
-            </button>
+        <!-- LADO IZQUIERDO: ÁREA DEL CANVAS FABRIC.JS (LIMPIO Y SIN DUPLICADOS) -->
+        <div class="flex-1 relative bg-gray-900 flex items-center justify-center p-4 overflow-hidden">
+
+          <!-- Contenedor exclusivo de Fabric.js -->
+          <div id="fabricWrapper"
+            class="relative bg-black rounded-lg overflow-hidden border-2 border-alban-yellow shadow-2xl"
+            style="max-width: 100%; max-height: 100%;">
+            <canvas id="fabricCanvas" style="display: block; max-width: 100%; height: auto;"></canvas>
+
+            <!-- Overlay de estado -->
+            <div id="fabricStatusOverlay"
+              class="absolute top-2 left-2 bg-black/80 text-white px-3 py-2 rounded text-sm pointer-events-none border border-gray-700">
+              <i class="fas fa-info-circle mr-1 text-alban-yellow"></i>
+              <span id="fabricStatusText">Listo para cargar imagen del espacio</span>
+            </div>
           </div>
 
-          //aqui termina la edicion
-
-          class="max-w-full max-h-[calc(100vh-140px)] object-contain rounded-lg shadow-2xl"></canvas>
-          <canvas id="zoneCanvas" class="zone-canvas"></canvas>
-          <div
-            class="absolute top-4 left-4 bg-alban-black/90 backdrop-blur px-4 py-2 rounded-lg border-l-4 border-alban-yellow">
-            <p class="text-xs text-gray-400 uppercase font-bold">Modo:</p>
-            <p class="font-bold text-white" id="modeLabel">🖱️ Haz clic en una zona</p>
-          </div>
+          <!-- Indicadores flotantes (se mantienen) -->
           <div id="zoneIndicator"
-            class="hidden absolute top-4 right-4 bg-green-600/90 backdrop-blur px-4 py-2 rounded-lg">
+            class="hidden absolute top-4 right-4 bg-green-600/90 backdrop-blur px-4 py-2 rounded-lg shadow-lg">
             <p class="text-xs text-white uppercase font-bold">Zona detectada:</p>
             <p class="font-bold text-white text-sm" id="zoneTypeLabel">Pared</p>
           </div>
-          <div class="absolute bottom-4 left-4 flex gap-2">
-            <button id="btnUndoZone"
-              class="px-4 py-2 bg-alban-black/90 text-white rounded-lg border border-gray-700 text-sm hover:bg-gray-800">
-              <i class="fas fa-undo mr-1"></i>Deshacer zona
-            </button>
-            <button id="btnClearZones"
-              class="px-4 py-2 bg-alban-black/90 text-white rounded-lg border border-gray-700 text-sm hover:bg-gray-800">
-              <i class="fas fa-trash mr-1"></i>Limpiar zonas
-            </button>
-          </div>
-          <button id="btnLimpiarFabric" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
-            <i class="fas fa-trash mr-2"></i>Limpiar Todo
-          </button>
-          <div
-            class="absolute bottom-4 right-4 bg-alban-black/90 backdrop-blur px-3 py-2 rounded-lg border border-gray-700">
-            <p class="text-xs text-gray-400 mb-1">Tolerancia de detección:</p>
-            <input type="range" id="toleranceSlider" min="10" max="100" value="40" class="w-32 accent-alban-yellow">
-            <p class="text-xs text-alban-yellow text-right" id="toleranceValue">40</p>
-          </div>
-        </div>
-      </div>
 
-      <div class="w-full lg:w-96 bg-alban-card border-l border-gray-800 flex flex-col overflow-hidden">
-        <div class="p-4 border-b border-gray-800 bg-alban-black flex-shrink-0">
-          <h3 class="text-lg font-bold text-white mb-1"><i class="fas fa-th-large mr-2 text-alban-yellow"></i>Catálogo
-          </h3>
-          <p class="text-xs text-gray-400">Selecciona un producto para aplicar su textura</p>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-4 space-y-4">
-          <div class="bg-alban-yellow/10 border border-alban-yellow/30 rounded-lg p-3">
-            <p class="text-xs text-alban-yellow font-bold mb-1"><i class="fas fa-lightbulb mr-1"></i> INSTRUCCIONES
-            </p>
-            <ol class="text-xs text-gray-300 space-y-1 list-decimal list-inside">
-              <li>Haz clic en una zona de la imagen</li>
-              <li>El sistema detectará automáticamente la pared/piso</li>
-              <li>Selecciona un producto del catálogo</li>
-              <li>La textura real se aplicará sobre la zona</li>
-              <li>Usa el botón 🛒 en la zona para agregar al carrito</li>
-            </ol>
+        <!-- LADO DERECHO: PANEL DE CONTROLES Y CATÁLOGO (LIMPIO Y ORGANIZADO) -->
+        <div class="w-full lg:w-96 bg-alban-card border-l border-gray-800 flex flex-col overflow-hidden z-10">
+          <div class="p-4 border-b border-gray-800 bg-alban-black flex-shrink-0">
+            <h3 class="text-lg font-bold text-white mb-1"><i
+                class="fas fa-th-large mr-2 text-alban-yellow"></i>Herramientas</h3>
           </div>
-          <!-- BOTÓN DE CÁMARA PARA CAPTURAR MUESTRAS -->
-          <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-            <p class="text-xs text-green-400 font-bold mb-2">
-              <i class="fas fa-camera mr-1"></i> CAPTURAR MUESTRA FÍSICA
-            </p>
-            <p class="text-xs text-gray-300 mb-3">Toma una foto del producto físico para agregarlo al proyecto</p>
-            //Edicion de botón para abrir la cámara
-            <!-- Selector de modo de cámara -->
-            <div class="mb-4 flex gap-2">
-              <button id="btnModoFondo"
-                class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition">
-                <i class="fas fa-home mr-2"></i>Foto del Espacio
+
+          <div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+
+            <!-- SECCIÓN 1: CÁMARA Y CAPTURA -->
+            <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 space-y-3">
+              <p class="text-xs text-alban-yellow font-bold uppercase"><i class="fas fa-camera mr-1"></i> Capturar
+                Proyecto</p>
+
+              <div class="grid grid-cols-2 gap-2">
+                <button id="btnModoFondo"
+                  class="px-3 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition text-xs flex flex-col items-center gap-1">
+                  <i class="fas fa-home text-lg"></i> Foto Espacio
+                </button>
+                <button id="btnModoMaterial"
+                  class="px-3 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition text-xs flex flex-col items-center gap-1">
+                  <i class="fas fa-cube text-lg"></i> Foto Material
+                </button>
+              </div>
+
+              <div id="modoActualInfo"
+                class="p-2 bg-blue-500/20 border border-blue-500/50 rounded-lg text-blue-300 text-xs text-center">
+                <i class="fas fa-info-circle mr-1"></i> Modo: <strong>Foto del Espacio</strong>
+              </div>
+
+              <button id="btnOpenCamera"
+                class="w-full px-4 py-3 bg-alban-yellow text-alban-black rounded-lg hover:bg-yellow-400 transition flex items-center justify-center gap-2 font-bold text-sm shadow-lg">
+                <i class="fas fa-camera text-lg"></i> Abrir cámara
               </button>
-              <button id="btnModoMaterial"
-                class="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition">
-                <i class="fas fa-cube mr-2"></i>Foto del Material
+
+              <button id="btnLimpiarFabric"
+                class="w-full px-4 py-2 bg-red-600/20 text-red-400 border border-red-600/50 rounded-lg font-bold hover:bg-red-600 hover:text-white transition flex items-center justify-center gap-2 text-sm">
+                <i class="fas fa-trash-alt"></i> Limpiar Todo
               </button>
             </div>
 
-            <div id="modoActualInfo"
-              class="mb-4 p-3 bg-blue-500/20 border border-blue-500/50 rounded-lg text-blue-300 text-sm">
-              <i class="fas fa-info-circle mr-2"></i>Modo actual: <strong>Foto del Espacio</strong>
+            <!-- SECCIÓN 2: ZONAS DETECTADAS -->
+            <div>
+              <p class="text-xs text-gray-400 mb-2 font-semibold uppercase flex justify-between">
+                Zonas detectadas <span id="zoneCount" class="text-alban-yellow">(0)</span>
+              </p>
+              <div id="zonesList" class="space-y-2 max-h-32 overflow-y-auto pr-1">
+                <p class="text-xs text-gray-500 italic">Toca la imagen para detectar</p>
+              </div>
             </div>
-            //aqui termina la edicion del boton para abrir la camara
-           
-            <!-- Botón para limpiar el canvas y empezar de cero -->
-            <button id="btnLimpiarFabric" class="px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition flex items-center gap-2">
-            <i class="fas fa-trash-alt"></i>
-            <span>Limpiar Todo</span>
-            </button>
-            <button id="btnOpenCamera"
-              class="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 font-bold text-sm shadow-lg">
-              <i class="fas fa-camera text-lg"></i>
-              <span>Abrir cámara</span>
-            </button>
-          </div>
-          <div>
-            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Zonas detectadas <span id="zoneCount"
-                class="text-alban-yellow">(0)</span></p>
-            <div id="zonesList" class="space-y-2 max-h-40 overflow-y-auto">
-              <p class="text-xs text-gray-500">Haz clic en la imagen para detectar zonas</p>
+
+            <!-- SECCIÓN 3: CATÁLOGO -->
+            <div class="border-t border-gray-700 pt-4">
+              <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Filtrar categoría</p>
+              <select id="catalogFilter"
+                class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 text-sm focus:border-alban-yellow focus:outline-none mb-3">
+                <option value="all">Todas las categorías</option>
+                <option value="Muros y Revestimientos">Muros y Revestimientos</option>
+                <option value="Placas y Paneles">Placas y Paneles</option>
+                <option value="Plafones">Plafones</option>
+                <option value="Pisos">Pisos</option>
+                <option value="Muebles">Muebles</option>
+                <option value="Materiales de Construccion">Materiales</option>
+                <option value="Exterior">Exterior</option>
+                <option value="Panel Decorativo">Panel Decorativo</option>
+                <option value="ALBAN">ALBAN</option>
+                <option value="Puertas y Canceles">Puertas y Canceles</option>
+              </select>
+
+              <div class="relative mb-3">
+                <input type="text" id="catalogSearch" placeholder="Buscar por nombre o SKU..."
+                  class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 pl-8 text-sm focus:border-alban-yellow focus:outline-none">
+                <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-500 text-xs"></i>
+              </div>
+
+              <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Productos <span id="catalogCount"
+                  class="text-alban-yellow">(0)</span></p>
+              <div id="visualizerCatalog" class="space-y-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
+                <p class="text-xs text-gray-500 italic">Cargando productos...</p>
+              </div>
             </div>
+
           </div>
 
-          <div>
-            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Filtrar por categoría</p>
-            <select id="catalogFilter"
-              class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 text-sm focus:border-alban-yellow focus:outline-none">
-              <option value="all">Todas las categorías</option>
-              <option value="Muros y Revestimientos">Muros y Revestimientos</option>
-              <option value="Placas y Paneles">Placas y Paneles</option>
-              <option value="Plafones">Plafones</option>
-              <option value="Pisos">Pisos</option>
-              <option value="Muebles">Muebles</option>
-              <option value="Materiales de Construccion">Materiales</option>
-              <option value="Exterior">Exterior</option>
-              <option value="Panel Decorativo">Panel Decorativo</option>
-              <option value="ALBAN">ALBAN</option>
-              <option value="Puertas y Canceles">Puertas y Canceles</option>
-            </select>
+          <!-- FOOTER DEL PANEL -->
+          <div class="p-3 border-t border-gray-800 bg-alban-yellow/5 flex-shrink-0">
+            <p class="text-xs text-alban-yellow font-bold mb-1"><i class="fas fa-lightbulb mr-1"></i> TIP</p>
+            <p class="text-xs text-gray-300">Usa los controles dorados en el canvas para mover, escalar y rotar los
+              materiales.</p>
           </div>
-
-          <div>
-            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">Buscar producto</p>
-            <div class="relative">
-              <input type="text" id="catalogSearch" placeholder="Nombre o SKU..."
-                class="w-full bg-alban-black border border-gray-700 text-white rounded-lg p-2 pl-8 text-sm focus:border-alban-yellow focus:outline-none">
-              <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-500 text-xs"></i>
-            </div>
-          </div>
-
-          <div>
-            <p class="text-xs text-gray-400 mb-2 font-semibold uppercase">
-              Productos <span id="catalogCount" class="text-alban-yellow">(0)</span>
-            </p>
-            <div id="visualizerCatalog" class="space-y-2 max-h-[250px] overflow-y-auto pr-1">
-              <p class="text-xs text-gray-500">Cargando productos...</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="p-3 border-t border-gray-800 bg-alban-yellow/5 flex-shrink-0">
-          <p class="text-xs text-alban-yellow font-bold mb-1"><i class="fas fa-info-circle mr-1"></i> TIP</p>
-          <p class="text-xs text-gray-300">Las texturas reales se aplican sobre las zonas detectadas. Usa el botón 🛒
-            en cada zona para agregar al carrito.</p>
         </div>
       </div>
     </div>
-  </div>
   </div>
 
   <!-- MODAL REVISIÓN DE COTIZACIÓN -->
@@ -1382,45 +1323,37 @@
 
         // Inicializar Fabric canvas cuando el DOM esté listo
         function inicializarFabricCanvas() {
-          // Si ya existe, destruirlo
           if (fabricCanvas) {
             fabricCanvas.dispose();
           }
 
-          // Crear nuevo canvas de Fabric
+          // Crear canvas con dimensiones explícitas
           fabricCanvas = new fabric.Canvas('fabricCanvas', {
             backgroundColor: '#1a1a1a',
             preserveObjectStacking: true,
-            selection: true
+            selection: true,
+            width: 800,
+            height: 600
           });
 
-          // Tamaño inicial
-          fabricCanvas.setWidth(1200);
-          fabricCanvas.setHeight(800);
+          // Forzar que el canvas sea visible
+          const canvasEl = document.getElementById('fabricCanvas');
+          if (canvasEl) {
+            canvasEl.style.display = 'block';
+            canvasEl.style.width = '100%';
+            canvasEl.style.height = 'auto';
+            canvasEl.style.maxWidth = '800px';
+          }
 
-// === AGREGA ESTO PARA HACERLO VISIBLE ===
-  const container = document.getElementById('fabricContainer');
-  if (container) {
-    container.style.display = 'block';
-    console.log('✅ Contenedor de Fabric visible');
-  }
-  
-  // Ocultar el canvas antiguo si existe
-  const oldContainer = document.getElementById('oldCanvasContainer');
-  if (oldContainer) {
-    oldContainer.classList.add('hidden');
-  }
-
-          console.log('✅ Fabric canvas inicializado');
+          console.log('✅ Fabric canvas inicializado: 800x600');
         }
-
-//Actualizar el mensaje de estado
+        //Actualizar el mensaje de estado
         function actualizarEstadoFabric(mensaje) {
-  const statusEl = document.getElementById('fabricStatus');
-  if (statusEl) {
-    statusEl.textContent = mensaje;
-  }
-}
+          const statusEl = document.getElementById('fabricStatusText');
+          if (statusEl) {
+            statusEl.textContent = mensaje;
+          }
+        }
 
         // Llamar al cargar la página
         inicializarFabricCanvas();
@@ -1492,26 +1425,26 @@
             alert('Error al cargar el catálogo. Por favor, recarga la página.');
           }
           // Forzar que el canvas sea visible
-setTimeout(function() {
-  const canvas = document.getElementById('fabricCanvas');
-  const container = document.getElementById('fabricContainer');
-  
-  if (canvas) {
-    canvas.style.display = 'block';
-    canvas.style.visibility = 'visible';
-    canvas.style.opacity = '1';
-    canvas.style.width = '100%';
-    canvas.style.height = 'auto';
-    console.log('✅ Canvas forzado a visible');
-  }
-  
-  if (container) {
-    container.style.display = 'block';
-    container.style.visibility = 'visible';
-    container.style.opacity = '1';
-    console.log('✅ Contenedor forzado a visible');
-  }
-}, 1000);
+          setTimeout(function () {
+            const canvas = document.getElementById('fabricCanvas');
+            const container = document.getElementById('fabricContainer');
+
+            if (canvas) {
+              canvas.style.display = 'block';
+              canvas.style.visibility = 'visible';
+              canvas.style.opacity = '1';
+              canvas.style.width = '100%';
+              canvas.style.height = 'auto';
+              console.log('✅ Canvas forzado a visible');
+            }
+
+            if (container) {
+              container.style.display = 'block';
+              container.style.visibility = 'visible';
+              container.style.opacity = '1';
+              console.log('✅ Contenedor forzado a visible');
+            }
+          }, 1000);
         }
         // ==========================================
         // FILTRO DE INVENTARIO POR SUCURSAL
@@ -1910,18 +1843,18 @@ setTimeout(function() {
 
         function openVisualizer() {
           // === AGREGA ESTO AL INICIO ===
-  const fabricContainer = document.getElementById('fabricContainer');
-  if (fabricContainer) {
-    fabricContainer.style.display = 'block';
-    console.log('✅ Contenedor Fabric visible');
-  }
-  
-  const oldContainer = document.getElementById('oldCanvasContainer');
-  if (oldContainer) {
-    oldContainer.classList.add('hidden');
-  }
-  // === FIN DE LO AGREGADO ===
-          
+          const fabricContainer = document.getElementById('fabricContainer');
+          if (fabricContainer) {
+            fabricContainer.style.display = 'block';
+            console.log('✅ Contenedor Fabric visible');
+          }
+
+          const oldContainer = document.getElementById('oldCanvasContainer');
+          if (oldContainer) {
+            oldContainer.classList.add('hidden');
+          }
+          // === FIN DE LO AGREGADO ===
+
           closeRoomModal();
           document.getElementById('visualizerModal').classList.add('active');
           document.body.style.overflow = 'hidden';
@@ -3023,50 +2956,50 @@ setTimeout(function() {
           });
         }
 
-// ==========================================
-// TRANSMISIÓN A PANTALLA (FABRIC.JS)
-// ==========================================
-function broadcastToScreen() {
-  if (!currentConn || !currentConn.open) {
-    console.log('⚠️ No hay conexión activa con la pantalla');
-    return;
-  }
-  
-  if (!fabricCanvas) {
-    console.log('⚠️ Fabric canvas no está inicializado');
-    return;
-  }
-  
-  // Exportar el canvas de Fabric como imagen JPEG
-  // multiplier: 0.5 reduce el tamaño a la mitad para un envío rápido y fluido
-  const dataURL = fabricCanvas.toDataURL({
-    format: 'jpeg',
-    quality: 0.6,
-    multiplier: 0.5 
-  });
-  
-  // Convertir la URL de datos a Blob y enviar por PeerJS
-  fetch(dataURL)
-    .then(res => res.blob())
-    .then(blob => {
-      const reader = new FileReader();
-      reader.onload = function() {
-        try {
-          currentConn.send({
-            type: 'image-binary',
-            data: reader.result
+        // ==========================================
+        // TRANSMISIÓN A PANTALLA (FABRIC.JS)
+        // ==========================================
+        function broadcastToScreen() {
+          if (!currentConn || !currentConn.open) {
+            console.log('⚠️ No hay conexión activa con la pantalla');
+            return;
+          }
+
+          if (!fabricCanvas) {
+            console.log('⚠️ Fabric canvas no está inicializado');
+            return;
+          }
+
+          // Exportar el canvas de Fabric como imagen JPEG
+          // multiplier: 0.5 reduce el tamaño a la mitad para un envío rápido y fluido
+          const dataURL = fabricCanvas.toDataURL({
+            format: 'jpeg',
+            quality: 0.6,
+            multiplier: 0.5
           });
-          console.log('📸 Imagen enviada a TV:', Math.round(blob.size / 1024), 'KB');
-        } catch (e) {
-          console.error('❌ Error enviando imagen:', e);
+
+          // Convertir la URL de datos a Blob y enviar por PeerJS
+          fetch(dataURL)
+            .then(res => res.blob())
+            .then(blob => {
+              const reader = new FileReader();
+              reader.onload = function () {
+                try {
+                  currentConn.send({
+                    type: 'image-binary',
+                    data: reader.result
+                  });
+                  console.log('📸 Imagen enviada a TV:', Math.round(blob.size / 1024), 'KB');
+                } catch (e) {
+                  console.error('❌ Error enviando imagen:', e);
+                }
+              };
+              reader.readAsArrayBuffer(blob);
+            })
+            .catch(err => {
+              console.error('❌ Error convirtiendo imagen de Fabric:', err);
+            });
         }
-      };
-      reader.readAsArrayBuffer(blob);
-    })
-    .catch(err => {
-      console.error('❌ Error convirtiendo imagen de Fabric:', err);
-    });
-}
 
         function hasAppliedMaterials() {
           return zones.length > 0 && zones.some(function (z) { return z.material; });
@@ -3176,17 +3109,17 @@ function broadcastToScreen() {
           if (contactForm) {
             contactForm.addEventListener('submit', enviarContacto);
           }
-// Event listener para el botón de limpiar
-const btnLimpiarFabric = document.getElementById('btnLimpiarFabric');
-if (btnLimpiarFabric) {
-  btnLimpiarFabric.addEventListener('click', function() {
-    if (confirm('¿Estás seguro de que deseas borrar el fondo y todas las capas? Esta acción no se puede deshacer.')) {
-      limpiarCanvasFabric();
-    }
-  });
-}
+          // Event listener para el botón de limpiar
+          const btnLimpiarFabric = document.getElementById('btnLimpiarFabric');
+          if (btnLimpiarFabric) {
+            btnLimpiarFabric.addEventListener('click', function () {
+              if (confirm('¿Estás seguro de que deseas borrar el fondo y todas las capas? Esta acción no se puede deshacer.')) {
+                limpiarCanvasFabric();
+              }
+            });
+          }
 
-                    // ==========================================
+          // ==========================================
           // 1. MODO PANTALLA (Solo si la URL tiene ?modo=pantalla)
           // ==========================================
           var urlParams = new URLSearchParams(window.location.search);
@@ -3425,7 +3358,7 @@ if (btnLimpiarFabric) {
               }
             });
           }
-             
+
           // ==========================================
           // BOTONES DE COTIZACIÓN Y MODALES (BLOQUE UNIFICADO)
           // ==========================================
@@ -3673,7 +3606,7 @@ if (btnLimpiarFabric) {
                 showNotification('✅ Material agregado - Usa los controles para ajustar');
               });
             }
-             // Cerrar modal de cámara
+            // Cerrar modal de cámara
             capturePreview.classList.add('hidden');
             currentCapture = null;
             closeCamera();
@@ -3681,31 +3614,31 @@ if (btnLimpiarFabric) {
             // Actualizar TV
             setTimeout(broadcastToScreen, 500);
           }
-// ==========================================
-// LIMPIAR CANVAS (REINICIAR PROYECTO)
-// ==========================================
-function limpiarCanvasFabric() {
-  if (!fabricCanvas) return;
-  
-  // 1. Eliminar todas las capas (objetos) del canvas
-  fabricCanvas.clear();
-  
-  // 2. Quitar la imagen de fondo
-  fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
-  fondoImagen = null;
-  
-  // 3. Restablecer tamaño por defecto
-  fabricCanvas.setWidth(1200);
-  fabricCanvas.setHeight(800);
-  fabricCanvas.backgroundColor = '#1a1a1a';
-  fabricCanvas.renderAll();
-  
-  console.log('🧹 Canvas limpiado y reiniciado');
-  showNotification('✅ Canvas limpiado, listo para nuevo proyecto');
-  
-  // Opcional: Avisar a la TV que se limpió
-  broadcastToScreen();
-}
+          // ==========================================
+          // LIMPIAR CANVAS (REINICIAR PROYECTO)
+          // ==========================================
+          function limpiarCanvasFabric() {
+            if (!fabricCanvas) return;
+
+            // 1. Eliminar todas las capas (objetos) del canvas
+            fabricCanvas.clear();
+
+            // 2. Quitar la imagen de fondo
+            fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
+            fondoImagen = null;
+
+            // 3. Restablecer tamaño por defecto
+            fabricCanvas.setWidth(1200);
+            fabricCanvas.setHeight(800);
+            fabricCanvas.backgroundColor = '#1a1a1a';
+            fabricCanvas.renderAll();
+
+            console.log('🧹 Canvas limpiado y reiniciado');
+            showNotification('✅ Canvas limpiado, listo para nuevo proyecto');
+
+            // Opcional: Avisar a la TV que se limpió
+            broadcastToScreen();
+          }
           //Función para renderizar todas las capas pequeño photoshop
           //Abajo se agrego para la camara del pequeño photoshop
           // Botones de modo de cámara
