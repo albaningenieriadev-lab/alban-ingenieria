@@ -4662,7 +4662,70 @@ function cargarFondoEnFabric(src) {
           } else {
             console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML.');
           }
-
+// ==========================================
+// FORZAR CONEXIÓN DE BOTONES CAMBIAR Y CERRAR
+// ==========================================
+setTimeout(function() {
+  // Buscar botón "Cambiar" por múltiples posibles IDs o texto
+  const btnCambiar = document.getElementById('btnBackToRooms') || 
+                     document.getElementById('btnCambiar') ||
+                     Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Cambiar'));
+  
+  // Buscar botón "Cerrar" por múltiples posibles IDs o texto
+  const btnCerrar = document.getElementById('btnCloseVisualizer') || 
+                    document.getElementById('btnCerrar') ||
+                    Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Cerrar'));
+  
+  console.log(' Botones encontrados:', {
+    cambiar: btnCambiar ? '✅' : '❌',
+    cerrar: btnCerrar ? '✅' : '❌'
+  });
+  
+  if (btnCambiar) {
+    btnCambiar.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log(' Clic en CAMBIAR');
+      
+      // Verificar si hay contenido en el canvas
+      const hasContent = fabricCanvas && (
+        fabricCanvas.getObjects().length > 0 || 
+        fabricCanvas.backgroundImage
+      );
+      
+      console.log(' Canvas tiene contenido:', hasContent);
+      
+      if (hasContent) {
+        showExitConfirmation('change');
+      } else {
+        cleanupAndDisconnect();
+        closeVisualizer();
+        openRoomModal();
+      }
+    });
+  }
+  
+  if (btnCerrar) {
+    btnCerrar.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log(' Clic en CERRAR');
+      
+      // Verificar si hay contenido en el canvas
+      const hasContent = fabricCanvas && (
+        fabricCanvas.getObjects().length > 0 || 
+        fabricCanvas.backgroundImage
+      );
+      
+      console.log('📦 Canvas tiene contenido:', hasContent);
+      
+      if (hasContent) {
+        showExitConfirmation('close');
+      } else {
+        cleanupAndDisconnect();
+        closeVisualizer();
+      }
+    });
+  }
+}, 1000); // Esperar 1 segundo para asegurar que el DOM esté listo
         }); // ← 1. CIERRA DOMContentLoaded
 
       })(); // ← 2. CIERRA FUNCIÓN PRINCIPAL - ¡ESTO ES LO QUE FALTA!
