@@ -2475,8 +2475,11 @@ function hideExitConfirmation() {
             fabricCanvas.renderAll();
             fondoImagen = null;
           }
+ // 2. ¡IMPORTANTE! Limpiar el arreglo de muestras para la cotización
+  capturedSamples = [];
+  console.log('🗑️ Muestras capturadas limpiadas del carrito');
 
-          // 2. Desconectar PeerJS
+          // 3 Desconectar PeerJS
           if (peer) {
             if (currentConn) {
               currentConn.close();
@@ -2488,7 +2491,35 @@ function hideExitConfirmation() {
 
           console.log('🧹 Canvas limpiado y conexión cerrada');
         }
+// ==========================================
+// LIMPIAR CANVAS (REINICIAR PROYECTO)
+// ==========================================
+function limpiarCanvasFabric() {
+  if (!fabricCanvas) return;
+  
+  // 1. Eliminar todas las capas (objetos) del canvas
+  fabricCanvas.clear();
+  
+  // 2. Quitar la imagen de fondo
+  fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
+  fondoImagen = null;
+  
+  // 3. Restablecer tamaño por defecto
+  fabricCanvas.setWidth(1200);
+  fabricCanvas.setHeight(800);
+  fabricCanvas.backgroundColor = '#1a1a1a';
+  fabricCanvas.renderAll();
 
+  // 4. ¡IMPORTANTE! Limpiar el arreglo de muestras
+  capturedSamples = [];
+  console.log('🗑️ Muestras capturadas limpiadas del carrito');
+  
+  console.log('🧹 Canvas limpiado y reiniciado');
+  showNotification('✅ Canvas limpiado, listo para nuevo proyecto');
+  
+  // Avisar a la TV que se limpió
+  broadcastToScreen();
+}
         function saveCart() {
           try { localStorage.setItem('alban_cart', JSON.stringify(cart)); } catch (e) { }
         }
@@ -3743,45 +3774,61 @@ if (btnAddSampleToCart) {
           }
 
 // ==========================================
-// BOTONES DEL MODAL DE CONFIRMACIÓN (CORREGIDO)
+// BOTONES DEL MODAL DE CONFIRMACIÓN (LIMPIEZA TOTAL INCLUIDA)
 // ==========================================
 
-// Botón: Guardar imagen y abrir cotización
+// Función auxiliar para limpiar TODO al salir
+function limpiarTodoAlSalir() {
+  // 1. Limpiar canvas de Fabric
+  if (fabricCanvas) {
+    fabricCanvas.clear();
+    fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
+    fabricCanvas.setWidth(1200);
+    fabricCanvas.setHeight(800);
+    fabricCanvas.backgroundColor = '#1a1a1a';
+    fabricCanvas.renderAll();
+    fondoImagen = null;
+  }
+  
+  // 2. ¡IMPORTANTE! Limpiar el arreglo de muestras para la cotización
+  capturedSamples = [];
+  console.log('🗑️ Muestras capturadas limpiadas del carrito');
+
+  // 3. Desconectar PeerJS
+  if (currentConn) {
+    currentConn.close();
+    currentConn = null;
+  }
+  if (peer) {
+    peer.destroy();
+    peer = null;
+  }
+  
+  console.log('🧹 Todo limpio al salir del visualizador');
+}
+
+// Botón 1: Guardar imagen y abrir cotización
 const btnSaveAndAddToCart = document.getElementById('btnSaveAndAddToCart');
 if (btnSaveAndAddToCart) {
   btnSaveAndAddToCart.addEventListener('click', function () {
     console.log('💾 Guardar imagen y abrir cotización');
     saveProjectImage(); // Descarga la imagen
-    hideExitConfirmation(); // Oculta el modal
+    hideExitConfirmation();
     
     setTimeout(function () {
-      // Limpiar canvas y desconectar
-      if (fabricCanvas) {
-        fabricCanvas.clear();
-        fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
-        fabricCanvas.setWidth(1200);
-        fabricCanvas.setHeight(800);
-        fabricCanvas.backgroundColor = '#1a1a1a';
-        fabricCanvas.renderAll();
-        fondoImagen = null;
-      }
-      
-      // Desconectar PeerJS
-      if (currentConn) { currentConn.close(); currentConn = null; }
-      
+      limpiarTodoAlSalir(); // <-- AQUÍ ESTÁ LA MAGIA
       closeVisualizer();
       
       if (pendingAction === 'change') {
         openRoomModal();
       }
       
-      // Abrir revisión de cotización
       setTimeout(function () { showQuoteReview(); }, 300);
     }, 300);
   });
 }
 
-// Botón: Solo guardar imagen
+// Botón 2: Solo guardar imagen
 const btnSaveOnly = document.getElementById('btnSaveOnly');
 if (btnSaveOnly) {
   btnSaveOnly.addEventListener('click', function () {
@@ -3790,20 +3837,7 @@ if (btnSaveOnly) {
     hideExitConfirmation();
     
     setTimeout(function () {
-      // Limpiar canvas
-      if (fabricCanvas) {
-        fabricCanvas.clear();
-        fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
-        fabricCanvas.setWidth(1200);
-        fabricCanvas.setHeight(800);
-        fabricCanvas.backgroundColor = '#1a1a1a';
-        fabricCanvas.renderAll();
-        fondoImagen = null;
-      }
-      
-      // Desconectar
-      if (currentConn) { currentConn.close(); currentConn = null; }
-      
+      limpiarTodoAlSalir(); // <-- AQUÍ ESTÁ LA MAGIA
       closeVisualizer();
       
       if (pendingAction === 'change') {
@@ -3813,29 +3847,16 @@ if (btnSaveOnly) {
   });
 }
 
-// Botón: No guardar y salir
+// Botón 3: No guardar y salir
 const btnDiscardAndExit = document.getElementById('btnDiscardAndExit');
 if (btnDiscardAndExit) {
   btnDiscardAndExit.addEventListener('click', function () {
-    console.log('️ Descartar cambios y salir');
+    console.log('🗑️ Descartar cambios y salir');
     if (confirm('¿Estás seguro de descartar todo el trabajo? Esta acción no se puede deshacer.')) {
       hideExitConfirmation();
       
       setTimeout(function () {
-        // Limpiar canvas
-        if (fabricCanvas) {
-          fabricCanvas.clear();
-          fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
-          fabricCanvas.setWidth(1200);
-          fabricCanvas.setHeight(800);
-          fabricCanvas.backgroundColor = '#1a1a1a';
-          fabricCanvas.renderAll();
-          fondoImagen = null;
-        }
-        
-        // Desconectar
-        if (currentConn) { currentConn.close(); currentConn = null; }
-        
+        limpiarTodoAlSalir(); // <-- AQUÍ ESTÁ LA MAGIA
         closeVisualizer();
         
         if (pendingAction === 'change') {
@@ -3848,13 +3869,14 @@ if (btnDiscardAndExit) {
   });
 }
 
-// Botón: Cancelar (seguir editando)
+// Botón 4: Cancelar (seguir editando) - NO limpia
 const btnCancelExit = document.getElementById('btnCancelExit');
 if (btnCancelExit) {
   btnCancelExit.addEventListener('click', function () {
-    console.log(' Cancelar - Seguir editando');
+    console.log('❌ Cancelar - Seguir editando');
     hideExitConfirmation();
     showNotification('✏️ Continuando edición...');
+    // Este botón NO limpia, solo cierra el modal
   });
 }
           // ==========================================
