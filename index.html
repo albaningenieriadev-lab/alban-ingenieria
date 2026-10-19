@@ -4032,9 +4032,10 @@ if (btnCancelExit) {
       fecha: new Date().toLocaleString()
     });
 
-    console.log('✅ Material agregado al canvas y al carrito:', sampleName);
-    console.log('📦 Total de muestras en carrito:', capturedSamples.length);
-    
+    console.log('✅ Material agregado al carrito de muestras. Total:', capturedSamples.length);
+    // ====================
+
+    console.log('✅ Material agregado:', sampleName);
     actualizarEstadoFabric('Material agregado - Arrástralo y ajústalo');
     showNotification('✅ Material agregado al proyecto y a la cotización');
     updateMaterialControls();
