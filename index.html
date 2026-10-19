@@ -3737,20 +3737,23 @@
 // BOTONES DEL MODAL DE CONFIRMACIÓN (CORREGIDO)
 // ==========================================
 
+// ==========================================
+// BOTONES DEL MODAL DE CONFIRMACIÓN (CORREGIDO)
+// ==========================================
+
 // Botón: Guardar imagen y enviar cotización
-const btnSaveAndSend = document.getElementById('btnSaveAndSend');
-if (btnSaveAndSend) {
-  btnSaveAndSend.addEventListener('click', function() {
-    console.log('💾 Guardar y enviar cotización');
-    saveProjectImage();
+const btnSaveAndAddToCart = document.getElementById('btnSaveAndAddToCart');
+if (btnSaveAndAddToCart) {
+  btnSaveAndAddToCart.addEventListener('click', function () {
+    console.log('💾 Guardar imagen y abrir cotización');
+    saveProjectImage();  // ✅ Función correcta
     hideExitConfirmation();
     
-    setTimeout(function() {
+    setTimeout(function () {
       if (pendingAction === 'change') {
         closeVisualizer();
         openRoomModal();
       } else if (pendingAction === 'close') {
-        cleanupAndDisconnect();
         closeVisualizer();
       }
       showQuoteReview();
@@ -3758,15 +3761,16 @@ if (btnSaveAndSend) {
   });
 }
 
+
 // Botón: Solo guardar imagen
 const btnSaveOnly = document.getElementById('btnSaveOnly');
 if (btnSaveOnly) {
-  btnSaveOnly.addEventListener('click', function() {
-    console.log(' Solo guardar imagen');
-    saveProjectImage();
+  btnSaveOnly.addEventListener('click', function () {
+    console.log('📥 Solo guardar imagen');
+    saveProjectImage();  // ✅ Función correcta
     hideExitConfirmation();
     
-    setTimeout(function() {
+    setTimeout(function () {
       if (pendingAction === 'change') {
         closeVisualizer();
         openRoomModal();
@@ -3778,15 +3782,16 @@ if (btnSaveOnly) {
   });
 }
 
-// Botón: No guardar y salir (ID corregido)
+
+// Botón: No guardar y salir (ID CORREGIDO)
 const btnDiscardAndExit = document.getElementById('btnDiscardAndExit');
 if (btnDiscardAndExit) {
-  btnDiscardAndExit.addEventListener('click', function() {
-    console.log('🗑️ Descartar cambios');
+  btnDiscardAndExit.addEventListener('click', function () {
+    console.log('️ Descartar cambios');
     if (confirm('¿Estás seguro de descartar todo el trabajo? Esta acción no se puede deshacer.')) {
       hideExitConfirmation();
       
-      setTimeout(function() {
+      setTimeout(function () {
         if (pendingAction === 'change') {
           closeVisualizer();
           openRoomModal();
@@ -3802,7 +3807,7 @@ if (btnDiscardAndExit) {
 // Botón: Cancelar (seguir editando) - AGREGADO
 const btnCancelExit = document.getElementById('btnCancelExit');
 if (btnCancelExit) {
-  btnCancelExit.addEventListener('click', function() {
+  btnCancelExit.addEventListener('click', function () {
     console.log('❌ Cancelar - Seguir editando');
     hideExitConfirmation();
     showNotification('️ Continuando edición...');
