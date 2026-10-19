@@ -1282,41 +1282,49 @@
     </div>
   </div>
 
-  <!-- MODAL CONFIRMACIÓN AL SALIR -->
-  <div class="modal-overlay" id="exitConfirmModal">
-    <div class="min-h-screen flex items-center justify-center p-4">
-      <div class="max-w-md w-full bg-alban-card rounded-2xl border border-gray-800 p-8">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-12 h-12 bg-alban-yellow rounded-full flex items-center justify-center"><i
-              class="fas fa-exclamation-triangle text-alban-black text-xl"></i></div>
-          <h2 class="text-2xl font-bold text-white">¿Guardar cambios?</h2>
-        </div>
-        <p class="text-gray-400 mb-6">Tienes zonas con materiales aplicados. ¿Qué deseas hacer antes de salir?</p>
-        <div class="space-y-3">
-          <button id="btnSaveAndSend"
-            class="w-full px-6 py-4 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 flex items-center gap-3 transition">
-            <i class="fas fa-file-image text-2xl"></i>
-            <div class="text-left flex-1">
-              <div class="text-base">Guardar imagen y enviar cotización</div>
-              <div class="text-xs font-normal text-green-200">Descarga JPG + abre revisión</div>
-            </div>
-          </button>
-          <button id="btnSaveOnly"
-            class="w-full px-6 py-4 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 flex items-center gap-3 transition">
-            <i class="fas fa-download text-2xl"></i>
-            <div class="text-left flex-1">
-              <div class="text-base">Solo guardar imagen</div>
-              <div class="text-xs font-normal text-gray-800">Descargar en formato JPG</div>
-            </div>
-          </button>
-          <button id="btnDiscard"
-            class="w-full px-6 py-3 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 border border-gray-700 flex items-center justify-center gap-2 transition">
-            <i class="fas fa-times"></i>Descartar cambios y salir
-          </button>
-        </div>
+  <!-- MODAL DE CONFIRMACIÓN AL SALIR (VERSIÓN FINAL) -->
+<div id="exitConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+  <div class="bg-alban-card border-2 border-alban-yellow rounded-2xl max-w-md w-full p-6 shadow-2xl animate-fade-in">
+    
+    <!-- Icono y Título -->
+    <div class="text-center mb-6">
+      <div class="w-16 h-16 bg-alban-yellow/20 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-question text-3xl text-alban-yellow"></i>
       </div>
+      <h3 class="text-xl font-bold text-white mb-2">¿Deseas guardar los cambios?</h3>
+      <p class="text-sm text-gray-400">Tienes un proyecto en curso. ¿Qué quieres hacer?</p>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="space-y-3">
+      
+      <!-- Opción 1: Guardar y enviar cotización -->
+      <button id="btnSaveAndAddToCart" class="w-full px-4 py-3 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 transition flex items-center justify-center gap-2">
+        <i class="fas fa-save"></i>
+        <span>Guardar imagen y abrir cotización</span>
+      </button>
+
+      <!-- Opción 2: Solo guardar imagen -->
+      <button id="btnSaveOnly" class="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center gap-2">
+        <i class="fas fa-download"></i>
+        <span>Solo guardar imagen</span>
+      </button>
+
+      <!-- Opción 3: No guardar y salir -->
+      <button id="btnDiscardAndExit" class="w-full px-4 py-3 bg-red-600/20 text-red-400 border border-red-600/50 rounded-lg font-bold hover:bg-red-600 hover:text-white transition flex items-center justify-center gap-2">
+        <i class="fas fa-times"></i>
+        <span>No guardar y salir</span>
+      </button>
+
+      <!-- Botón cancelar -->
+      <button id="btnCancelExit" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition text-sm">
+        Cancelar - Seguir editando
+      </button>
+      
     </div>
   </div>
+</div>
+</div>
 
   <!-- MODO PANTALLA -->
   <div id="screenMode" class="hidden fixed inset-0 bg-black z-[200] flex items-center justify-center">
@@ -2470,38 +2478,25 @@
           return dataURL;
         }
 
-        // Mostrar modal de confirmación (versión con estilos inline forzados)
+// Mostrar modal de confirmación (versión centrada)
 function showExitConfirmation(action) {
   pendingAction = action;
   const modal = document.getElementById('exitConfirmModal');
   if (modal) {
-    // Remover clase hidden
-    modal.classList.remove('hidden');
-    
-    // Forzar visibilidad con estilos inline
-    modal.style.display = 'flex';
-    modal.style.visibility = 'visible';
-    modal.style.opacity = '1';
-    modal.style.zIndex = '9999';
-    
+    modal.style.display = 'flex'; // Usar flex para centrar
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
     console.log('✅ Modal de confirmación mostrado');
   } else {
     console.error('❌ No se encontró el modal exitConfirmModal');
   }
 }
 
-// Ocultar modal de confirmación (versión con estilos inline)
+// Ocultar modal de confirmación
 function hideExitConfirmation() {
   const modal = document.getElementById('exitConfirmModal');
   if (modal) {
-    // Agregar clase hidden
-    modal.classList.add('hidden');
-    
-    // Ocultar con estilos inline
     modal.style.display = 'none';
-    modal.style.visibility = 'hidden';
-    modal.style.opacity = '0';
-    
     console.log('✅ Modal de confirmación oculto');
   }
   pendingAction = null;
@@ -3752,84 +3747,119 @@ function hideExitConfirmation() {
             console.log('✅ Botón btnWhatsApp conectado');
           }
 
-          // ==========================================
-// BOTONES DEL MODAL DE CONFIRMACIÓN (CORREGIDO)
-// ==========================================
-
 // ==========================================
 // BOTONES DEL MODAL DE CONFIRMACIÓN (CORREGIDO)
 // ==========================================
 
-// Botón: Guardar imagen y enviar cotización
+// Botón: Guardar imagen y abrir cotización
 const btnSaveAndAddToCart = document.getElementById('btnSaveAndAddToCart');
 if (btnSaveAndAddToCart) {
   btnSaveAndAddToCart.addEventListener('click', function () {
     console.log('💾 Guardar imagen y abrir cotización');
-    saveProjectImage();  // ✅ Función correcta
-    hideExitConfirmation();
+    saveProjectImage(); // Descarga la imagen
+    hideExitConfirmation(); // Oculta el modal
     
     setTimeout(function () {
-      if (pendingAction === 'change') {
-        closeVisualizer();
-        openRoomModal();
-      } else if (pendingAction === 'close') {
-        closeVisualizer();
+      // Limpiar canvas y desconectar
+      if (fabricCanvas) {
+        fabricCanvas.clear();
+        fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
+        fabricCanvas.setWidth(1200);
+        fabricCanvas.setHeight(800);
+        fabricCanvas.backgroundColor = '#1a1a1a';
+        fabricCanvas.renderAll();
+        fondoImagen = null;
       }
-      showQuoteReview();
+      
+      // Desconectar PeerJS
+      if (currentConn) { currentConn.close(); currentConn = null; }
+      
+      closeVisualizer();
+      
+      if (pendingAction === 'change') {
+        openRoomModal();
+      }
+      
+      // Abrir revisión de cotización
+      setTimeout(function () { showQuoteReview(); }, 300);
     }, 300);
   });
 }
-
 
 // Botón: Solo guardar imagen
 const btnSaveOnly = document.getElementById('btnSaveOnly');
 if (btnSaveOnly) {
   btnSaveOnly.addEventListener('click', function () {
     console.log('📥 Solo guardar imagen');
-    saveProjectImage();  // ✅ Función correcta
+    saveProjectImage(); // Descarga la imagen
     hideExitConfirmation();
     
     setTimeout(function () {
+      // Limpiar canvas
+      if (fabricCanvas) {
+        fabricCanvas.clear();
+        fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
+        fabricCanvas.setWidth(1200);
+        fabricCanvas.setHeight(800);
+        fabricCanvas.backgroundColor = '#1a1a1a';
+        fabricCanvas.renderAll();
+        fondoImagen = null;
+      }
+      
+      // Desconectar
+      if (currentConn) { currentConn.close(); currentConn = null; }
+      
+      closeVisualizer();
+      
       if (pendingAction === 'change') {
-        closeVisualizer();
         openRoomModal();
-      } else if (pendingAction === 'close') {
-        cleanupAndDisconnect();
-        closeVisualizer();
       }
     }, 300);
   });
 }
 
-
-// Botón: No guardar y salir (ID CORREGIDO)
+// Botón: No guardar y salir
 const btnDiscardAndExit = document.getElementById('btnDiscardAndExit');
 if (btnDiscardAndExit) {
   btnDiscardAndExit.addEventListener('click', function () {
-    console.log('️ Descartar cambios');
+    console.log('️ Descartar cambios y salir');
     if (confirm('¿Estás seguro de descartar todo el trabajo? Esta acción no se puede deshacer.')) {
       hideExitConfirmation();
       
       setTimeout(function () {
-        if (pendingAction === 'change') {
-          closeVisualizer();
-          openRoomModal();
-        } else if (pendingAction === 'close') {
-          cleanupAndDisconnect();
-          closeVisualizer();
+        // Limpiar canvas
+        if (fabricCanvas) {
+          fabricCanvas.clear();
+          fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
+          fabricCanvas.setWidth(1200);
+          fabricCanvas.setHeight(800);
+          fabricCanvas.backgroundColor = '#1a1a1a';
+          fabricCanvas.renderAll();
+          fondoImagen = null;
         }
+        
+        // Desconectar
+        if (currentConn) { currentConn.close(); currentConn = null; }
+        
+        closeVisualizer();
+        
+        if (pendingAction === 'change') {
+          openRoomModal();
+        }
+        
+        showNotification('🗑️ Cambios descartados');
       }, 300);
     }
   });
 }
 
-// Botón: Cancelar (seguir editando) - AGREGADO
+// Botón: Cancelar (seguir editando)
 const btnCancelExit = document.getElementById('btnCancelExit');
 if (btnCancelExit) {
   btnCancelExit.addEventListener('click', function () {
-    console.log('❌ Cancelar - Seguir editando');
+    console.log(' Cancelar - Seguir editando');
     hideExitConfirmation();
-    showNotification('️ Continuando edición...');
+    showNotification('✏️ Continuando edición...');
   });
 }
           // ==========================================
