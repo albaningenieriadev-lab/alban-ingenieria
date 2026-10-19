@@ -1036,14 +1036,22 @@
 
       <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
         <div class="flex-1 relative bg-black flex items-center justify-center p-4 overflow-hidden">
-          <!-- Contenedor del canvas de Fabric -->
-          <div class="relative w-full h-full flex items-center justify-center bg-black">
-            <canvas id="fabricCanvas" style="border: 1px solid #333; max-width: 100%; max-height: 100%;"></canvas>
-          </div>
+          <!-- Contenedor principal del editor Fabric.js -->
+<div id="fabricContainer" class="relative w-full h-full min-h-[400px] bg-black rounded-lg overflow-hidden border-2 border-gray-700" style="display: none;">
+  <canvas id="fabricCanvas"></canvas>
+  
+  <!-- Overlay informativo -->
+  <div id="fabricInfo" class="absolute top-2 left-2 bg-black/80 text-white px-3 py-2 rounded text-xs pointer-events-none">
+    <i class="fas fa-info-circle mr-1"></i>
+    <span id="fabricStatus">Listo para cargar imagen</span>
+  </div>
+</div>
 
-          <!-- Canvas oculto para detección de zonas (si aún lo necesitas) -->
-          <canvas id="zoneCanvas" class="hidden"></canvas>
-
+<!-- Canvas antiguo (oculto pero necesario para otras funciones) -->
+<div id="oldCanvasContainer" class="hidden">
+  <canvas id="mainCanvas" class="w-full h-full"></canvas>
+  <canvas id="zoneCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+</div>
           <!-- Controles de transformación (ocultos al inicio) -->
           <div id="transformControls"
             class="hidden absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-alban-black/90 backdrop-blur border border-gray-700 rounded-lg p-3 flex gap-2">
@@ -1372,8 +1380,29 @@
           fabricCanvas.setWidth(1200);
           fabricCanvas.setHeight(800);
 
+// === AGREGA ESTO PARA HACERLO VISIBLE ===
+  const container = document.getElementById('fabricContainer');
+  if (container) {
+    container.style.display = 'block';
+    console.log('✅ Contenedor de Fabric visible');
+  }
+  
+  // Ocultar el canvas antiguo si existe
+  const oldContainer = document.getElementById('oldCanvasContainer');
+  if (oldContainer) {
+    oldContainer.classList.add('hidden');
+  }
+
           console.log('✅ Fabric canvas inicializado');
         }
+
+//Actualizar el mensaje de estado
+        function actualizarEstadoFabric(mensaje) {
+  const statusEl = document.getElementById('fabricStatus');
+  if (statusEl) {
+    statusEl.textContent = mensaje;
+  }
+}
 
         // Llamar al cargar la página
         inicializarFabricCanvas();
@@ -1868,6 +1897,7 @@
           var ctx = canvas.getContext('2d');
           var img = new Image();
           img.crossOrigin = 'anonymous';
+          console.log('🖼️ Cargando imagen en visualizador:', src);
           img.onload = function () {
             var maxW = 1200;
             var maxH = 800;
@@ -3548,6 +3578,8 @@ if (btnLimpiarFabric) {
                 fondoImagen = img;
 
                 console.log('✅ Fondo establecido:', sampleName, '- Tamaño:', w, 'x', h);
+                // En el modo FONDO, después de establecerlo:
+                actualizarEstadoFabric('Fondo cargado - Agrega materiales');
                 showNotification('✅ Foto del espacio guardada');
               });
 
@@ -3584,6 +3616,8 @@ if (btnLimpiarFabric) {
                 fabricCanvas.renderAll();
 
                 console.log('✅ Material agregado:', sampleName);
+                // En el modo MATERIAL, después de agregarlo:
+                actualizarEstadoFabric('Material agregado - Arrástralo y ajústalo');
                 showNotification('✅ Material agregado - Usa los controles para ajustar');
               });
             }
