@@ -12,6 +12,22 @@
     tailwind.config = { theme: { extend: { colors: { alban: { yellow: '#FFC700', black: '#1a1a1a', dark: '#0a0a0a', card: '#141414' } } } } }
   </script>
   <style>
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .animate-fade-in {
+      animation: fade-in 0.2s ease-out;
+    }
+
     /* Hacer visible el canvas de Fabric */
     #fabricCanvas {
       display: block !important;
@@ -1380,17 +1396,17 @@
         }
         //Actualizar el mensaje de estado
         function actualizarEstadoFabric(mensaje) {
-  // Intentar con varios IDs posibles
-  const statusEl = document.getElementById('fabricStatusText') || 
-                   document.getElementById('fabricStatus') ||
-                   document.getElementById('modeLabel');
-  
-  if (statusEl) {
-    statusEl.textContent = mensaje;
-  } else {
-    console.log('⚠️ No se encontró elemento de estado, pero el mensaje es:', mensaje);
-  }
-}
+          // Intentar con varios IDs posibles
+          const statusEl = document.getElementById('fabricStatusText') ||
+            document.getElementById('fabricStatus') ||
+            document.getElementById('modeLabel');
+
+          if (statusEl) {
+            statusEl.textContent = mensaje;
+          } else {
+            console.log('⚠️ No se encontró elemento de estado, pero el mensaje es:', mensaje);
+          }
+        }
 
         // Llamar al cargar la página
         inicializarFabricCanvas();
@@ -1879,86 +1895,86 @@
         function closeRoomModal() { document.getElementById('roomModal').classList.remove('active'); document.body.style.overflow = ''; }
 
         function openVisualizer() {
-  // 1. Cerrar modal anterior y abrir el visualizador
-  closeRoomModal();
-  document.getElementById('visualizerModal').classList.add('active');
-  document.body.style.overflow = 'hidden';
+          // 1. Cerrar modal anterior y abrir el visualizador
+          closeRoomModal();
+          document.getElementById('visualizerModal').classList.add('active');
+          document.body.style.overflow = 'hidden';
 
-  // 2. Hacer visible el contenedor de Fabric.js
-  const fabricWrapper = document.getElementById('fabricWrapper') || document.getElementById('fabricContainer');
-  if (fabricWrapper) {
-    fabricWrapper.style.display = 'block';
-  }
+          // 2. Hacer visible el contenedor de Fabric.js
+          const fabricWrapper = document.getElementById('fabricWrapper') || document.getElementById('fabricContainer');
+          if (fabricWrapper) {
+            fabricWrapper.style.display = 'block';
+          }
 
-  // 3. Inicializar Fabric si no existe
-  if (!fabricCanvas) {
-    inicializarFabricCanvas();
-  }
+          // 3. Inicializar Fabric si no existe
+          if (!fabricCanvas) {
+            inicializarFabricCanvas();
+          }
 
-  // 4. Determinar la imagen de fondo (la que subió el cliente o la predefinida)
-  var bgImg = customImage || roomBackgrounds[currentRoom] || roomBackgrounds['sala'];
+          // 4. Determinar la imagen de fondo (la que subió el cliente o la predefinida)
+          var bgImg = customImage || roomBackgrounds[currentRoom] || roomBackgrounds['sala'];
 
-  // 5. Cargar la imagen usando Fabric.js (ESTO REEMPLAZA A loadImageToCanvas)
-  cargarFondoEnFabric(bgImg);
+          // 5. Cargar la imagen usando Fabric.js (ESTO REEMPLAZA A loadImageToCanvas)
+          cargarFondoEnFabric(bgImg);
 
-  // 6. Resetear textos y listas
-  document.getElementById('currentZone').textContent = 'Ninguna';
-  document.getElementById('currentMaterial').textContent = 'Ninguno';
-  zones = [];
-  currentZoneId = null;
-  renderZonesList();
+          // 6. Resetear textos y listas
+          document.getElementById('currentZone').textContent = 'Ninguna';
+          document.getElementById('currentMaterial').textContent = 'Ninguno';
+          zones = [];
+          currentZoneId = null;
+          renderZonesList();
 
-  // 7. Renderizar catálogo
-  renderVisualizerCatalog('all', '');
-  document.getElementById('catalogFilter').value = 'all';
-  document.getElementById('catalogSearch').value = '';
+          // 7. Renderizar catálogo
+          renderVisualizerCatalog('all', '');
+          document.getElementById('catalogFilter').value = 'all';
+          document.getElementById('catalogSearch').value = '';
 
-  console.log('✅ Visualizador abierto con imagen');
-}
+          console.log('✅ Visualizador abierto con imagen');
+        }
 
-function cargarFondoEnFabric(src) {
-  if (!fabricCanvas) return;
+        function cargarFondoEnFabric(src) {
+          if (!fabricCanvas) return;
 
-  // Usar crossOrigin para evitar errores con imágenes externas (Unsplash, etc.)
-  fabric.Image.fromURL(src, function(img) {
-    // Calcular tamaño manteniendo proporción (máximo 1200x800)
-    const maxW = 1200, maxH = 800;
-    let w = img.width, h = img.height;
+          // Usar crossOrigin para evitar errores con imágenes externas (Unsplash, etc.)
+          fabric.Image.fromURL(src, function (img) {
+            // Calcular tamaño manteniendo proporción (máximo 1200x800)
+            const maxW = 1200, maxH = 800;
+            let w = img.width, h = img.height;
 
-    if (w > maxW) { h = h * (maxW / w); w = maxW; }
-    if (h > maxH) { w = w * (maxH / h); h = maxH; }
+            if (w > maxW) { h = h * (maxW / w); w = maxW; }
+            if (h > maxH) { w = w * (maxH / h); h = maxH; }
 
-    // Ajustar tamaño del canvas
-    fabricCanvas.setWidth(w);
-    fabricCanvas.setHeight(h);
+            // Ajustar tamaño del canvas
+            fabricCanvas.setWidth(w);
+            fabricCanvas.setHeight(h);
 
-    // Configurar imagen como fondo (no seleccionable ni movable)
-    img.set({
-      selectable: false,
-      evented: false,
-      hoverCursor: 'default'
-    });
+            // Configurar imagen como fondo (no seleccionable ni movable)
+            img.set({
+              selectable: false,
+              evented: false,
+              hoverCursor: 'default'
+            });
 
-    // Establecer como fondo
-    fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas), {
-      originX: 'left',
-      originY: 'top',
-      scaleX: w / img.width,
-      scaleY: h / img.height
-    });
+            // Establecer como fondo
+            fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas), {
+              originX: 'left',
+              originY: 'top',
+              scaleX: w / img.width,
+              scaleY: h / img.height
+            });
 
-    fondoImagen = img;
-    console.log('✅ Fondo cargado en Fabric:', w, 'x', h);
-    
-    // Actualizar el texto de estado (usando la función segura que creamos antes)
-    actualizarEstadoFabric('Imagen cargada - Agrega materiales con la cámara');
-    showNotification('✅ Imagen de fondo cargada correctamente');
+            fondoImagen = img;
+            console.log('✅ Fondo cargado en Fabric:', w, 'x', h);
 
-    // Enviar a la TV
-    setTimeout(broadcastToScreen, 500);
-    
-  }, { crossOrigin: 'anonymous' }); 
-}
+            // Actualizar el texto de estado (usando la función segura que creamos antes)
+            actualizarEstadoFabric('Imagen cargada - Agrega materiales con la cámara');
+            showNotification('✅ Imagen de fondo cargada correctamente');
+
+            // Enviar a la TV
+            setTimeout(broadcastToScreen, 500);
+
+          }, { crossOrigin: 'anonymous' });
+        }
 
         function closeVisualizer() {
           document.getElementById('visualizerModal').classList.remove('active');
@@ -1966,7 +1982,7 @@ function cargarFondoEnFabric(src) {
           if (currentConn) { currentConn.close(); currentConn = null; }
         }
 
-        
+
         function rgbDistance(r1, g1, b1, r2, g2, b2) {
           return Math.sqrt(Math.pow(r1 - r2, 2) + Math.pow(g1 - g2, 2) + Math.pow(b1 - b2, 2));
         }
@@ -4662,70 +4678,70 @@ function cargarFondoEnFabric(src) {
           } else {
             console.error('❌ No se encontró btnMegaMenu o megaMenu en el HTML.');
           }
-// ==========================================
-// FORZAR CONEXIÓN DE BOTONES CAMBIAR Y CERRAR
-// ==========================================
-setTimeout(function() {
-  // Buscar botón "Cambiar" por múltiples posibles IDs o texto
-  const btnCambiar = document.getElementById('btnBackToRooms') || 
-                     document.getElementById('btnCambiar') ||
-                     Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Cambiar'));
-  
-  // Buscar botón "Cerrar" por múltiples posibles IDs o texto
-  const btnCerrar = document.getElementById('btnCloseVisualizer') || 
-                    document.getElementById('btnCerrar') ||
-                    Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Cerrar'));
-  
-  console.log(' Botones encontrados:', {
-    cambiar: btnCambiar ? '✅' : '❌',
-    cerrar: btnCerrar ? '✅' : '❌'
-  });
-  
-  if (btnCambiar) {
-    btnCambiar.addEventListener('click', function(e) {
-      e.preventDefault();
-      console.log(' Clic en CAMBIAR');
-      
-      // Verificar si hay contenido en el canvas
-      const hasContent = fabricCanvas && (
-        fabricCanvas.getObjects().length > 0 || 
-        fabricCanvas.backgroundImage
-      );
-      
-      console.log(' Canvas tiene contenido:', hasContent);
-      
-      if (hasContent) {
-        showExitConfirmation('change');
-      } else {
-        cleanupAndDisconnect();
-        closeVisualizer();
-        openRoomModal();
-      }
-    });
-  }
-  
-  if (btnCerrar) {
-    btnCerrar.addEventListener('click', function(e) {
-      e.preventDefault();
-      console.log(' Clic en CERRAR');
-      
-      // Verificar si hay contenido en el canvas
-      const hasContent = fabricCanvas && (
-        fabricCanvas.getObjects().length > 0 || 
-        fabricCanvas.backgroundImage
-      );
-      
-      console.log('📦 Canvas tiene contenido:', hasContent);
-      
-      if (hasContent) {
-        showExitConfirmation('close');
-      } else {
-        cleanupAndDisconnect();
-        closeVisualizer();
-      }
-    });
-  }
-}, 1000); // Esperar 1 segundo para asegurar que el DOM esté listo
+          // ==========================================
+          // FORZAR CONEXIÓN DE BOTONES CAMBIAR Y CERRAR
+          // ==========================================
+          setTimeout(function () {
+            // Buscar botón "Cambiar" por múltiples posibles IDs o texto
+            const btnCambiar = document.getElementById('btnBackToRooms') ||
+              document.getElementById('btnCambiar') ||
+              Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Cambiar'));
+
+            // Buscar botón "Cerrar" por múltiples posibles IDs o texto
+            const btnCerrar = document.getElementById('btnCloseVisualizer') ||
+              document.getElementById('btnCerrar') ||
+              Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Cerrar'));
+
+            console.log(' Botones encontrados:', {
+              cambiar: btnCambiar ? '✅' : '❌',
+              cerrar: btnCerrar ? '✅' : '❌'
+            });
+
+            if (btnCambiar) {
+              btnCambiar.addEventListener('click', function (e) {
+                e.preventDefault();
+                console.log(' Clic en CAMBIAR');
+
+                // Verificar si hay contenido en el canvas
+                const hasContent = fabricCanvas && (
+                  fabricCanvas.getObjects().length > 0 ||
+                  fabricCanvas.backgroundImage
+                );
+
+                console.log(' Canvas tiene contenido:', hasContent);
+
+                if (hasContent) {
+                  showExitConfirmation('change');
+                } else {
+                  cleanupAndDisconnect();
+                  closeVisualizer();
+                  openRoomModal();
+                }
+              });
+            }
+
+            if (btnCerrar) {
+              btnCerrar.addEventListener('click', function (e) {
+                e.preventDefault();
+                console.log(' Clic en CERRAR');
+
+                // Verificar si hay contenido en el canvas
+                const hasContent = fabricCanvas && (
+                  fabricCanvas.getObjects().length > 0 ||
+                  fabricCanvas.backgroundImage
+                );
+
+                console.log('📦 Canvas tiene contenido:', hasContent);
+
+                if (hasContent) {
+                  showExitConfirmation('close');
+                } else {
+                  cleanupAndDisconnect();
+                  closeVisualizer();
+                }
+              });
+            }
+          }, 1000); // Esperar 1 segundo para asegurar que el DOM esté listo
         }); // ← 1. CIERRA DOMContentLoaded
 
       })(); // ← 2. CIERRA FUNCIÓN PRINCIPAL - ¡ESTO ES LO QUE FALTA!
