@@ -1166,10 +1166,10 @@
                 <i class="fas fa-copy"></i> Duplicar Material
               </button>
               <!-- Botón agregar al carrito desde catálogo -->
-<button id="btnAddSampleToCart"
-        class="w-full px-3 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition text-xs flex items-center justify-center gap-2">
-  <i class="fas fa-cart-plus"></i> Agregar muestra al carrito
-</button>
+              <button id="btnAddSampleToCart"
+                class="w-full px-3 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition text-xs flex items-center justify-center gap-2">
+                <i class="fas fa-cart-plus"></i> Agregar muestra al carrito
+              </button>
               <!-- Botón resetear -->
               <button id="btnResetMaterial"
                 class="w-full px-3 py-2 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 transition text-xs">
@@ -2439,29 +2439,29 @@
           return dataURL;
         }
 
-// Mostrar modal de confirmación (versión centrada)
-function showExitConfirmation(action) {
-  pendingAction = action;
-  const modal = document.getElementById('exitConfirmModal');
-  if (modal) {
-    modal.style.display = 'flex'; // Usar flex para centrar
-    modal.style.alignItems = 'center';
-    modal.style.justifyContent = 'center';
-    console.log('✅ Modal de confirmación mostrado');
-  } else {
-    console.error('❌ No se encontró el modal exitConfirmModal');
-  }
-}
+        // Mostrar modal de confirmación (versión centrada)
+        function showExitConfirmation(action) {
+          pendingAction = action;
+          const modal = document.getElementById('exitConfirmModal');
+          if (modal) {
+            modal.style.display = 'flex'; // Usar flex para centrar
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            console.log('✅ Modal de confirmación mostrado');
+          } else {
+            console.error('❌ No se encontró el modal exitConfirmModal');
+          }
+        }
 
-// Ocultar modal de confirmación
-function hideExitConfirmation() {
-  const modal = document.getElementById('exitConfirmModal');
-  if (modal) {
-    modal.style.display = 'none';
-    console.log('✅ Modal de confirmación oculto');
-  }
-  pendingAction = null;
-}
+        // Ocultar modal de confirmación
+        function hideExitConfirmation() {
+          const modal = document.getElementById('exitConfirmModal');
+          if (modal) {
+            modal.style.display = 'none';
+            console.log('✅ Modal de confirmación oculto');
+          }
+          pendingAction = null;
+        }
 
         // Limpiar todo y desconectar (función nueva)
         function cleanupAndDisconnect() {
@@ -2475,9 +2475,9 @@ function hideExitConfirmation() {
             fabricCanvas.renderAll();
             fondoImagen = null;
           }
- // 2. ¡IMPORTANTE! Limpiar el arreglo de muestras para la cotización
-  capturedSamples = [];
-  console.log('🗑️ Muestras capturadas limpiadas del carrito');
+          // 2. ¡IMPORTANTE! Limpiar el arreglo de muestras para la cotización
+          capturedSamples = [];
+          console.log('🗑️ Muestras capturadas limpiadas del carrito');
 
           // 3 Desconectar PeerJS
           if (peer) {
@@ -2491,35 +2491,35 @@ function hideExitConfirmation() {
 
           console.log('🧹 Canvas limpiado y conexión cerrada');
         }
-// ==========================================
-// LIMPIAR CANVAS (REINICIAR PROYECTO)
-// ==========================================
-function limpiarCanvasFabric() {
-  if (!fabricCanvas) return;
-  
-  // 1. Eliminar todas las capas (objetos) del canvas
-  fabricCanvas.clear();
-  
-  // 2. Quitar la imagen de fondo
-  fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
-  fondoImagen = null;
-  
-  // 3. Restablecer tamaño por defecto
-  fabricCanvas.setWidth(1200);
-  fabricCanvas.setHeight(800);
-  fabricCanvas.backgroundColor = '#1a1a1a';
-  fabricCanvas.renderAll();
+        // ==========================================
+        // LIMPIAR CANVAS (REINICIAR PROYECTO)
+        // ==========================================
+        function limpiarCanvasFabric() {
+          if (!fabricCanvas) return;
 
-  // 4. ¡IMPORTANTE! Limpiar el arreglo de muestras
-  capturedSamples = [];
-  console.log('🗑️ Muestras capturadas limpiadas del carrito');
-  
-  console.log('🧹 Canvas limpiado y reiniciado');
-  showNotification('✅ Canvas limpiado, listo para nuevo proyecto');
-  
-  // Avisar a la TV que se limpió
-  broadcastToScreen();
-}
+          // 1. Eliminar todas las capas (objetos) del canvas
+          fabricCanvas.clear();
+
+          // 2. Quitar la imagen de fondo
+          fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
+          fondoImagen = null;
+
+          // 3. Restablecer tamaño por defecto
+          fabricCanvas.setWidth(1200);
+          fabricCanvas.setHeight(800);
+          fabricCanvas.backgroundColor = '#1a1a1a';
+          fabricCanvas.renderAll();
+
+          // 4. ¡IMPORTANTE! Limpiar el arreglo de muestras
+          capturedSamples = [];
+          console.log('🗑️ Muestras capturadas limpiadas del carrito');
+
+          console.log('🧹 Canvas limpiado y reiniciado');
+          showNotification('✅ Canvas limpiado, listo para nuevo proyecto');
+
+          // Avisar a la TV que se limpió
+          broadcastToScreen();
+        }
         function saveCart() {
           try { localStorage.setItem('alban_cart', JSON.stringify(cart)); } catch (e) { }
         }
@@ -3421,41 +3421,41 @@ function limpiarCanvasFabric() {
               }
             }
           }
-// Event listener: Agregar muestra al carrito manualmente
-const btnAddSampleToCart = document.getElementById('btnAddSampleToCart');
-if (btnAddSampleToCart) {
-  btnAddSampleToCart.addEventListener('click', function () {
-    const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
-    
-    if (activeObject && activeObject.type === 'image') {
-      // Obtener el nombre de la muestra
-      const sampleName = activeObject.name || 'Muestra_' + Date.now();
-      
-      // Verificar si ya existe en el carrito
-      const existe = capturedSamples.some(s => s.name === sampleName);
-      
-      if (existe) {
-        showNotification('️ Esta muestra ya está en el carrito');
-        return;
-      }
-      
-      // Agregar al carrito
-      capturedSamples.push({
-        id: Date.now(),
-        name: sampleName,
-        image: activeObject.toDataURL({ format: 'png', quality: 0.8 }),
-        fecha: new Date().toLocaleString()
-      });
-      
-      console.log('✅ Muestra agregada al carrito:', sampleName);
-      console.log(' Total muestras:', capturedSamples.length);
-      
-      showNotification('✅ Muestra agregada a la cotización');
-    } else {
-      showNotification('⚠️ Primero selecciona un material en el canvas');
-    }
-  });
-}
+          // Event listener: Agregar muestra al carrito manualmente
+          const btnAddSampleToCart = document.getElementById('btnAddSampleToCart');
+          if (btnAddSampleToCart) {
+            btnAddSampleToCart.addEventListener('click', function () {
+              const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
+
+              if (activeObject && activeObject.type === 'image') {
+                // Obtener el nombre de la muestra
+                const sampleName = activeObject.name || 'Muestra_' + Date.now();
+
+                // Verificar si ya existe en el carrito
+                const existe = capturedSamples.some(s => s.name === sampleName);
+
+                if (existe) {
+                  showNotification('️ Esta muestra ya está en el carrito');
+                  return;
+                }
+
+                // Agregar al carrito
+                capturedSamples.push({
+                  id: Date.now(),
+                  name: sampleName,
+                  image: activeObject.toDataURL({ format: 'png', quality: 0.8 }),
+                  fecha: new Date().toLocaleString()
+                });
+
+                console.log('✅ Muestra agregada al carrito:', sampleName);
+                console.log(' Total muestras:', capturedSamples.length);
+
+                showNotification('✅ Muestra agregada a la cotización');
+              } else {
+                showNotification('⚠️ Primero selecciona un material en el canvas');
+              }
+            });
+          }
           // Event listener: Slider de opacidad
           const opacitySlider = document.getElementById('opacitySlider');
           if (opacitySlider) {
@@ -3773,112 +3773,108 @@ if (btnAddSampleToCart) {
             console.log('✅ Botón btnWhatsApp conectado');
           }
 
-// ==========================================
-// BOTONES DEL MODAL DE CONFIRMACIÓN (LIMPIEZA TOTAL INCLUIDA)
-// ==========================================
+          // ==========================================
+          // BOTONES DEL MODAL DE CONFIRMACIÓN (LIMPIEZA TOTAL INCLUIDA)
+          // ==========================================
 
-// Función auxiliar para limpiar TODO al salir
-function limpiarTodoAlSalir() {
-  // 1. Limpiar canvas de Fabric
-  if (fabricCanvas) {
-    fabricCanvas.clear();
-    fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
-    fabricCanvas.setWidth(1200);
-    fabricCanvas.setHeight(800);
-    fabricCanvas.backgroundColor = '#1a1a1a';
-    fabricCanvas.renderAll();
-    fondoImagen = null;
-  }
-  
-  // 2. ¡IMPORTANTE! Limpiar el arreglo de muestras para la cotización
-  capturedSamples = [];
-  console.log('🗑️ Muestras capturadas limpiadas del carrito');
+          // Función auxiliar para limpiar TODO al salir
+          function limpiarTodoAlSalir() {
+            // 1. Limpiar canvas de Fabric
+            if (fabricCanvas) {
+              fabricCanvas.clear();
+              fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
+              fabricCanvas.setWidth(1200);
+              fabricCanvas.setHeight(800);
+              fabricCanvas.backgroundColor = '#1a1a1a';
+              fabricCanvas.renderAll();
+              fondoImagen = null;
+            }
 
-  // 3. Desconectar PeerJS
-  if (currentConn) {
-    currentConn.close();
-    currentConn = null;
-  }
-  if (peer) {
-    peer.destroy();
-    peer = null;
-  }
-  
-  console.log('🧹 Todo limpio al salir del visualizador');
-}
+            // 2. ¡IMPORTANTE! Limpiar el arreglo de muestras para la cotización
+            capturedSamples = [];
+            console.log('🗑️ Muestras capturadas limpiadas del carrito');
 
-// Botón 1: Guardar imagen y abrir cotización
-const btnSaveAndAddToCart = document.getElementById('btnSaveAndAddToCart');
-if (btnSaveAndAddToCart) {
-  btnSaveAndAddToCart.addEventListener('click', function () {
-    console.log('💾 Guardar imagen y abrir cotización');
-    saveProjectImage(); // Descarga la imagen
-    hideExitConfirmation();
-    
-    setTimeout(function () {
-      limpiarTodoAlSalir(); // <-- AQUÍ ESTÁ LA MAGIA
-      closeVisualizer();
-      
-      if (pendingAction === 'change') {
-        openRoomModal();
-      }
-      
-      setTimeout(function () { showQuoteReview(); }, 300);
-    }, 300);
-  });
-}
+            // 3. Desconectar PeerJS
+            if (currentConn) {
+              currentConn.close();
+              currentConn = null;
+            }
+            if (peer) {
+              peer.destroy();
+              peer = null;
+            }
 
-// Botón 2: Solo guardar imagen
-const btnSaveOnly = document.getElementById('btnSaveOnly');
-if (btnSaveOnly) {
-  btnSaveOnly.addEventListener('click', function () {
+            console.log('🧹 Todo limpio al salir del visualizador');
+          }
+
+          // Botón 1: Guardar imagen y abrir cotización
+          const btnSaveAndAddToCart = document.getElementById('btnSaveAndAddToCart');
+          if (btnSaveAndAddToCart) {
+            btnSaveAndAddToCart.addEventListener('click', function () {
+              console.log('💾 Guardar imagen y abrir cotización');
+              saveProjectImage(); // Descarga la imagen
+              hideExitConfirmation();
+
+              setTimeout(function () {
+                cleanupAndDisconnect(); // Esto ahora SÍ limpia capturedSamples = []
+                closeVisualizer();
+
+                if (pendingAction === 'change') {
+                  openRoomModal();
+                }
+
+                setTimeout(function () { showQuoteReview(); }, 300);
+              }, 300);
+            });
+          }
+
+          // Botón 2: Solo guardar imagen
+const btnSaveOnlyNew = document.getElementById('btnSaveOnly');
+if (btnSaveOnlyNew) {
+  btnSaveOnlyNew.addEventListener('click', function () {
     console.log('📥 Solo guardar imagen');
-    saveProjectImage(); // Descarga la imagen
+    saveProjectImage();
     hideExitConfirmation();
-    
     setTimeout(function () {
-      limpiarTodoAlSalir(); // <-- AQUÍ ESTÁ LA MAGIA
+      cleanupAndDisconnect();
       closeVisualizer();
-      
-      if (pendingAction === 'change') {
-        openRoomModal();
-      }
+      if (pendingAction === 'change') openRoomModal();
     }, 300);
   });
 }
 
-// Botón 3: No guardar y salir
-const btnDiscardAndExit = document.getElementById('btnDiscardAndExit');
-if (btnDiscardAndExit) {
-  btnDiscardAndExit.addEventListener('click', function () {
-    console.log('🗑️ Descartar cambios y salir');
-    if (confirm('¿Estás seguro de descartar todo el trabajo? Esta acción no se puede deshacer.')) {
-      hideExitConfirmation();
-      
-      setTimeout(function () {
-        limpiarTodoAlSalir(); // <-- AQUÍ ESTÁ LA MAGIA
-        closeVisualizer();
-        
-        if (pendingAction === 'change') {
-          openRoomModal();
-        }
-        
-        showNotification('🗑️ Cambios descartados');
-      }, 300);
-    }
-  });
-}
+          // Botón 3: No guardar y salir
+          const btnDiscardAndExit = document.getElementById('btnDiscardAndExit');
+          if (btnDiscardAndExit) {
+            btnDiscardAndExit.addEventListener('click', function () {
+              console.log('🗑️ Descartar cambios y salir');
+              if (confirm('¿Estás seguro de descartar todo el trabajo? Esta acción no se puede deshacer.')) {
+                hideExitConfirmation();
 
-// Botón 4: Cancelar (seguir editando) - NO limpia
-const btnCancelExit = document.getElementById('btnCancelExit');
-if (btnCancelExit) {
-  btnCancelExit.addEventListener('click', function () {
-    console.log('❌ Cancelar - Seguir editando');
-    hideExitConfirmation();
-    showNotification('✏️ Continuando edición...');
-    // Este botón NO limpia, solo cierra el modal
-  });
-}
+                setTimeout(function () {
+                  cleanupAndDisconnect();
+                  closeVisualizer();
+
+                  if (pendingAction === 'change') {
+                    openRoomModal();
+                  }
+
+                  showNotification('🗑️ Cambios descartados');
+                }, 300);
+              }
+            });
+          }
+
+          // Botón 4: Cancelar (seguir editando) - NO limpia
+          const btnCancelExit = document.getElementById('btnCancelExit');
+          if (btnCancelExit) {
+            btnCancelExit.addEventListener('click', function () {
+              console.log('❌ Cancelar - Seguir editando');
+              hideExitConfirmation();
+              showNotification('✏️ Continuando edición...');
+              // Este botón NO limpia, solo cierra el modal
+            });
+          }
           // ==========================================
           // 3. FASE 1: CÁMARA + MUESTRAS
           // ==========================================
@@ -3993,54 +3989,54 @@ if (btnCancelExit) {
               });
 
             } else {
-  // === MODO MATERIAL: Agregar como capa Y al carrito ===
-  fabric.Image.fromURL(currentCapture, function (img) {
-    // Escalar al 30% del canvas para que quepa bien
-    const scale = Math.min(
-      (fabricCanvas.width * 0.3) / img.width,
-      (fabricCanvas.height * 0.3) / img.height
-    );
+              // === MODO MATERIAL: Agregar como capa Y al carrito ===
+              fabric.Image.fromURL(currentCapture, function (img) {
+                // Escalar al 30% del canvas para que quepa bien
+                const scale = Math.min(
+                  (fabricCanvas.width * 0.3) / img.width,
+                  (fabricCanvas.height * 0.3) / img.height
+                );
 
-    // Configurar la imagen con controles visuales
-    img.set({
-      left: fabricCanvas.width / 2,
-      top: fabricCanvas.height / 2,
-      originX: 'center',
-      originY: 'center',
-      scaleX: scale,
-      scaleY: scale,
-      cornerColor: '#FFC700',
-      cornerStrokeColor: '#FFC700',
-      borderColor: '#FFC700',
-      cornerSize: 12,
-      transparentCorners: false,
-      hasRotatingPoint: true,
-      rotatingPointOffset: 20,
-      name: sampleName
-    });
+                // Configurar la imagen con controles visuales
+                img.set({
+                  left: fabricCanvas.width / 2,
+                  top: fabricCanvas.height / 2,
+                  originX: 'center',
+                  originY: 'center',
+                  scaleX: scale,
+                  scaleY: scale,
+                  cornerColor: '#FFC700',
+                  cornerStrokeColor: '#FFC700',
+                  borderColor: '#FFC700',
+                  cornerSize: 12,
+                  transparentCorners: false,
+                  hasRotatingPoint: true,
+                  rotatingPointOffset: 20,
+                  name: sampleName
+                });
 
-    // Agregar al canvas
-    fabricCanvas.add(img);
-    fabricCanvas.setActiveObject(img);
-    fabricCanvas.renderAll();
+                // Agregar al canvas
+                fabricCanvas.add(img);
+                fabricCanvas.setActiveObject(img);
+                fabricCanvas.renderAll();
 
-    // ✅ NUEVO: Agregar al carrito de muestras para la cotización
-    capturedSamples.push({
-      id: Date.now(),
-      name: sampleName,
-      image: currentCapture,
-      fecha: new Date().toLocaleString()
-    });
+                // ✅ NUEVO: Agregar al carrito de muestras para la cotización
+                capturedSamples.push({
+                  id: Date.now(),
+                  name: sampleName,
+                  image: currentCapture,
+                  fecha: new Date().toLocaleString()
+                });
 
-    console.log('✅ Material agregado al carrito de muestras. Total:', capturedSamples.length);
-    // ====================
+                console.log('✅ Material agregado al carrito de muestras. Total:', capturedSamples.length);
+                // ====================
 
-    console.log('✅ Material agregado:', sampleName);
-    actualizarEstadoFabric('Material agregado - Arrástralo y ajústalo');
-    showNotification('✅ Material agregado al proyecto y a la cotización');
-    updateMaterialControls();
-  });
-}
+                console.log('✅ Material agregado:', sampleName);
+                actualizarEstadoFabric('Material agregado - Arrástralo y ajústalo');
+                showNotification('✅ Material agregado al proyecto y a la cotización');
+                updateMaterialControls();
+              });
+            }
             // Cerrar modal de cámara
             capturePreview.classList.add('hidden');
             currentCapture = null;
@@ -4976,35 +4972,39 @@ if (btnCancelExit) {
     </div>
     <div id="samplesList" class="flex gap-2 overflow-x-auto pb-1 min-w-[200px] max-w-[70vw]"></div>
   </div>
-<!-- Modal de confirmación al salir del visualizador -->
-<div id="exitConfirmModal" class="fixed inset-0 bg-black/90 z-[200] hidden flex items-center justify-center p-4">
-  <div class="bg-alban-card border-2 border-alban-yellow rounded-2xl max-w-md w-full p-6 shadow-2xl">
-    <div class="text-center mb-6">
-      <div class="w-16 h-16 bg-alban-yellow/20 rounded-full flex items-center justify-center mx-auto mb-4">
-        <i class="fas fa-question text-3xl text-alban-yellow"></i>
+  <!-- Modal de confirmación al salir del visualizador -->
+  <div id="exitConfirmModal" class="fixed inset-0 bg-black/90 z-[200] hidden flex items-center justify-center p-4">
+    <div class="bg-alban-card border-2 border-alban-yellow rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-alban-yellow/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-question text-3xl text-alban-yellow"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">¿Deseas guardar los cambios?</h3>
+        <p class="text-sm text-gray-400">Tienes un proyecto en curso. ¿Qué quieres hacer?</p>
       </div>
-      <h3 class="text-xl font-bold text-white mb-2">¿Deseas guardar los cambios?</h3>
-      <p class="text-sm text-gray-400">Tienes un proyecto en curso. ¿Qué quieres hacer?</p>
-    </div>
-    <div class="space-y-3">
-      <button id="btnSaveAndAddToCart" class="w-full px-4 py-3 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 transition flex items-center justify-center gap-2">
-        <i class="fas fa-save"></i>
-        <span>Guardar imagen y abrir cotización</span>
-      </button>
-      <button id="btnSaveOnly" class="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center gap-2">
-        <i class="fas fa-download"></i>
-        <span>Solo guardar imagen</span>
-      </button>
-      <button id="btnDiscardAndExit" class="w-full px-4 py-3 bg-red-600/20 text-red-400 border border-red-600/50 rounded-lg font-bold hover:bg-red-600 hover:text-white transition flex items-center justify-center gap-2">
-        <i class="fas fa-times"></i>
-        <span>No guardar y salir</span>
-      </button>
-      <button id="btnCancelExit" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition text-sm">
-        Cancelar - Seguir editando
-      </button>
+      <div class="space-y-3">
+        <button id="btnSaveAndAddToCart"
+          class="w-full px-4 py-3 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 transition flex items-center justify-center gap-2">
+          <i class="fas fa-save"></i>
+          <span>Guardar imagen y abrir cotización</span>
+        </button>
+        <button id="btnSaveOnly"
+          class="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center gap-2">
+          <i class="fas fa-download"></i>
+          <span>Solo guardar imagen</span>
+        </button>
+        <button id="btnDiscardAndExit"
+          class="w-full px-4 py-3 bg-red-600/20 text-red-400 border border-red-600/50 rounded-lg font-bold hover:bg-red-600 hover:text-white transition flex items-center justify-center gap-2">
+          <i class="fas fa-times"></i>
+          <span>No guardar y salir</span>
+        </button>
+        <button id="btnCancelExit"
+          class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition text-sm">
+          Cancelar - Seguir editando
+        </button>
+      </div>
     </div>
   </div>
-</div>
 </body>
 
 </html>
