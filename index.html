@@ -1144,7 +1144,11 @@
                 class="w-full px-3 py-2 bg-purple-600/20 text-purple-400 border border-purple-600/50 rounded-lg font-bold hover:bg-purple-600 hover:text-white transition text-xs flex items-center justify-center gap-2">
                 <i class="fas fa-magic"></i> Quitar Fondo Negro
               </button>
-
+              <!-- Botón Duplicar Material -->
+              <button id="btnDuplicateMaterial"
+                class="w-full px-3 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition text-xs flex items-center justify-center gap-2">
+                <i class="fas fa-copy"></i> Duplicar Material
+              </button>
               <!-- Botón resetear -->
               <button id="btnResetMaterial"
                 class="w-full px-3 py-2 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 transition text-xs">
@@ -3393,7 +3397,48 @@
               }
             });
           }
+          // ==========================================
+          // EVENT LISTENER: DUPLICAR MATERIAL
+          // ==========================================
+          const btnDuplicateMaterial = document.getElementById('btnDuplicateMaterial');
 
+          if (btnDuplicateMaterial) {
+            btnDuplicateMaterial.addEventListener('click', function () {
+              const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
+
+              // Verificar que haya un objeto seleccionado y que sea una imagen
+              if (activeObject && activeObject.type === 'image') {
+
+                // Usar el método nativo de clonación de Fabric.js
+                activeObject.clone(function (cloned) {
+
+                  // Desplazar ligeramente el clon (+30px) para que el usuario vea que se duplicó
+                  cloned.set({
+                    left: activeObject.left + 30,
+                    top: activeObject.top + 30,
+                    selectable: true,
+                    evented: true
+                  });
+
+                  // Agregar el clon al canvas
+                  fabricCanvas.add(cloned);
+
+                  // Seleccionar el nuevo clon automáticamente
+                  fabricCanvas.setActiveObject(cloned);
+                  fabricCanvas.renderAll();
+
+                  showNotification('✅ Material duplicado');
+
+                  // Actualizar la TV
+                  setTimeout(broadcastToScreen, 300);
+
+                });
+
+              } else {
+                showNotification('⚠️ Primero selecciona un material en el canvas');
+              }
+            });
+          }
           // Escuchar cuando se selecciona/deselecciona un objeto
           if (fabricCanvas) {
             fabricCanvas.on('selection:created', updateMaterialControls);
