@@ -1123,7 +1123,34 @@
                 <i class="fas fa-trash-alt"></i> Limpiar Todo
               </button>
             </div>
+            <!-- Controles de edición de material (solo visibles cuando hay material seleccionado) -->
+            <div id="materialControls" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 space-y-3 hidden">
+              <p class="text-xs text-alban-yellow font-bold uppercase">
+                <i class="fas fa-sliders-h mr-1"></i> Ajustar Material
+              </p>
 
+              <!-- Slider de Opacidad -->
+              <div>
+                <div class="flex justify-between mb-1">
+                  <label class="text-xs text-gray-400">Opacidad</label>
+                  <span id="opacityValue" class="text-xs text-alban-yellow">100%</span>
+                </div>
+                <input type="range" id="opacitySlider" min="0" max="100" value="100"
+                  class="w-full accent-alban-yellow h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+              </div>
+
+              <!-- Botón quitar fondo negro -->
+              <button id="btnRemoveBlackBackground"
+                class="w-full px-3 py-2 bg-purple-600/20 text-purple-400 border border-purple-600/50 rounded-lg font-bold hover:bg-purple-600 hover:text-white transition text-xs flex items-center justify-center gap-2">
+                <i class="fas fa-magic"></i> Quitar Fondo Negro
+              </button>
+
+              <!-- Botón resetear -->
+              <button id="btnResetMaterial"
+                class="w-full px-3 py-2 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 transition text-xs">
+                <i class="fas fa-undo mr-1"></i> Resetear ajustes
+              </button>
+            </div>
             <!-- SECCIÓN 2: ZONAS DETECTADAS -->
             <div>
               <p class="text-xs text-gray-400 mb-2 font-semibold uppercase flex justify-between">
@@ -3285,6 +3312,164 @@
 
             });
           }
+          // ==========================================
+          // CONTROLES DE EDICIÓN DE MATERIAL
+          // ==========================================
+
+          // Mostrar/ocultar controles según haya material seleccionado
+          function updateMaterialControls() {
+            const controls = document.getElementById('materialControls');
+            const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
+
+            if (controls) {
+              if (activeObject && activeObject.type === 'image') {
+                controls.classList.remove('hidden');
+                // Actualizar slider con opacidad actual
+                const opacitySlider = document.getElementById('opacitySlider');
+                const opacityValue = document.getElementById('opacityValue');
+                if (opacitySlider && opacityValue) {
+                  const currentOpacity = Math.round(activeObject.opacity * 100);
+                  opacitySlider.value = currentOpacity;
+                  opacityValue.textContent = currentOpacity + '%';
+                }
+              } else {
+                controls.classList.add('hidden');
+              }
+            }
+          }
+
+          // Event listener: Slider de opacidad
+          const opacitySlider = document.getElementById('opacitySlider');
+          if (opacitySlider) {
+            opacitySlider.addEventListener('input', function () {
+              const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
+              if (activeObject && activeObject.type === 'image') {
+                const opacity = this.value / 100;
+                activeObject.set('opacity', opacity);
+                fabricCanvas.renderAll();
+
+                const opacityValue = document.getElementById('opacityValue');
+                if (opacityValue) {
+                  opacityValue.textContent = this.value + '%';
+                }
+
+                // Actualizar TV
+                setTimeout(broadcastToScreen, 300);
+              }
+            });
+          }
+
+          // Event listener: Quitar fondo negro
+          const btnRemoveBlackBackground = document.getElementById('btnRemoveBlackBackground');
+          if (btnRemoveBlackBackground) {
+            btnRemoveBlackBackground.addEventListener('click', function () {
+              const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
+              if (activeObject && activeObject.type === 'image') {
+                removeBlackBackground(activeObject);
+              }
+            });
+          }
+
+          // Event listener: Resetear material
+          const btnResetMaterial = document.getElementById('btnResetMaterial');
+          if (btnResetMaterial) {
+            btnResetMaterial.addEventListener('click', function () {
+              const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
+              if (activeObject && activeObject.type === 'image') {
+                activeObject.set({
+                  opacity: 1,
+                  scaleX: activeObject.width / 2,
+                  scaleY: activeObject.height / 2
+                });
+                fabricCanvas.renderAll();
+
+                const opacitySlider = document.getElementById('opacitySlider');
+                const opacityValue = document.getElementById('opacityValue');
+                if (opacitySlider) opacitySlider.value = 100;
+                if (opacityValue) opacityValue.textContent = '100%';
+
+                showNotification('✅ Ajustes reseteados');
+                setTimeout(broadcastToScreen, 300);
+              }
+            });
+          }
+
+          // Escuchar cuando se selecciona/deselecciona un objeto
+          if (fabricCanvas) {
+            fabricCanvas.on('selection:created', updateMaterialControls);
+            fabricCanvas.on('selection:updated', updateMaterialControls);
+            fabricCanvas.on('selection:cleared', updateMaterialControls);
+          }
+
+          // ==========================================
+          // FUNCIÓN: Quitar fondo negro (hacer transparente)
+          // ==========================================
+          function removeBlackBackground(imgObject) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = imgObject.getElement();
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Dibujar imagen original
+            ctx.drawImage(img, 0, 0);
+
+            // Obtener datos de píxeles
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            // Umbral para detectar "negro" (píxeles oscuros)
+            const threshold = 50; // Ajusta este valor si es necesario
+
+            // Recorrer todos los píxeles
+            for (let i = 0; i < data.length; i += 4) {
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+
+              // Si el píxel es muy oscuro (casi negro), hacerlo transparente
+              if (r < threshold && g < threshold && b < threshold) {
+                data[i + 3] = 0; // Alpha = 0 (transparente)
+              }
+            }
+
+            // Poner los datos modificados de vuelta
+            ctx.putImageData(imageData, 0, 0);
+
+            // Crear nueva imagen desde el canvas
+            const newDataUrl = canvas.toDataURL('image/png');
+
+            // Reemplazar la imagen en Fabric
+            fabric.Image.fromURL(newDataUrl, function (newImg) {
+              // Copiar propiedades de la imagen anterior
+              newImg.set({
+                left: imgObject.left,
+                top: imgObject.top,
+                originX: imgObject.originX,
+                originY: imgObject.originY,
+                scaleX: imgObject.scaleX,
+                scaleY: imgObject.scaleY,
+                rotation: imgObject.rotation,
+                opacity: imgObject.opacity,
+                cornerColor: '#FFC700',
+                cornerStrokeColor: '#FFC700',
+                borderColor: '#FFC700',
+                cornerSize: 12,
+                transparentCorners: false,
+                hasRotatingPoint: true
+              });
+
+              // Reemplazar en el canvas
+              fabricCanvas.remove(imgObject);
+              fabricCanvas.add(newImg);
+              fabricCanvas.setActiveObject(newImg);
+              fabricCanvas.renderAll();
+
+              showNotification('✅ Fondo negro eliminado');
+              setTimeout(broadcastToScreen, 300);
+            });
+          }
           // 2. Botón WhatsApp (unificado)
           var btnWhatsApp = document.getElementById('btnWhatsApp');
           var btnSendWhatsApp = document.getElementById('btnSendWhatsApp');
@@ -3604,6 +3789,7 @@
                 // En el modo MATERIAL, después de agregarlo:
                 actualizarEstadoFabric('Material agregado - Arrástralo y ajústalo');
                 showNotification('✅ Material agregado - Usa los controles para ajustar');
+                updateMaterialControls();
               });
             }
             // Cerrar modal de cámara
