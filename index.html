@@ -2470,23 +2470,42 @@
           return dataURL;
         }
 
-        // Mostrar modal de confirmación (versión nueva)
-        function showExitConfirmation(action) {
-          pendingAction = action;
-          const modal = document.getElementById('exitConfirmModal');
-          if (modal) {
-            modal.classList.remove('hidden');
-          }
-        }
+        // Mostrar modal de confirmación (versión con estilos inline forzados)
+function showExitConfirmation(action) {
+  pendingAction = action;
+  const modal = document.getElementById('exitConfirmModal');
+  if (modal) {
+    // Remover clase hidden
+    modal.classList.remove('hidden');
+    
+    // Forzar visibilidad con estilos inline
+    modal.style.display = 'flex';
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
+    modal.style.zIndex = '9999';
+    
+    console.log('✅ Modal de confirmación mostrado');
+  } else {
+    console.error('❌ No se encontró el modal exitConfirmModal');
+  }
+}
 
-        // Ocultar modal de confirmación (versión nueva)
-        function hideExitConfirmation() {
-          const modal = document.getElementById('exitConfirmModal');
-          if (modal) {
-            modal.classList.add('hidden');
-          }
-          pendingAction = null;
-        }
+// Ocultar modal de confirmación (versión con estilos inline)
+function hideExitConfirmation() {
+  const modal = document.getElementById('exitConfirmModal');
+  if (modal) {
+    // Agregar clase hidden
+    modal.classList.add('hidden');
+    
+    // Ocultar con estilos inline
+    modal.style.display = 'none';
+    modal.style.visibility = 'hidden';
+    modal.style.opacity = '0';
+    
+    console.log('✅ Modal de confirmación oculto');
+  }
+  pendingAction = null;
+}
 
         // Limpiar todo y desconectar (función nueva)
         function cleanupAndDisconnect() {
