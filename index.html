@@ -3733,42 +3733,81 @@
             console.log('✅ Botón btnWhatsApp conectado');
           }
 
-          // 5. Botones del modal de confirmación de salida
-          var btnSaveAndSend = document.getElementById('btnSaveAndSend');
-          if (btnSaveAndSend) {
-            btnSaveAndSend.addEventListener('click', function () {
-              saveImageAsJPG();
-              hideExitConfirmation();
-              if (pendingAction === 'change') { closeVisualizer(); openRoomModal(); }
-              else if (pendingAction === 'close') { closeVisualizer(); }
-              setTimeout(function () { showQuoteReview(); }, 300);
-            });
-          }
+          // ==========================================
+// BOTONES DEL MODAL DE CONFIRMACIÓN (CORREGIDO)
+// ==========================================
 
-          var btnSaveOnly = document.getElementById('btnSaveOnly');
-          if (btnSaveOnly) {
-            btnSaveOnly.addEventListener('click', function () {
-              saveImageAsJPG();
-              hideExitConfirmation();
-              if (pendingAction === 'change') { closeVisualizer(); openRoomModal(); }
-              else if (pendingAction === 'close') { closeVisualizer(); }
-            });
-          }
+// Botón: Guardar imagen y enviar cotización
+const btnSaveAndSend = document.getElementById('btnSaveAndSend');
+if (btnSaveAndSend) {
+  btnSaveAndSend.addEventListener('click', function() {
+    console.log('💾 Guardar y enviar cotización');
+    saveProjectImage();
+    hideExitConfirmation();
+    
+    setTimeout(function() {
+      if (pendingAction === 'change') {
+        closeVisualizer();
+        openRoomModal();
+      } else if (pendingAction === 'close') {
+        cleanupAndDisconnect();
+        closeVisualizer();
+      }
+      showQuoteReview();
+    }, 300);
+  });
+}
 
-          // 6. Botón Descartar cambios y salir (UNIFICADO)
-          var btnDiscard = document.getElementById('btnDiscard');
-          function handleDiscard() {
-            console.log('🗑️ Descartando cambios. pendingAction:', pendingAction);
-            hideExitConfirmation();
-            if (pendingAction === 'change') {
-              closeVisualizer();
-              openRoomModal();
-            } else if (pendingAction === 'close') {
-              closeVisualizer();
-            }
-          }
-          if (btnDiscard) btnDiscard.addEventListener('click', handleDiscard);
+// Botón: Solo guardar imagen
+const btnSaveOnly = document.getElementById('btnSaveOnly');
+if (btnSaveOnly) {
+  btnSaveOnly.addEventListener('click', function() {
+    console.log(' Solo guardar imagen');
+    saveProjectImage();
+    hideExitConfirmation();
+    
+    setTimeout(function() {
+      if (pendingAction === 'change') {
+        closeVisualizer();
+        openRoomModal();
+      } else if (pendingAction === 'close') {
+        cleanupAndDisconnect();
+        closeVisualizer();
+      }
+    }, 300);
+  });
+}
 
+// Botón: No guardar y salir (ID corregido)
+const btnDiscardAndExit = document.getElementById('btnDiscardAndExit');
+if (btnDiscardAndExit) {
+  btnDiscardAndExit.addEventListener('click', function() {
+    console.log('🗑️ Descartar cambios');
+    if (confirm('¿Estás seguro de descartar todo el trabajo? Esta acción no se puede deshacer.')) {
+      hideExitConfirmation();
+      
+      setTimeout(function() {
+        if (pendingAction === 'change') {
+          closeVisualizer();
+          openRoomModal();
+        } else if (pendingAction === 'close') {
+          cleanupAndDisconnect();
+          closeVisualizer();
+        }
+      }, 300);
+    }
+  });
+}
+
+// Botón: Cancelar (seguir editando) - AGREGADO
+const btnCancelExit = document.getElementById('btnCancelExit');
+if (btnCancelExit) {
+  btnCancelExit.addEventListener('click', function() {
+    console.log('❌ Cancelar - Seguir editando');
+    hideExitConfirmation();
+    showNotification('️ Continuando edición...');
+  });
+}
           // ==========================================
           // 3. FASE 1: CÁMARA + MUESTRAS
           // ==========================================
