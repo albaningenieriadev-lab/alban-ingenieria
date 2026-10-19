@@ -1165,6 +1165,11 @@
                 class="w-full px-3 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition text-xs flex items-center justify-center gap-2">
                 <i class="fas fa-copy"></i> Duplicar Material
               </button>
+              <!-- Botón agregar al carrito desde catálogo -->
+<button id="btnAddSampleToCart"
+        class="w-full px-3 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition text-xs flex items-center justify-center gap-2">
+  <i class="fas fa-cart-plus"></i> Agregar muestra al carrito
+</button>
               <!-- Botón resetear -->
               <button id="btnResetMaterial"
                 class="w-full px-3 py-2 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 transition text-xs">
@@ -3385,7 +3390,41 @@ function hideExitConfirmation() {
               }
             }
           }
-
+// Event listener: Agregar muestra al carrito manualmente
+const btnAddSampleToCart = document.getElementById('btnAddSampleToCart');
+if (btnAddSampleToCart) {
+  btnAddSampleToCart.addEventListener('click', function () {
+    const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
+    
+    if (activeObject && activeObject.type === 'image') {
+      // Obtener el nombre de la muestra
+      const sampleName = activeObject.name || 'Muestra_' + Date.now();
+      
+      // Verificar si ya existe en el carrito
+      const existe = capturedSamples.some(s => s.name === sampleName);
+      
+      if (existe) {
+        showNotification('️ Esta muestra ya está en el carrito');
+        return;
+      }
+      
+      // Agregar al carrito
+      capturedSamples.push({
+        id: Date.now(),
+        name: sampleName,
+        image: activeObject.toDataURL({ format: 'png', quality: 0.8 }),
+        fecha: new Date().toLocaleString()
+      });
+      
+      console.log('✅ Muestra agregada al carrito:', sampleName);
+      console.log(' Total muestras:', capturedSamples.length);
+      
+      showNotification('✅ Muestra agregada a la cotización');
+    } else {
+      showNotification('⚠️ Primero selecciona un material en el canvas');
+    }
+  });
+}
           // Event listener: Slider de opacidad
           const opacitySlider = document.getElementById('opacitySlider');
           if (opacitySlider) {
@@ -3932,44 +3971,53 @@ if (btnCancelExit) {
               });
 
             } else {
-              // === MODO MATERIAL: Agregar como capa ===
-              fabric.Image.fromURL(currentCapture, function (img) {
-                // Escalar al 30% del canvas para que quepa bien
-                const scale = Math.min(
-                  (fabricCanvas.width * 0.3) / img.width,
-                  (fabricCanvas.height * 0.3) / img.height
-                );
+  // === MODO MATERIAL: Agregar como capa Y al carrito ===
+  fabric.Image.fromURL(currentCapture, function (img) {
+    // Escalar al 30% del canvas para que quepa bien
+    const scale = Math.min(
+      (fabricCanvas.width * 0.3) / img.width,
+      (fabricCanvas.height * 0.3) / img.height
+    );
 
-                // Configurar la imagen con controles visuales
-                img.set({
-                  left: fabricCanvas.width / 2,
-                  top: fabricCanvas.height / 2,
-                  originX: 'center',
-                  originY: 'center',
-                  scaleX: scale,
-                  scaleY: scale,
-                  cornerColor: '#FFC700',
-                  cornerStrokeColor: '#FFC700',
-                  borderColor: '#FFC700',
-                  cornerSize: 12,
-                  transparentCorners: false,
-                  hasRotatingPoint: true,
-                  rotatingPointOffset: 20,
-                  name: sampleName
-                });
+    // Configurar la imagen con controles visuales
+    img.set({
+      left: fabricCanvas.width / 2,
+      top: fabricCanvas.height / 2,
+      originX: 'center',
+      originY: 'center',
+      scaleX: scale,
+      scaleY: scale,
+      cornerColor: '#FFC700',
+      cornerStrokeColor: '#FFC700',
+      borderColor: '#FFC700',
+      cornerSize: 12,
+      transparentCorners: false,
+      hasRotatingPoint: true,
+      rotatingPointOffset: 20,
+      name: sampleName
+    });
 
-                // Agregar al canvas
-                fabricCanvas.add(img);
-                fabricCanvas.setActiveObject(img);
-                fabricCanvas.renderAll();
+    // Agregar al canvas
+    fabricCanvas.add(img);
+    fabricCanvas.setActiveObject(img);
+    fabricCanvas.renderAll();
 
-                console.log('✅ Material agregado:', sampleName);
-                // En el modo MATERIAL, después de agregarlo:
-                actualizarEstadoFabric('Material agregado - Arrástralo y ajústalo');
-                showNotification('✅ Material agregado - Usa los controles para ajustar');
-                updateMaterialControls();
-              });
-            }
+    // ✅ NUEVO: Agregar al carrito de muestras para la cotización
+    capturedSamples.push({
+      id: Date.now(),
+      name: sampleName,
+      image: currentCapture,
+      fecha: new Date().toLocaleString()
+    });
+
+    console.log('✅ Material agregado al canvas y al carrito:', sampleName);
+    console.log('📦 Total de muestras en carrito:', capturedSamples.length);
+    
+    actualizarEstadoFabric('Material agregado - Arrástralo y ajústalo');
+    showNotification('✅ Material agregado al proyecto y a la cotización');
+    updateMaterialControls();
+  });
+}
             // Cerrar modal de cámara
             capturePreview.classList.add('hidden');
             currentCapture = null;
