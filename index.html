@@ -2407,44 +2407,73 @@
           document.getElementById('sucursalInfo').classList.add('hidden');
           sucursalSeleccionada = null;
         }
+        // ==========================================
+        // FUNCIONES NUEVAS PARA FABRIC.JS
+        // ==========================================
 
-        function saveImageAsJPG() {
-          var canvas = document.getElementById('mainCanvas');
-          var zoneCanvas = document.getElementById('zoneCanvas');
-          var tempCanvas = document.createElement('canvas');
-          tempCanvas.width = canvas.width;
-          tempCanvas.height = canvas.height;
-          var ctx = tempCanvas.getContext('2d');
-          ctx.drawImage(canvas, 0, 0);
-          ctx.drawImage(zoneCanvas, 0, 0);
-          var dataUrl = tempCanvas.toDataURL('image/jpeg', 0.92);
-          var link = document.createElement('a');
-          link.download = 'alban-proyecto-' + Date.now() + '.jpg';
-          link.href = dataUrl;
+        // Guardar imagen del proyecto (ahora usa Fabric)
+        function saveProjectImage() {
+          if (!fabricCanvas) return null;
+
+          const dataURL = fabricCanvas.toDataURL({
+            format: 'png',
+            quality: 1,
+            multiplier: 1
+          });
+
+          const link = document.createElement('a');
+          link.download = 'alban-proyecto-' + Date.now() + '.png';
+          link.href = dataURL;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          return dataUrl;
+
+          console.log('✅ Imagen guardada');
+          return dataURL;
         }
 
+        // Mostrar modal de confirmación (versión nueva)
         function showExitConfirmation(action) {
           pendingAction = action;
-          document.getElementById('exitConfirmModal').classList.add('active');
+          const modal = document.getElementById('exitConfirmModal');
+          if (modal) {
+            modal.classList.remove('hidden');
+          }
         }
 
+        // Ocultar modal de confirmación (versión nueva)
         function hideExitConfirmation() {
-          document.getElementById('exitConfirmModal').classList.remove('active');
-          pendingAction = null;
-        }
-
-        function executePendingAction() {
-          if (pendingAction === 'close') {
-            closeVisualizer();
-          } else if (pendingAction === 'change') {
-            closeVisualizer();
-            openRoomModal();
+          const modal = document.getElementById('exitConfirmModal');
+          if (modal) {
+            modal.classList.add('hidden');
           }
           pendingAction = null;
+        }
+
+        // Limpiar todo y desconectar (función nueva)
+        function cleanupAndDisconnect() {
+          // 1. Limpiar canvas de Fabric
+          if (fabricCanvas) {
+            fabricCanvas.clear();
+            fabricCanvas.setBackgroundImage(null, fabricCanvas.renderAll.bind(fabricCanvas));
+            fabricCanvas.setWidth(1200);
+            fabricCanvas.setHeight(800);
+            fabricCanvas.backgroundColor = '#1a1a1a';
+            fabricCanvas.renderAll();
+            fondoImagen = null;
+          }
+
+          // 2. Desconectar PeerJS
+          if (peer) {
+            if (currentConn) {
+              currentConn.close();
+              currentConn = null;
+            }
+            peer.destroy();
+            peer = null;
+          }
+
+          console.log('🧹 Canvas limpiado y conexión cerrada');
         }
 
         function saveCart() {
@@ -3303,17 +3332,24 @@
 
           var btnStartVisualizer = document.getElementById('btnStartVisualizer');
           if (btnStartVisualizer) btnStartVisualizer.addEventListener('click', openVisualizer);
-          // Botones del visualizador con flujo de confirmación
-          var btnBackToRooms = document.getElementById('btnBackToRooms');
+          // Botón "Cambiar" (volver a seleccionar habitación)
+          const btnBackToRooms = document.getElementById('btnBackToRooms');
           if (btnBackToRooms) {
             btnBackToRooms.addEventListener('click', function () {
-              if (hasAppliedMaterials()) {
+              // Verificar si hay algo en el canvas
+              const hasContent = fabricCanvas && (
+                fabricCanvas.getObjects().length > 0 ||
+                fabricCanvas.backgroundImage
+              );
+
+              if (hasContent) {
+                // Hay contenido, preguntar si quiere guardar
                 showExitConfirmation('change');
               } else {
+                // No hay contenido, salir directamente
                 closeVisualizer();
                 openRoomModal();
               }
-
             });
           }
           // ==========================================
@@ -3578,12 +3614,22 @@
             });
           }
 
-          var btnCloseVisualizer = document.getElementById('btnCloseVisualizer');
+          // Botón "Cerrar" (salir del visualizador)
+          const btnCloseVisualizer = document.getElementById('btnCloseVisualizer');
           if (btnCloseVisualizer) {
             btnCloseVisualizer.addEventListener('click', function () {
-              if (hasAppliedMaterials()) {
+              // Verificar si hay algo en el canvas
+              const hasContent = fabricCanvas && (
+                fabricCanvas.getObjects().length > 0 ||
+                fabricCanvas.backgroundImage
+              );
+
+              if (hasContent) {
+                // Hay contenido, preguntar si quiere guardar
                 showExitConfirmation('close');
               } else {
+                // No hay contenido, salir directamente
+                cleanupAndDisconnect();
                 closeVisualizer();
               }
             });
@@ -4709,7 +4755,47 @@
     </div>
     <div id="samplesList" class="flex gap-2 overflow-x-auto pb-1 min-w-[200px] max-w-[70vw]"></div>
   </div>
+  <!-- Modal de confirmación al salir del visualizador -->
+  <div id="exitConfirmModal" class="fixed inset-0 bg-black/90 z-[200] hidden flex items-center justify-center p-4">
+    <div class="bg-alban-card border-2 border-alban-yellow rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-alban-yellow/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-question text-3xl text-alban-yellow"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">¿Deseas guardar los cambios?</h3>
+        <p class="text-sm text-gray-400">Tienes un proyecto en curso. ¿Qué quieres hacer?</p>
+      </div>
 
+      <div class="space-y-3">
+        <!-- Opción 1: Guardar y agregar al carrito -->
+        <button id="btnSaveAndAddToCart"
+          class="w-full px-4 py-3 bg-alban-yellow text-alban-black rounded-lg font-bold hover:bg-yellow-400 transition flex items-center justify-center gap-2">
+          <i class="fas fa-save"></i>
+          <span>Guardar imagen y agregar al carrito</span>
+        </button>
+
+        <!-- Opción 2: Solo guardar imagen -->
+        <button id="btnSaveOnly"
+          class="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition flex items-center justify-center gap-2">
+          <i class="fas fa-download"></i>
+          <span>Solo guardar imagen</span>
+        </button>
+
+        <!-- Opción 3: No guardar y salir -->
+        <button id="btnDiscardAndExit"
+          class="w-full px-4 py-3 bg-red-600/20 text-red-400 border border-red-600/50 rounded-lg font-bold hover:bg-red-600 hover:text-white transition flex items-center justify-center gap-2">
+          <i class="fas fa-times"></i>
+          <span>No guardar y salir</span>
+        </button>
+
+        <!-- Botón cancelar -->
+        <button id="btnCancelExit"
+          class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition text-sm">
+          Cancelar - Seguir editando
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>
