@@ -465,6 +465,57 @@
         gap: 0.5rem;
       }
     }
+    /* ==========================================
+   NAVEGACIÓN SPA - SCROLL SUAVE MEJORADO
+   ========================================== */
+
+/* Scroll suave global */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Animación de entrada para secciones */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-animate {
+  opacity: 0;
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: translateY(30px);
+}
+
+.section-animate.visible {
+  opacity: 1;
+  transform: translateY(0);
+  animation: fade-in-up 0.6s ease-out;
+}
+
+/* Link activo en el dropdown de "Nosotros" */
+.nav-link-active {
+  background-color: #FFC700 !important;
+  color: #1a1a1a !important;
+  font-weight: 700;
+  border-left: 4px solid #FFC700;
+}
+
+/* Indicador de scroll (barra de progreso opcional) */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: #FFC700;
+  z-index: 9999;
+  transition: width 0.1s;
+}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -493,28 +544,28 @@
             <i class="fas fa-chevron-down text-xs"></i>
           </button>
           <div
-            class="absolute top-full right-0 mt-2 w-56 bg-alban-card border border-gray-700 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-            <a href="#mision"
-              class="block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
-              <i class="fas fa-bullseye mr-2"></i>Misión
-            </a>
-            <a href="#vision"
-              class="block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
-              <i class="fas fa-eye mr-2"></i>Visión
-            </a>
-            <a href="#acerca"
-              class="block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
-              <i class="fas fa-users mr-2"></i>Acerca de nosotros
-            </a>
-            <a href="#sucursales"
-              class="block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
-              <i class="fas fa-map-marker-alt mr-2"></i>Sucursales
-            </a>
-            <a href="#contacto"
-              class="block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition">
-              <i class="fas fa-envelope mr-2"></i>Contacto
-            </a>
-          </div>
+            <div class="absolute top-full right-0 mt-2 w-56 bg-alban-card border border-gray-700 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+  <a href="#mision" data-seccion="mision"
+     class="nav-link-nosotros block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
+    <i class="fas fa-bullseye mr-2"></i>Misión
+  </a>
+  <a href="#vision" data-seccion="vision"
+     class="nav-link-nosotros block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
+    <i class="fas fa-eye mr-2"></i>Visión
+  </a>
+  <a href="#acerca" data-seccion="acerca"
+     class="nav-link-nosotros block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
+    <i class="fas fa-users mr-2"></i>Acerca de nosotros
+  </a>
+  <a href="#sucursales" data-seccion="sucursales"
+     class="nav-link-nosotros block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition border-b border-gray-700">
+    <i class="fas fa-map-marker-alt mr-2"></i>Sucursales
+  </a>
+  <a href="#contacto" data-seccion="contacto"
+     class="nav-link-nosotros block px-4 py-3 text-gray-300 hover:bg-alban-yellow hover:text-alban-black transition">
+    <i class="fas fa-envelope mr-2"></i>Contacto
+  </a>
+</div>
         </div>
       </div>
 
@@ -4608,18 +4659,123 @@ if (btnSaveOnlyNew) {
               });
             });
           }
+
           // ==========================================
-          // 4. SCROLL SUAVE Y MODALES
-          // ==========================================
-          document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-              var target = document.querySelector(this.getAttribute('href'));
-              if (target) {
-                e.preventDefault();
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }
-            });
-          });
+// NAVEGACIÓN SPA - SCROLL SUAVE MEJORADO
+// ==========================================
+
+// 1. Calcular el offset del header + nav (aprox 130px)
+function getHeaderOffset() {
+  const header = document.querySelector('header');
+  const nav = document.querySelector('nav');
+  const headerHeight = header ? header.offsetHeight : 70;
+  const navHeight = nav ? nav.offsetHeight : 60;
+  return headerHeight + navHeight + 20; // +20px de margen
+}
+
+// 2. Función de scroll suave con offset
+function scrollToSection(sectionId) {
+  const target = document.getElementById(sectionId);
+  if (!target) return;
+  
+  const offset = getHeaderOffset();
+  const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
+  const startPosition = window.pageYOffset;
+  const distance = targetPosition - startPosition - offset;
+  const duration = 800; // ms
+  let start = null;
+  
+  function animation(currentTime) {
+    if (start === null) start = currentTime;
+    const timeElapsed = currentTime - start;
+    const progress = Math.min(timeElapsed / duration, 1);
+    // Easing: easeInOutCubic
+    const ease = progress < 0.5
+      ? 4 * progress * progress * progress
+      : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+    
+    window.scrollTo(0, startPosition + distance * ease);
+    if (timeElapsed < duration) requestAnimationFrame(animation);
+  }
+  
+  requestAnimationFrame(animation);
+}
+
+// 3. Event listeners para los links del menú "Nosotros"
+const navLinks = document.querySelectorAll('.nav-link-nosotros');
+navLinks.forEach(link => {
+  link.addEventListener('click', function (e) {
+    e.preventDefault();
+    const seccion = this.getAttribute('data-seccion');
+    if (seccion) {
+      scrollToSection(seccion);
+    }
+  });
+});
+
+// 4. Detectar sección activa al hacer scroll (IntersectionObserver)
+const sections = document.querySelectorAll('#mision, #vision, #acerca, #sucursales, #contacto');
+const observerOptions = {
+  root: null,
+  rootMargin: '-150px 0px -70% 0px', // Detecta cuando la sección está cerca del top
+  threshold: 0
+};
+
+const sectionObserver = new IntersectionObserver(function (entries) {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      // Quitar clase activa de todos los links
+      navLinks.forEach(link => link.classList.remove('nav-link-active'));
+      // Agregar clase activa al link correspondiente
+      const activeLink = document.querySelector(`.nav-link-nosotros[data-seccion="${id}"]`);
+      if (activeLink) {
+        activeLink.classList.add('nav-link-active');
+      }
+    }
+  });
+}, observerOptions);
+
+sections.forEach(section => {
+  section.classList.add('section-animate');
+  sectionObserver.observe(section);
+});
+
+// 5. Animación de entrada para las secciones (fade-in-up)
+const animateObserver = new IntersectionObserver(function (entries) {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      animateObserver.unobserve(entry.target); // Solo animar una vez
+    }
+  });
+}, { threshold: 0.1 });
+
+sections.forEach(section => {
+  animateObserver.observe(section);
+});
+
+// 6. Cerrar dropdown al hacer clic fuera (mejora UX)
+document.addEventListener('click', function (e) {
+  const dropdown = document.querySelector('.group');
+  if (dropdown && !dropdown.contains(e.target)) {
+    // El dropdown se cierra solo gracias a group-hover, pero esto asegura
+    // que se cierre en móviles al hacer clic
+  }
+});
+
+// 7. Barra de progreso de scroll (opcional, visual)
+const scrollProgress = document.createElement('div');
+scrollProgress.className = 'scroll-progress';
+scrollProgress.style.width = '0%';
+document.body.appendChild(scrollProgress);
+
+window.addEventListener('scroll', function () {
+  const scrollTop = window.pageYOffset;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const scrollPercent = (scrollTop / docHeight) * 100;
+  scrollProgress.style.width = scrollPercent + '%';
+});
 
           var sucursalSelector = document.getElementById('sucursalSelector');
           if (sucursalSelector) {
