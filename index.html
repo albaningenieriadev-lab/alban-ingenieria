@@ -3858,26 +3858,29 @@ html {
             console.log('🧹 Todo limpio al salir del visualizador');
           }
 
-          // Botón 1: Guardar imagen y abrir cotización
-          const btnSaveAndAddToCart = document.getElementById('btnSaveAndAddToCart');
-          if (btnSaveAndAddToCart) {
-            btnSaveAndAddToCart.addEventListener('click', function () {
-              console.log('💾 Guardar imagen y abrir cotización');
-              saveProjectImage(); // Descarga la imagen
-              hideExitConfirmation();
-
-              setTimeout(function () {
-                cleanupAndDisconnect(); // Esto ahora SÍ limpia capturedSamples = []
-                closeVisualizer();
-
-                if (pendingAction === 'change') {
-                  openRoomModal();
-                }
-
-                setTimeout(function () { showQuoteReview(); }, 300);
-              }, 300);
-            });
-          }
+          // Botón 1: Guardar imagen y abrir cotización (ORDEN CORREGIDO)
+const btnSaveAndAddToCart = document.getElementById('btnSaveAndAddToCart');
+if (btnSaveAndAddToCart) {
+  btnSaveAndAddToCart.addEventListener('click', function () {
+    console.log('💾 Guardar imagen y abrir cotización');
+    saveProjectImage(); // Descarga la imagen
+    hideExitConfirmation();
+    
+    // PRIMERO: Abrir la cotización (antes de limpiar)
+    setTimeout(function () {
+      showQuoteReview(); // Muestra las muestras en el modal
+      
+      // DESPUÉS: Limpiar todo (después de que ya se mostró la cotización)
+      setTimeout(function () {
+        cleanupAndDisconnect();
+        closeVisualizer();
+        if (pendingAction === 'change') {
+          openRoomModal();
+        }
+      }, 500); // Esperar 500ms para que el modal de cotización se muestre primero
+    }, 300);
+  });
+}
 
           // Botón 2: Solo guardar imagen
 const btnSaveOnlyNew = document.getElementById('btnSaveOnly');
