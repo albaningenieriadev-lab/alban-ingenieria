@@ -4000,105 +4000,73 @@ if (btnSaveOnlyNew) {
           // FUNCIÓN saveSample() PARA FABRIC.JS
           // ==========================================
           function saveSample() {
-            if (!currentCapture) return;
+  if (!currentCapture) return;
+  
+  // ✅ GUARDAR LA IMAGEN EN VARIABLE TEMPORAL ANTES DE CUALQUIER COSA
+  const imagenTemporal = currentCapture;
+  
+  const sampleName = document.getElementById('sampleName').value.trim() ||
+    (currentCameraMode === 'fondo' ? 'Espacio_' + Date.now() : 'Material_' + Date.now());
 
-            const sampleName = document.getElementById('sampleName').value.trim() ||
-              (currentCameraMode === 'fondo' ? 'Espacio_' + Date.now() : 'Material_' + Date.now());
+  if (currentCameraMode === 'fondo') {
+    // === MODO FONDO: Establecer imagen de fondo ===
+    fabric.Image.fromURL(imagenTemporal, function (img) {
+      const maxW = 1200, maxH = 800;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = h * (maxW / w); w = maxW; }
+      if (h > maxH) { w = w * (maxH / h); h = maxH; }
+      fabricCanvas.setWidth(w);
+      fabricCanvas.setHeight(h);
+      img.set({ selectable: false, evented: false, hoverCursor: 'default' });
+      fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas), {
+        originX: 'left', originY: 'top', scaleX: w / img.width, scaleY: h / img.height
+      });
+      fondoImagen = img;
+      console.log('✅ Fondo establecido:', sampleName, '- Tamaño:', w, 'x', h);
+      actualizarEstadoFabric('Fondo cargado - Agrega materiales');
+      showNotification('✅ Foto del espacio guardada');
+    });
+  } else {
+    // === MODO MATERIAL: Agregar como capa Y al carrito ===
+    fabric.Image.fromURL(imagenTemporal, function (img) {
+      const scale = Math.min(
+        (fabricCanvas.width * 0.3) / img.width,
+        (fabricCanvas.height * 0.3) / img.height
+      );
+      img.set({
+        left: fabricCanvas.width / 2, top: fabricCanvas.height / 2,
+        originX: 'center', originY: 'center', scaleX: scale, scaleY: scale,
+        cornerColor: '#FFC700', cornerStrokeColor: '#FFC700', borderColor: '#FFC700',
+        cornerSize: 12, transparentCorners: false, hasRotatingPoint: true,
+        rotatingPointOffset: 20, name: sampleName
+      });
+      fabricCanvas.add(img);
+      fabricCanvas.setActiveObject(img);
+      fabricCanvas.renderAll();
 
-            if (currentCameraMode === 'fondo') {
-              // === MODO FONDO: Establecer imagen de fondo ===
-              fabric.Image.fromURL(currentCapture, function (img) {
-                // Calcular tamaño manteniendo proporción
-                const maxW = 1200, maxH = 800;
-                let w = img.width, h = img.height;
-
-                if (w > maxW) { h = h * (maxW / w); w = maxW; }
-                if (h > maxH) { w = w * (maxH / h); h = maxH; }
-
-                // Ajustar tamaño del canvas
-                fabricCanvas.setWidth(w);
-                fabricCanvas.setHeight(h);
-
-                // Configurar imagen como fondo (no seleccionable)
-                img.set({
-                  selectable: false,
-                  evented: false,
-                  hoverCursor: 'default'
-                });
-
-                // Establecer como fondo
-                fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas), {
-                  originX: 'left',
-                  originY: 'top',
-                  scaleX: w / img.width,
-                  scaleY: h / img.height
-                });
-
-                fondoImagen = img;
-
-                console.log('✅ Fondo establecido:', sampleName, '- Tamaño:', w, 'x', h);
-                // En el modo FONDO, después de establecerlo:
-                actualizarEstadoFabric('Fondo cargado - Agrega materiales');
-                showNotification('✅ Foto del espacio guardada');
-              });
-
-            } else {
-              // === MODO MATERIAL: Agregar como capa Y al carrito ===
-              fabric.Image.fromURL(currentCapture, function (img) {
-                // Escalar al 30% del canvas para que quepa bien
-                const scale = Math.min(
-                  (fabricCanvas.width * 0.3) / img.width,
-                  (fabricCanvas.height * 0.3) / img.height
-                );
-
-                // Configurar la imagen con controles visuales
-                img.set({
-                  left: fabricCanvas.width / 2,
-                  top: fabricCanvas.height / 2,
-                  originX: 'center',
-                  originY: 'center',
-                  scaleX: scale,
-                  scaleY: scale,
-                  cornerColor: '#FFC700',
-                  cornerStrokeColor: '#FFC700',
-                  borderColor: '#FFC700',
-                  cornerSize: 12,
-                  transparentCorners: false,
-                  hasRotatingPoint: true,
-                  rotatingPointOffset: 20,
-                  name: sampleName
-                });
-
-                // Agregar al canvas
-                fabricCanvas.add(img);
-                fabricCanvas.setActiveObject(img);
-                fabricCanvas.renderAll();
-                console.log('✅ Material agregado:', sampleName); //esto lo tenia abajo, entiendo que va aca 
-                // ✅ NUEVO: Agregar al carrito de muestras para la cotización
-                capturedSamples.push({
-                  id: Date.now(),
-                  name: sampleName,
-                  image: currentCapture,
-                  fecha: new Date().toLocaleString()
-                });
-
-                console.log('✅ Muestra guardada con imagen:', (currentCapture || 'dataURL de fabric').substring(0, 50) + '...');
-                // ====================
-
-                //console.log('✅ Material agregado:', sampleName); entiendo que esto va arriba
-                actualizarEstadoFabric('Material agregado - Arrástralo y ajústalo');
-                showNotification('✅ Material agregado al proyecto y a la cotización');
-                updateMaterialControls();
-              });
-            }
-            // Cerrar modal de cámara
-            capturePreview.classList.add('hidden');
-            currentCapture = null;
-            closeCamera();
-
-            // Actualizar TV
-            setTimeout(broadcastToScreen, 500);
-          }
+      // ✅ USAR imagenTemporal EN LUGAR DE currentCapture
+      capturedSamples.push({
+        id: Date.now(),
+        name: sampleName,
+        image: imagenTemporal,  // ← CAMBIO CLAVE
+        fecha: new Date().toLocaleString()
+      });
+      console.log('✅ Material agregado al carrito de muestras. Total:', capturedSamples.length);
+      console.log('✅ Material agregado:', sampleName);
+      actualizarEstadoFabric('Material agregado - Arrástralo y ajústalo');
+      showNotification('✅ Material agregado al proyecto y a la cotización');
+      updateMaterialControls();
+    });
+  }
+  
+  // Cerrar modal de cámara
+  capturePreview.classList.add('hidden');
+  currentCapture = null;  // Ahora sí puede ser null
+  closeCamera();
+  
+  // Actualizar TV
+  setTimeout(broadcastToScreen, 500);
+}
           // ==========================================
           // LIMPIAR CANVAS (REINICIAR PROYECTO)
           // ==========================================
