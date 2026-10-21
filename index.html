@@ -2527,7 +2527,7 @@ html {
             fondoImagen = null;
           }
           // 2. ¡IMPORTANTE! Limpiar el arreglo de muestras para la cotización
-          capturedSamples = [];
+          //capturedSamples = []; esto lo puse abajo 
           console.log('🗑️ Muestras capturadas limpiadas del carrito');
 
           // 3 Desconectar PeerJS
@@ -2539,7 +2539,7 @@ html {
             peer.destroy();
             peer = null;
           }
-
+          capturedSamples = []; //esto lo tenia arriba, entiendo que va acá 
           console.log('🧹 Canvas limpiado y conexión cerrada');
         }
         // ==========================================
@@ -4070,7 +4070,7 @@ if (btnSaveOnlyNew) {
                 fabricCanvas.add(img);
                 fabricCanvas.setActiveObject(img);
                 fabricCanvas.renderAll();
-
+                console.log('✅ Material agregado:', sampleName); //esto lo tenia abajo, entiendo que va aca 
                 // ✅ NUEVO: Agregar al carrito de muestras para la cotización
                 capturedSamples.push({
                   id: Date.now(),
@@ -4082,7 +4082,7 @@ if (btnSaveOnlyNew) {
                 console.log('✅ Material agregado al carrito de muestras. Total:', capturedSamples.length);
                 // ====================
 
-                console.log('✅ Material agregado:', sampleName);
+                //console.log('✅ Material agregado:', sampleName); entiendo que esto va arriba
                 actualizarEstadoFabric('Material agregado - Arrástralo y ajústalo');
                 showNotification('✅ Material agregado al proyecto y a la cotización');
                 updateMaterialControls();
