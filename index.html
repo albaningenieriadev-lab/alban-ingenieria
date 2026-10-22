@@ -3879,15 +3879,15 @@ function aplicarTransformacionPerspectiva() {
   actualizarEstadoFabric('🔄 Calculando transformación de perspectiva...');
   showNotification('🔄 Aplicando perspectiva...');
   
-  // 1. Obtener las 4 esquinas de la imagen original (puntos origen)
-  const w = img.width * img.scaleX;
-  const h = img.height * img.scaleY;
+  // ✅ ¡CAMBIO CLAVE! Usar las dimensiones REALES de la imagen, no las escaladas
+  const realWidth = img.width;
+  const realHeight = img.height;
   
   const srcPoints = [
-    { x: 0, y: 0 },           // Esquina superior-izquierda
-    { x: w, y: 0 },           // Esquina superior-derecha
-    { x: w, y: h },           // Esquina inferior-derecha
-    { x: 0, y: h }            // Esquina inferior-izquierda
+    { x: 0, y: 0 },                    // Esquina superior-izquierda
+    { x: realWidth, y: 0 },            // Esquina superior-derecha
+    { x: realWidth, y: realHeight },   // Esquina inferior-derecha
+    { x: 0, y: realHeight }            // Esquina inferior-izquierda
   ];
   
   // 2. Los puntos destino son los que tocó el usuario
