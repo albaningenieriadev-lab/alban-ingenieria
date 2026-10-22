@@ -3584,23 +3584,23 @@ const MAX_PUNTOS = 4;                 // Número de puntos requeridos
 // ==========================================
 // MODO PERSPECTIVA: CAPTURA DE 4 PUNTOS
 // ==========================================
-
-// Función para activar/desactivar el modo perspectiva
 function toggleModoPerspectiva() {
   const btnAplicar = document.getElementById('btnAplicarPerspectiva');
   const btnCancelar = document.getElementById('btnCancelarPerspectiva');
   
   if (modoPerspectiva) {
-    // Si ya está activo, no hacer nada (se cancela con el otro botón)
     return;
   }
   
-  // Verificar que haya una imagen de material seleccionada
+  // ✅ GUARDAR el objeto activo ANTES de deseleccionar todo
   const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
   if (!activeObject || activeObject.type !== 'image') {
-    showNotification('️ Primero selecciona un material en el canvas');
+    showNotification('⚠️ Primero selecciona un material en el canvas');
     return;
   }
+  
+  // ✅ Guardar referencia global al material seleccionado
+  window.materialParaPerspectiva = activeObject;
   
   // Activar modo perspectiva
   modoPerspectiva = true;
@@ -3795,33 +3795,93 @@ function aplicarHomografia(matriz, x, y) {
   var yFinal = (h[1][0] * x + h[1][1] * y + h[1][2]) / w;
   return { x: xFinal, y: yFinal };
 }
+// 1. Función para calcular la matriz de homografía 3x3
+function calcularHomografia(src, dst) {
+  var A = [], B = [];
+  for (var i = 0; i < 4; i++) {
+    var x = src[i].x, y = src[i].y;
+    var u = dst[i].x, v = dst[i].y;
+    A.push([x, y, 1, 0, 0, 0, -u*x, -u*y]); B.push(u);
+    A.push([0, 0, 0, x, y, 1, -v*x, -v*y]); B.push(v);
+  }
+  var n = 8, M = [];
+  for (var i = 0; i < n; i++) { M[i] = A[i].slice(); M[i].push(B[i]); }
+  
+  for (var i = 0; i < n; i++) {
+    var maxRow = i;
+    for (var k = i + 1; k < n; k++) {
+      if (Math.abs(M[k][i]) > Math.abs(M[maxRow][i])) maxRow = k;
+    }
+    var temp = M[i]; M[i] = M[maxRow]; M[maxRow] = temp;
+    for (var k = i + 1; k < n; k++) {
+      var factor = M[k][i] / M[i][i];
+      for (var j = i; j <= n; j++) M[k][j] -= factor * M[i][j];
+    }
+  }
+  var x = new Array(n);
+  for (var i = n - 1; i >= 0; i--) {
+    x[i] = M[i][n];
+    for (var j = i + 1; j < n; j++) x[i] -= M[i][j] * x[j];
+    x[i] /= M[i][i];
+  }
+  return [[x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], 1]];
+}
 
-// Función principal: aplicar la transformación de perspectiva
+// 2. Función auxiliar para dibujar un triángulo transformado
+function dibujarTrianguloTransformado(ctx, imgElement, srcTri, dstTri, offsetX, offsetY, padding) {
+  const x0 = srcTri[0].x, y0 = srcTri[0].y;
+  const x1 = srcTri[1].x, y1 = srcTri[1].y;
+  const x2 = srcTri[2].x, y2 = srcTri[2].y;
+  const u0 = dstTri[0].x - offsetX + padding, v0 = dstTri[0].y - offsetY + padding;
+  const u1 = dstTri[1].x - offsetX + padding, v1 = dstTri[1].y - offsetY + padding;
+  const u2 = dstTri[2].x - offsetX + padding, v2 = dstTri[2].y - offsetY + padding;
+  
+  const denom = x0 * (y1 - y2) + x1 * (y2 - y0) + x2 * (y0 - y1);
+  if (Math.abs(denom) < 0.001) return;
+  
+  const a = (u0 * (y1 - y2) + u1 * (y2 - y0) + u2 * (y0 - y1)) / denom;
+  const b = (u0 * (x2 - x1) + u1 * (x0 - x2) + u2 * (x1 - x0)) / denom;
+  const c = (u0 * (x1 * y2 - x2 * y1) + u1 * (x2 * y0 - x0 * y2) + u2 * (x0 * y1 - x1 * y0)) / denom;
+  const d = (v0 * (y1 - y2) + v1 * (y2 - y0) + v2 * (y0 - y1)) / denom;
+  const e = (v0 * (x2 - x1) + v1 * (x0 - x2) + v2 * (x1 - x0)) / denom;
+  const f = (v0 * (x1 * y2 - x2 * y1) + v1 * (x2 * y0 - x0 * y2) + v2 * (x0 * y1 - x1 * y0)) / denom;
+  
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(u0, v0); ctx.lineTo(u1, v1); ctx.lineTo(u2, v2); ctx.closePath();
+  ctx.clip();
+  ctx.transform(a, d, b, e, c, f);
+  ctx.drawImage(imgElement, 0, 0);
+  ctx.restore();
+}
+// 3. Función principal que une todo
 function aplicarTransformacionPerspectiva() {
-  console.log(' Iniciando transformación de perspectiva...');
+  console.log('🔄 Iniciando transformación de perspectiva...');
   console.log('Puntos:', puntosPerspectiva);
+  
   if (puntosPerspectiva.length !== 4) {
-    //console.error('❌ No hay 4 puntos');
     showNotification('⚠️ Se necesitan exactamente 4 puntos');
     return;
   }
   
-  const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
-  if (!activeObject || activeObject.type !== 'image') {
+  const img = window.materialParaPerspectiva || (fabricCanvas ? fabricCanvas.getActiveObject() : null);
+  
+  if (!img || img.type !== 'image') {
+    console.error('❌ No hay material seleccionado para perspectiva');
     showNotification('⚠️ No hay material seleccionado');
     cancelarModoPerspectiva();
     return;
   }
-  console.log('✅ Material seleccionado:', activeObject.name);
+  
+  console.log('✅ Material seleccionado:', img.name || 'sin nombre');
+  
+  // Actualizar estado (puedes dejar esto descomentado si quieres la notificación)
   actualizarEstadoFabric('🔄 Calculando transformación de perspectiva...');
   showNotification('🔄 Aplicando perspectiva...');
   
   // 1. Obtener las 4 esquinas de la imagen original (puntos origen)
-  const img = activeObject;
   const w = img.width * img.scaleX;
   const h = img.height * img.scaleY;
-  
-  console.log('📐 Tamaño imagen:', w, 'x', h);
   
   const srcPoints = [
     { x: 0, y: 0 },           // Esquina superior-izquierda
@@ -3830,18 +3890,18 @@ function aplicarTransformacionPerspectiva() {
     { x: 0, y: h }            // Esquina inferior-izquierda
   ];
   
+  // 2. Los puntos destino son los que tocó el usuario
   const dstPoints = puntosPerspectiva.slice();
   
-  // 2. Calcular la matriz de homografía
+  // 3. Calcular la matriz de homografía
   console.log('🧮 Calculando homografía...');
   const matriz = calcularHomografia(srcPoints, dstPoints);
-  console.log('✅ Matriz calculada:', matriz);
+  console.log('✅ Matriz calculada');
   
   // 4. Aplicar la transformación usando un canvas temporal
   const tempCanvas = document.createElement('canvas');
   const tempCtx = tempCanvas.getContext('2d');
   
-  // Tamaño del canvas temporal (usar el bounding box de los puntos destino)
   const minX = Math.min(...dstPoints.map(p => p.x));
   const maxX = Math.max(...dstPoints.map(p => p.x));
   const minY = Math.min(...dstPoints.map(p => p.y));
@@ -3851,34 +3911,24 @@ function aplicarTransformacionPerspectiva() {
   tempCanvas.width = (maxX - minX) + padding * 2;
   tempCanvas.height = (maxY - minY) + padding * 2;
   
-  console.log('🎨 Canvas temporal:', tempCanvas.width, 'x', tempCanvas.height);
-  
   tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-  
   const imgElement = img.getElement();
-  console.log('️ Elemento de imagen obtenido');
   
-  // 4. Dividir en 2 triángulos y transformar
+  // Técnica: Dividir en 2 triángulos y aplicar transformación afín a cada uno
   const srcTri1 = [srcPoints[0], srcPoints[1], srcPoints[2]];
   const dstTri1 = [dstPoints[0], dstPoints[1], dstPoints[2]];
   const srcTri2 = [srcPoints[0], srcPoints[2], srcPoints[3]];
   const dstTri2 = [dstPoints[0], dstPoints[2], dstPoints[3]];
   
-  console.log(' Dibujando triángulo 1...');
+  console.log('🔺 Dibujando triángulos transformados...');
   dibujarTrianguloTransformado(tempCtx, imgElement, srcTri1, dstTri1, minX, minY, padding);
-  
-  console.log('🔺 Dibujando triángulo 2...');
   dibujarTrianguloTransformado(tempCtx, imgElement, srcTri2, dstTri2, minX, minY, padding);
   
-  console.log('✅ Triángulos dibujados, creando imagen...');
-
-   // 5. Crear nueva imagen
+  // 5. Crear nueva imagen desde el canvas temporal
   const newDataUrl = tempCanvas.toDataURL('image/png');
-  console.log(' DataURL generado');
+  console.log('📦 DataURL generado, creando nueva imagen en Fabric...');
   
   fabric.Image.fromURL(newDataUrl, function(newImg) {
-    console.log('✅ Nueva imagen creada');
-    
     newImg.set({
       left: minX,
       top: minY,
@@ -3901,13 +3951,18 @@ function aplicarTransformacionPerspectiva() {
     fabricCanvas.setActiveObject(newImg);
     fabricCanvas.renderAll();
     
-    console.log('✅ Imagen reemplazada');
+    console.log('✅ Imagen reemplazada con éxito');
     
+    // Limpiar referencia global
+    window.materialParaPerspectiva = null;
+    
+    // Cancelar modo perspectiva
     cancelarModoPerspectiva();
     
     actualizarEstadoFabric('✅ Perspectiva aplicada correctamente');
     showNotification('✅ ¡Perspectiva aplicada! El material se adaptó al espacio.');
     
+    // Actualizar TV
     setTimeout(broadcastToScreen, 500);
   });
 }
@@ -3971,48 +4026,7 @@ function calcularHomografia(src, dst) {
   ];
 }
 
-// Función auxiliar para dibujar un triángulo transformado
-function dibujarTrianguloTransformado(ctx, imgElement, srcTri, dstTri, offsetX, offsetY, padding) {
-  // Calcular la matriz de transformación afín para el triángulo
-  const x0 = srcTri[0].x, y0 = srcTri[0].y;
-  const x1 = srcTri[1].x, y1 = srcTri[1].y;
-  const x2 = srcTri[2].x, y2 = srcTri[2].y;
-  
-  const u0 = dstTri[0].x - offsetX + padding, v0 = dstTri[0].y - offsetY + padding;
-  const u1 = dstTri[1].x - offsetX + padding, v1 = dstTri[1].y - offsetY + padding;
-  const u2 = dstTri[2].x - offsetX + padding, v2 = dstTri[2].y - offsetY + padding;
-  
-  // Calcular matriz afín: [a b c; d e f]
-  const denom = x0 * (y1 - y2) + x1 * (y2 - y0) + x2 * (y0 - y1);
-  if (Math.abs(denom) < 0.001) return; // Triángulo degenerado
-  
-  const a = (u0 * (y1 - y2) + u1 * (y2 - y0) + u2 * (y0 - y1)) / denom;
-  const b = (u0 * (x2 - x1) + u1 * (x0 - x2) + u2 * (x1 - x0)) / denom;
-  const c = (u0 * (x1 * y2 - x2 * y1) + u1 * (x2 * y0 - x0 * y2) + u2 * (x0 * y1 - x1 * y0)) / denom;
-  const d = (v0 * (y1 - y2) + v1 * (y2 - y0) + v2 * (y0 - y1)) / denom;
-  const e = (v0 * (x2 - x1) + v1 * (x0 - x2) + v2 * (x1 - x0)) / denom;
-  const f = (v0 * (x1 * y2 - x2 * y1) + v1 * (x2 * y0 - x0 * y2) + v2 * (x0 * y1 - x1 * y0)) / denom;
-  
-  // Guardar contexto
-  ctx.save();
-  
-  // Crear path del triángulo destino para clipping
-  ctx.beginPath();
-  ctx.moveTo(u0, v0);
-  ctx.lineTo(u1, v1);
-  ctx.lineTo(u2, v2);
-  ctx.closePath();
-  ctx.clip();
-  
-  // Aplicar transformación
-  ctx.transform(a, d, b, e, c, f);
-  
-  // Dibujar la imagen
-  ctx.drawImage(imgElement, 0, 0);
-  
-  // Restaurar contexto
-  ctx.restore();
-}
+
 
 // ==========================================
 // EVENT LISTENERS PARA LOS BOTONES DE PERSPECTIVA
