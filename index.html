@@ -3796,7 +3796,10 @@ function aplicarHomografia(matriz, x, y) {
 
 // Función principal: aplicar la transformación de perspectiva
 function aplicarTransformacionPerspectiva() {
+  console.log(' Iniciando transformación de perspectiva...');
+  console.log('Puntos:', puntosPerspectiva);
   if (puntosPerspectiva.length !== 4) {
+    console.error('❌ No hay 4 puntos');
     showNotification('⚠️ Se necesitan exactamente 4 puntos');
     return;
   }
