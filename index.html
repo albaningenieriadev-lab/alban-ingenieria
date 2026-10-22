@@ -3903,6 +3903,65 @@ function aplicarTransformacionPerspectiva() {
   });
 }
 
+// Función para calcular la matriz de homografía 3x3
+function calcularHomografia(src, dst) {
+  var A = [];
+  var B = [];
+  
+  for (var i = 0; i < 4; i++) {
+    var x = src[i].x, y = src[i].y;
+    var u = dst[i].x, v = dst[i].y;
+    
+    A.push([x, y, 1, 0, 0, 0, -u*x, -u*y]);
+    B.push(u);
+    A.push([0, 0, 0, x, y, 1, -v*x, -v*y]);
+    B.push(v);
+  }
+  
+  var n = 8;
+  var M = [];
+  for (var i = 0; i < n; i++) {
+    M[i] = A[i].slice();
+    M[i].push(B[i]);
+  }
+  
+  // Eliminación gaussiana
+  for (var i = 0; i < n; i++) {
+    var maxRow = i;
+    for (var k = i + 1; k < n; k++) {
+      if (Math.abs(M[k][i]) > Math.abs(M[maxRow][i])) {
+        maxRow = k;
+      }
+    }
+    var temp = M[i];
+    M[i] = M[maxRow];
+    M[maxRow] = temp;
+    
+    for (var k = i + 1; k < n; k++) {
+      var factor = M[k][i] / M[i][i];
+      for (var j = i; j <= n; j++) {
+        M[k][j] -= factor * M[i][j];
+      }
+    }
+  }
+  
+  // Sustitución hacia atrás
+  var x = new Array(n);
+  for (var i = n - 1; i >= 0; i--) {
+    x[i] = M[i][n];
+    for (var j = i + 1; j < n; j++) {
+      x[i] -= M[i][j] * x[j];
+    }
+    x[i] /= M[i][i];
+  }
+  
+  return [
+    [x[0], x[1], x[2]],
+    [x[3], x[4], x[5]],
+    [x[6], x[7], 1]
+  ];
+}
+
 // Función auxiliar para dibujar un triángulo transformado
 function dibujarTrianguloTransformado(ctx, imgElement, srcTri, dstTri, offsetX, offsetY, padding) {
   // Calcular la matriz de transformación afín para el triángulo
