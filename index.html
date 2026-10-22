@@ -1221,7 +1221,11 @@ html {
         class="w-full px-3 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition text-xs flex items-center justify-center gap-2">
   <i class="fas fa-vector-square"></i> Aplicar Perspectiva
 </button>
-
+<!-- Botón Aplicar con IA (NUEVO) -->
+<button id="btnAplicarIA"
+        class="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-bold hover:from-purple-700 hover:to-pink-700 transition text-xs flex items-center justify-center gap-2 shadow-lg">
+  <i class="fas fa-magic"></i> ✨ Aplicar con IA
+</button>
 <!-- Botón Cancelar Perspectiva (oculto al inicio) -->
 <button id="btnCancelarPerspectiva"
         class="hidden w-full px-3 py-2 bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-700 transition text-xs flex items-center justify-center gap-2">
@@ -1723,6 +1727,11 @@ html {
 let modoPerspectiva = false;          // ¿Estamos en modo perspectiva?
 let puntosPerspectiva = [];           // Array de los 4 puntos [ {x, y}, ... ]
 let marcadoresPerspectiva = [];       // Los círculos visuales en el canvas
+// ==========================================
+// VARIABLES PARA MODO IA (DETECCIÓN INTELIGENTE)
+// ==========================================
+let modoIA = false;                    // ¿Estamos en modo IA?
+let materialParaIA = null;             // Material que se aplicará
 const MAX_PUNTOS = 4;                 // Número de puntos requeridos
         let cameraStream = null;
         let currentCapture = null;
@@ -4026,7 +4035,324 @@ function calcularHomografia(src, dst) {
   ];
 }
 
+// ==========================================
+// MODO IA: DETECCIÓN INTELIGENTE + PERSPECTIVA AUTOMÁTICA
+// ==========================================
 
+// Función para activar el modo IA
+function activarModoIA() {
+  const btnIA = document.getElementById('btnAplicarIA');
+  
+  // Verificar que haya una imagen de material seleccionada
+  const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
+  if (!activeObject || activeObject.type !== 'image') {
+    showNotification('⚠️ Primero selecciona un material en el canvas');
+    return;
+  }
+  
+  // Guardar referencia al material
+  materialParaIA = activeObject;
+  
+  // Activar modo IA
+  modoIA = true;
+  
+  // Cambiar cursor del canvas
+  fabricCanvas.defaultCursor = 'crosshair';
+  fabricCanvas.hoverCursor = 'crosshair';
+  
+  // Desactivar selección de objetos temporalmente
+  fabricCanvas.selection = false;
+  fabricCanvas.forEachObject(function(obj) {
+    obj.selectable = false;
+    obj.evented = false;
+  });
+  
+  actualizarEstadoFabric('🤖 Modo IA: Haz clic en la pared o piso donde aplicar el material');
+  showNotification('🤖 Modo IA activado. Haz UN CLIC en la pared o piso.');
+}
+
+// Función para cancelar el modo IA
+function cancelarModoIA() {
+  modoIA = false;
+  materialParaIA = null;
+  
+  // Restaurar cursor
+  fabricCanvas.defaultCursor = 'default';
+  fabricCanvas.hoverCursor = 'move';
+  
+  // Reactivar selección de objetos
+  fabricCanvas.selection = true;
+  fabricCanvas.forEachObject(function(obj) {
+    if (obj !== fabricCanvas.backgroundImage) {
+      obj.selectable = true;
+      obj.evented = true;
+    }
+  });
+  
+  fabricCanvas.renderAll();
+  actualizarEstadoFabric('Modo IA cancelado');
+  showNotification('❌ Modo IA cancelado');
+}
+
+// Función principal: aplicar material con IA
+function aplicarMaterialConIA(x, y) {
+  if (!modoIA || !materialParaIA) return;
+  
+  console.log('🤖 Aplicando material con IA en:', x, y);
+  actualizarEstadoFabric('🔍 Detectando zona...');
+  showNotification('🔍 Detectando zona automáticamente...');
+  
+  // 1. Obtener la imagen de fondo para detectar la zona
+  const bgImage = fabricCanvas.backgroundImage;
+  if (!bgImage) {
+    showNotification('⚠️ No hay imagen de fondo cargada');
+    cancelarModoIA();
+    return;
+  }
+  
+  // 2. Obtener el elemento de la imagen de fondo
+  const bgElement = bgImage.getElement();
+  if (!bgElement) {
+    showNotification('⚠️ No se puede acceder a la imagen de fondo');
+    cancelarModoIA();
+    return;
+  }
+  
+  // 3. Crear canvas temporal para analizar la imagen
+  const tempCanvas = document.createElement('canvas');
+  const tempCtx = tempCanvas.getContext('2d');
+  tempCanvas.width = bgElement.width;
+  tempCanvas.height = bgElement.height;
+  tempCtx.drawImage(bgElement, 0, 0);
+  
+  // 4. Obtener datos de píxeles
+  const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+  
+  // 5. Detectar la zona usando flood-fill (similar a detectZone pero adaptado)
+  const zone = detectarZonaInteligente(imageData, x, y);
+  
+  if (!zone) {
+    showNotification('⚠️ No se pudo detectar una zona válida. Intenta en otra área.');
+    cancelarModoIA();
+    return;
+  }
+  
+  console.log('✅ Zona detectada:', zone.type, '- Tamaño:', zone.size, 'píxeles');
+  actualizarEstadoFabric('✅ Zona detectada: ' + zone.type + '. Aplicando material...');
+  showNotification('✅ Zona detectada: ' + zone.type);
+  
+  // 6. Calcular los 4 puntos de perspectiva automáticamente
+  const puntosPerspectiva = [
+    { x: zone.bounds.minX, y: zone.bounds.minY }, // Esquina superior-izquierda
+    { x: zone.bounds.maxX, y: zone.bounds.minY }, // Esquina superior-derecha
+    { x: zone.bounds.maxX, y: zone.bounds.maxY }, // Esquina inferior-derecha
+    { x: zone.bounds.minX, y: zone.bounds.maxY }  // Esquina inferior-izquierda
+  ];
+  
+  console.log('📐 Puntos de perspectiva calculados:', puntosPerspectiva);
+  
+  // 7. Aplicar la transformación de perspectiva
+  aplicarPerspectivaAutomatica(puntosPerspectiva, materialParaIA);
+}
+
+// Función para detectar zona usando flood-fill
+function detectarZonaInteligente(imageData, startX, startY) {
+  const w = imageData.width;
+  const h = imageData.height;
+  const data = imageData.data;
+  
+  // Calcular índice del píxel inicial
+  const startIdx = (startY * w + startX) * 4;
+  const startR = data[startIdx];
+  const startG = data[startIdx + 1];
+  const startB = data[startIdx + 2];
+  
+  // Tolerancia para detectar píxeles similares
+  const tolerance = 40;
+  
+  // Arrays para flood-fill
+  const visited = new Uint8Array(w * h);
+  const zone = [];
+  const stack = [[startX, startY]];
+  let count = 0;
+  const maxPixels = w * h * 0.5; // Máximo 50% de la imagen
+  
+  // Flood-fill
+  while (stack.length > 0 && count < maxPixels) {
+    const pos = stack.pop();
+    const x = pos[0];
+    const y = pos[1];
+    const idx = y * w + x;
+    
+    if (visited[idx]) continue;
+    if (x < 0 || x >= w || y < 0 || y >= h) continue;
+    
+    const pIdx = idx * 4;
+    const r = data[pIdx];
+    const g = data[pIdx + 1];
+    const b = data[pIdx + 2];
+    
+    // Calcular distancia de color
+    const dist = Math.sqrt(
+      Math.pow(r - startR, 2) +
+      Math.pow(g - startG, 2) +
+      Math.pow(b - startB, 2)
+    );
+    
+    if (dist > tolerance) continue;
+    
+    visited[idx] = 1;
+    zone.push({ x: x, y: y });
+    count++;
+    
+    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+  }
+  
+  // Verificar que la zona sea suficientemente grande
+  if (zone.length < 100) return null;
+  
+  // Calcular bounds
+  let minX = w, maxX = 0, minY = h, maxY = 0;
+  for (let i = 0; i < zone.length; i++) {
+    if (zone[i].x < minX) minX = zone[i].x;
+    if (zone[i].x > maxX) maxX = zone[i].x;
+    if (zone[i].y < minY) minY = zone[i].y;
+    if (zone[i].y > maxY) maxY = zone[i].y;
+  }
+  
+  // Determinar tipo de zona
+  const zoneW = maxX - minX;
+  const zoneH = maxY - minY;
+  const aspectRatio = zoneW / zoneH;
+  
+  let zoneType = 'Zona';
+  if (aspectRatio > 2.5 && zoneH < h * 0.3) zoneType = 'Techo';
+  else if (aspectRatio > 1.5 && zoneH < h * 0.4) zoneType = 'Pared horizontal';
+  else if (zoneH > h * 0.5 && zoneW < w * 0.5) zoneType = 'Pared vertical';
+  else if (zoneH > h * 0.4 && zoneW > w * 0.6) zoneType = 'Piso';
+  else if (zoneW > w * 0.7 && zoneH > h * 0.5) zoneType = 'Pared principal';
+  
+  return {
+    pixels: zone,
+    bounds: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
+    type: zoneType,
+    size: zone.length
+  };
+}
+
+// Función para aplicar perspectiva automáticamente
+function aplicarPerspectivaAutomatica(puntosPerspectiva, img) {
+  console.log(' Aplicando perspectiva automática...');
+  
+  // 1. Obtener las 4 esquinas de la imagen original (puntos origen)
+  const w = img.width * img.scaleX;
+  const h = img.height * img.scaleY;
+  
+  const srcPoints = [
+    { x: 0, y: 0 },
+    { x: w, y: 0 },
+    { x: w, y: h },
+    { x: 0, y: h }
+  ];
+  
+  const dstPoints = puntosPerspectiva.slice();
+  
+  // 2. Calcular la matriz de homografía
+  const matriz = calcularHomografia(srcPoints, dstPoints);
+  
+  // 3. Crear canvas temporal
+  const tempCanvas = document.createElement('canvas');
+  const tempCtx = tempCanvas.getContext('2d');
+  
+  const minX = Math.min(...dstPoints.map(p => p.x));
+  const maxX = Math.max(...dstPoints.map(p => p.x));
+  const minY = Math.min(...dstPoints.map(p => p.y));
+  const maxY = Math.max(...dstPoints.map(p => p.y));
+  
+  const padding = 20;
+  tempCanvas.width = (maxX - minX) + padding * 2;
+  tempCanvas.height = (maxY - minY) + padding * 2;
+  
+  tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+  
+  const imgElement = img.getElement();
+  
+  // 4. Dividir en 2 triángulos y transformar
+  const srcTri1 = [srcPoints[0], srcPoints[1], srcPoints[2]];
+  const dstTri1 = [dstPoints[0], dstPoints[1], dstPoints[2]];
+  const srcTri2 = [srcPoints[0], srcPoints[2], srcPoints[3]];
+  const dstTri2 = [dstPoints[0], dstPoints[2], dstPoints[3]];
+  
+  dibujarTrianguloTransformado(tempCtx, imgElement, srcTri1, dstTri1, minX, minY, padding);
+  dibujarTrianguloTransformado(tempCtx, imgElement, srcTri2, dstTri2, minX, minY, padding);
+  
+  // 5. Crear nueva imagen
+  const newDataUrl = tempCanvas.toDataURL('image/png');
+  
+  fabric.Image.fromURL(newDataUrl, function(newImg) {
+    newImg.set({
+      left: minX,
+      top: minY,
+      originX: 'left',
+      originY: 'top',
+      selectable: true,
+      evented: true,
+      cornerColor: '#FFC700',
+      cornerStrokeColor: '#FFC700',
+      borderColor: '#FFC700',
+      cornerSize: 12,
+      transparentCorners: false,
+      hasRotatingPoint: true,
+      name: img.name || 'Material_IA'
+    });
+    
+    // Reemplazar la imagen original
+    fabricCanvas.remove(img);
+    fabricCanvas.add(newImg);
+    fabricCanvas.setActiveObject(newImg);
+    fabricCanvas.renderAll();
+    
+    // Cancelar modo IA
+    cancelarModoIA();
+    
+    actualizarEstadoFabric('✅ Material aplicado con IA: ' + zoneType);
+    showNotification('✅ ¡Material aplicado con IA! Se adaptó a la ' + zoneType + '.');
+    
+    // Actualizar TV
+    setTimeout(broadcastToScreen, 500);
+  });
+}
+
+// ==========================================
+// EVENT LISTENER PARA EL BOTÓN "APLICAR CON IA"
+// ==========================================
+const btnAplicarIA = document.getElementById('btnAplicarIA');
+if (btnAplicarIA) {
+  btnAplicarIA.addEventListener('click', function() {
+    activarModoIA();
+  });
+}
+
+// ==========================================
+// CAPTURAR CLICS EN EL CANVAS CUANDO ESTÁ EN MODO IA
+// ==========================================
+if (fabricCanvas) {
+  fabricCanvas.on('mouse:down', function(opt) {
+    // Si está en modo perspectiva manual, no hacer nada aquí
+    if (modoPerspectiva) return;
+    
+    // Si está en modo IA
+    if (modoIA) {
+      const pointer = fabricCanvas.getPointer(opt.e);
+      const x = pointer.x;
+      const y = pointer.y;
+      
+      console.log('🤖 Clic en modo IA:', x.toFixed(0), y.toFixed(0));
+      
+      aplicarMaterialConIA(x, y);
+    }
+  });
+}
 
 // ==========================================
 // EVENT LISTENERS PARA LOS BOTONES DE PERSPECTIVA
