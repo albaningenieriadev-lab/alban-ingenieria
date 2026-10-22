@@ -3685,6 +3685,7 @@ function agregarPuntoPerspectiva(x, y) {
     originY: 'center'
   });
   
+  // ✅ CORREGIDO: Usar 'middle' en lugar de 'alphabetical'
   const text = new fabric.Text(numero.toString(), {
     left: x,
     top: y,
@@ -3694,7 +3695,8 @@ function agregarPuntoPerspectiva(x, y) {
     selectable: false,
     evented: false,
     originX: 'center',
-    originY: 'center'
+    originY: 'center',
+    textBaseline: 'middle'  // ← CAMBIO CLAVE
   });
   
   // Agregar al canvas
@@ -3799,7 +3801,7 @@ function aplicarTransformacionPerspectiva() {
   console.log(' Iniciando transformación de perspectiva...');
   console.log('Puntos:', puntosPerspectiva);
   if (puntosPerspectiva.length !== 4) {
-    console.error('❌ No hay 4 puntos');
+    //console.error('❌ No hay 4 puntos');
     showNotification('⚠️ Se necesitan exactamente 4 puntos');
     return;
   }
@@ -3810,7 +3812,7 @@ function aplicarTransformacionPerspectiva() {
     cancelarModoPerspectiva();
     return;
   }
-  
+  console.log('✅ Material seleccionado:', activeObject.name);
   actualizarEstadoFabric('🔄 Calculando transformación de perspectiva...');
   showNotification('🔄 Aplicando perspectiva...');
   
@@ -3818,8 +3820,8 @@ function aplicarTransformacionPerspectiva() {
   const img = activeObject;
   const w = img.width * img.scaleX;
   const h = img.height * img.scaleY;
-  const left = img.left - (img.width * img.scaleX) / 2;
-  const top = img.top - (img.height * img.scaleY) / 2;
+  
+  console.log('📐 Tamaño imagen:', w, 'x', h);
   
   const srcPoints = [
     { x: 0, y: 0 },           // Esquina superior-izquierda
@@ -3828,11 +3830,12 @@ function aplicarTransformacionPerspectiva() {
     { x: 0, y: h }            // Esquina inferior-izquierda
   ];
   
-  // 2. Los puntos destino son los que tocó el usuario
   const dstPoints = puntosPerspectiva.slice();
   
-  // 3. Calcular la matriz de homografía
+  // 2. Calcular la matriz de homografía
+  console.log('🧮 Calculando homografía...');
   const matriz = calcularHomografia(srcPoints, dstPoints);
+  console.log('✅ Matriz calculada:', matriz);
   
   // 4. Aplicar la transformación usando un canvas temporal
   const tempCanvas = document.createElement('canvas');
@@ -3848,31 +3851,34 @@ function aplicarTransformacionPerspectiva() {
   tempCanvas.width = (maxX - minX) + padding * 2;
   tempCanvas.height = (maxY - minY) + padding * 2;
   
-  // Limpiar el canvas
+  console.log('🎨 Canvas temporal:', tempCanvas.width, 'x', tempCanvas.height);
+  
   tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
   
-  // Obtener la imagen original
   const imgElement = img.getElement();
+  console.log('️ Elemento de imagen obtenido');
   
-  // Aplicar la transformación de perspectiva usando transform matrix
-  // Para una homografía completa, necesitamos usar un enfoque diferente
-  // Vamos a usar la técnica de dividir la imagen en triángulos y transformar cada uno
-  
-  // Técnica: Dividir en 2 triángulos y aplicar transformación afín a cada uno
+  // 4. Dividir en 2 triángulos y transformar
   const srcTri1 = [srcPoints[0], srcPoints[1], srcPoints[2]];
   const dstTri1 = [dstPoints[0], dstPoints[1], dstPoints[2]];
   const srcTri2 = [srcPoints[0], srcPoints[2], srcPoints[3]];
   const dstTri2 = [dstPoints[0], dstPoints[2], dstPoints[3]];
   
-  // Dibujar cada triángulo con su transformación
+  console.log(' Dibujando triángulo 1...');
   dibujarTrianguloTransformado(tempCtx, imgElement, srcTri1, dstTri1, minX, minY, padding);
+  
+  console.log('🔺 Dibujando triángulo 2...');
   dibujarTrianguloTransformado(tempCtx, imgElement, srcTri2, dstTri2, minX, minY, padding);
   
-  // 5. Crear nueva imagen desde el canvas temporal
+  console.log('✅ Triángulos dibujados, creando imagen...');
+
+   // 5. Crear nueva imagen
   const newDataUrl = tempCanvas.toDataURL('image/png');
+  console.log(' DataURL generado');
   
   fabric.Image.fromURL(newDataUrl, function(newImg) {
-    // Configurar la nueva imagen
+    console.log('✅ Nueva imagen creada');
+    
     newImg.set({
       left: minX,
       top: minY,
@@ -3889,19 +3895,19 @@ function aplicarTransformacionPerspectiva() {
       name: img.name || 'Material_Perspectiva'
     });
     
-    // Reemplazar la imagen original
+    console.log('🔄 Reemplazando imagen original...');
     fabricCanvas.remove(img);
     fabricCanvas.add(newImg);
     fabricCanvas.setActiveObject(newImg);
     fabricCanvas.renderAll();
     
-    // Cancelar modo perspectiva
+    console.log('✅ Imagen reemplazada');
+    
     cancelarModoPerspectiva();
     
     actualizarEstadoFabric('✅ Perspectiva aplicada correctamente');
     showNotification('✅ ¡Perspectiva aplicada! El material se adaptó al espacio.');
     
-    // Actualizar TV
     setTimeout(broadcastToScreen, 500);
   });
 }
