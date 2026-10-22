@@ -3714,19 +3714,236 @@ function agregarPuntoPerspectiva(x, y) {
     }, 500);
   }
 }
+// ==========================================
+// FASE 2: ALGORITMO DE HOMOGRAFÍA (TRANSFORMACIÓN DE PERSPECTIVA)
+// ==========================================
 
-// Función placeholder para aplicar la transformación (Fase 2)
-function aplicarTransformacionPerspectiva() {
-  actualizarEstadoFabric('✅ 4 puntos capturados. Preparando transformación...');
-  showNotification('✅ 4 puntos capturados. Aplicando perspectiva...');
+// Función para calcular la matriz de homografía 3x3
+// src: 4 puntos origen (esquinas de la imagen)
+// dst: 4 puntos destino (los que tocó el usuario)
+function calcularHomografia(src, dst) {
+  // Sistema de 8 ecuaciones con 8 incógnitas
+  // Usamos eliminación gaussiana para resolver
+  var A = [];
+  var B = [];
   
-  // Aquí irá el algoritmo de homografía en la FASE 2
-  // Por ahora, solo mostramos los puntos y cancelamos el modo
-  setTimeout(function() {
+  for (var i = 0; i < 4; i++) {
+    var x = src[i].x, y = src[i].y;
+    var u = dst[i].x, v = dst[i].y;
+    
+    A.push([x, y, 1, 0, 0, 0, -u*x, -u*y]);
+    B.push(u);
+    A.push([0, 0, 0, x, y, 1, -v*x, -v*y]);
+    B.push(v);
+  }
+  
+  // Resolver el sistema Ax = B usando eliminación gaussiana
+  var n = 8;
+  var M = [];
+  for (var i = 0; i < n; i++) {
+    M[i] = A[i].slice();
+    M[i].push(B[i]);
+  }
+  
+  // Eliminación hacia adelante
+  for (var i = 0; i < n; i++) {
+    // Buscar pivote
+    var maxRow = i;
+    for (var k = i + 1; k < n; k++) {
+      if (Math.abs(M[k][i]) > Math.abs(M[maxRow][i])) {
+        maxRow = k;
+      }
+    }
+    var temp = M[i];
+    M[i] = M[maxRow];
+    M[maxRow] = temp;
+    
+    // Hacer ceros debajo del pivote
+    for (var k = i + 1; k < n; k++) {
+      var factor = M[k][i] / M[i][i];
+      for (var j = i; j <= n; j++) {
+        M[k][j] -= factor * M[i][j];
+      }
+    }
+  }
+  
+  // Sustitución hacia atrás
+  var x = new Array(n);
+  for (var i = n - 1; i >= 0; i--) {
+    x[i] = M[i][n];
+    for (var j = i + 1; j < n; j++) {
+      x[i] -= M[i][j] * x[j];
+    }
+    x[i] /= M[i][i];
+  }
+  
+  // Retornar matriz 3x3 (el último elemento es 1)
+  return [
+    [x[0], x[1], x[2]],
+    [x[3], x[4], x[5]],
+    [x[6], x[7], 1]
+  ];
+}
+
+// Función para aplicar un punto a la matriz de homografía
+function aplicarHomografia(matriz, x, y) {
+  var h = matriz;
+  var w = h[2][0] * x + h[2][1] * y + h[2][2];
+  var xFinal = (h[0][0] * x + h[0][1] * y + h[0][2]) / w;
+  var yFinal = (h[1][0] * x + h[1][1] * y + h[1][2]) / w;
+  return { x: xFinal, y: yFinal };
+}
+
+// Función principal: aplicar la transformación de perspectiva
+function aplicarTransformacionPerspectiva() {
+  if (puntosPerspectiva.length !== 4) {
+    showNotification('⚠️ Se necesitan exactamente 4 puntos');
+    return;
+  }
+  
+  const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
+  if (!activeObject || activeObject.type !== 'image') {
+    showNotification('⚠️ No hay material seleccionado');
     cancelarModoPerspectiva();
-    actualizarEstadoFabric('✅ Perspectiva lista (Fase 2 pendiente)');
-    showNotification('🎉 ¡4 puntos capturados! La transformación se aplicará en la Fase 2.');
-  }, 1500);
+    return;
+  }
+  
+  actualizarEstadoFabric('🔄 Calculando transformación de perspectiva...');
+  showNotification('🔄 Aplicando perspectiva...');
+  
+  // 1. Obtener las 4 esquinas de la imagen original (puntos origen)
+  const img = activeObject;
+  const w = img.width * img.scaleX;
+  const h = img.height * img.scaleY;
+  const left = img.left - (img.width * img.scaleX) / 2;
+  const top = img.top - (img.height * img.scaleY) / 2;
+  
+  const srcPoints = [
+    { x: 0, y: 0 },           // Esquina superior-izquierda
+    { x: w, y: 0 },           // Esquina superior-derecha
+    { x: w, y: h },           // Esquina inferior-derecha
+    { x: 0, y: h }            // Esquina inferior-izquierda
+  ];
+  
+  // 2. Los puntos destino son los que tocó el usuario
+  const dstPoints = puntosPerspectiva.slice();
+  
+  // 3. Calcular la matriz de homografía
+  const matriz = calcularHomografia(srcPoints, dstPoints);
+  
+  // 4. Aplicar la transformación usando un canvas temporal
+  const tempCanvas = document.createElement('canvas');
+  const tempCtx = tempCanvas.getContext('2d');
+  
+  // Tamaño del canvas temporal (usar el bounding box de los puntos destino)
+  const minX = Math.min(...dstPoints.map(p => p.x));
+  const maxX = Math.max(...dstPoints.map(p => p.x));
+  const minY = Math.min(...dstPoints.map(p => p.y));
+  const maxY = Math.max(...dstPoints.map(p => p.y));
+  
+  const padding = 20;
+  tempCanvas.width = (maxX - minX) + padding * 2;
+  tempCanvas.height = (maxY - minY) + padding * 2;
+  
+  // Limpiar el canvas
+  tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+  
+  // Obtener la imagen original
+  const imgElement = img.getElement();
+  
+  // Aplicar la transformación de perspectiva usando transform matrix
+  // Para una homografía completa, necesitamos usar un enfoque diferente
+  // Vamos a usar la técnica de dividir la imagen en triángulos y transformar cada uno
+  
+  // Técnica: Dividir en 2 triángulos y aplicar transformación afín a cada uno
+  const srcTri1 = [srcPoints[0], srcPoints[1], srcPoints[2]];
+  const dstTri1 = [dstPoints[0], dstPoints[1], dstPoints[2]];
+  const srcTri2 = [srcPoints[0], srcPoints[2], srcPoints[3]];
+  const dstTri2 = [dstPoints[0], dstPoints[2], dstPoints[3]];
+  
+  // Dibujar cada triángulo con su transformación
+  dibujarTrianguloTransformado(tempCtx, imgElement, srcTri1, dstTri1, minX, minY, padding);
+  dibujarTrianguloTransformado(tempCtx, imgElement, srcTri2, dstTri2, minX, minY, padding);
+  
+  // 5. Crear nueva imagen desde el canvas temporal
+  const newDataUrl = tempCanvas.toDataURL('image/png');
+  
+  fabric.Image.fromURL(newDataUrl, function(newImg) {
+    // Configurar la nueva imagen
+    newImg.set({
+      left: minX,
+      top: minY,
+      originX: 'left',
+      originY: 'top',
+      selectable: true,
+      evented: true,
+      cornerColor: '#FFC700',
+      cornerStrokeColor: '#FFC700',
+      borderColor: '#FFC700',
+      cornerSize: 12,
+      transparentCorners: false,
+      hasRotatingPoint: true,
+      name: img.name || 'Material_Perspectiva'
+    });
+    
+    // Reemplazar la imagen original
+    fabricCanvas.remove(img);
+    fabricCanvas.add(newImg);
+    fabricCanvas.setActiveObject(newImg);
+    fabricCanvas.renderAll();
+    
+    // Cancelar modo perspectiva
+    cancelarModoPerspectiva();
+    
+    actualizarEstadoFabric('✅ Perspectiva aplicada correctamente');
+    showNotification('✅ ¡Perspectiva aplicada! El material se adaptó al espacio.');
+    
+    // Actualizar TV
+    setTimeout(broadcastToScreen, 500);
+  });
+}
+
+// Función auxiliar para dibujar un triángulo transformado
+function dibujarTrianguloTransformado(ctx, imgElement, srcTri, dstTri, offsetX, offsetY, padding) {
+  // Calcular la matriz de transformación afín para el triángulo
+  const x0 = srcTri[0].x, y0 = srcTri[0].y;
+  const x1 = srcTri[1].x, y1 = srcTri[1].y;
+  const x2 = srcTri[2].x, y2 = srcTri[2].y;
+  
+  const u0 = dstTri[0].x - offsetX + padding, v0 = dstTri[0].y - offsetY + padding;
+  const u1 = dstTri[1].x - offsetX + padding, v1 = dstTri[1].y - offsetY + padding;
+  const u2 = dstTri[2].x - offsetX + padding, v2 = dstTri[2].y - offsetY + padding;
+  
+  // Calcular matriz afín: [a b c; d e f]
+  const denom = x0 * (y1 - y2) + x1 * (y2 - y0) + x2 * (y0 - y1);
+  if (Math.abs(denom) < 0.001) return; // Triángulo degenerado
+  
+  const a = (u0 * (y1 - y2) + u1 * (y2 - y0) + u2 * (y0 - y1)) / denom;
+  const b = (u0 * (x2 - x1) + u1 * (x0 - x2) + u2 * (x1 - x0)) / denom;
+  const c = (u0 * (x1 * y2 - x2 * y1) + u1 * (x2 * y0 - x0 * y2) + u2 * (x0 * y1 - x1 * y0)) / denom;
+  const d = (v0 * (y1 - y2) + v1 * (y2 - y0) + v2 * (y0 - y1)) / denom;
+  const e = (v0 * (x2 - x1) + v1 * (x0 - x2) + v2 * (x1 - x0)) / denom;
+  const f = (v0 * (x1 * y2 - x2 * y1) + v1 * (x2 * y0 - x0 * y2) + v2 * (x0 * y1 - x1 * y0)) / denom;
+  
+  // Guardar contexto
+  ctx.save();
+  
+  // Crear path del triángulo destino para clipping
+  ctx.beginPath();
+  ctx.moveTo(u0, v0);
+  ctx.lineTo(u1, v1);
+  ctx.lineTo(u2, v2);
+  ctx.closePath();
+  ctx.clip();
+  
+  // Aplicar transformación
+  ctx.transform(a, d, b, e, c, f);
+  
+  // Dibujar la imagen
+  ctx.drawImage(imgElement, 0, 0);
+  
+  // Restaurar contexto
+  ctx.restore();
 }
 
 // ==========================================
