@@ -4274,7 +4274,11 @@ function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   tempCanvas.width = (maxX - minX) + padding * 2;
   tempCanvas.height = (maxY - minY) + padding * 2;
   
-  tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+  // ✅ Limpiar con fondo blanco opaco (no transparente)
+tempCtx.fillStyle = '#FFFFFF';
+tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+tempCtx.globalAlpha = 1;  // ✅ Forzar opacidad total al dibujar
+tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
   
   const imgElement = img.getElement();
   
@@ -4296,6 +4300,8 @@ function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
       top: minY,
       originX: 'left',
       originY: 'top',
+      opacity: 1,
+      globalCompositeOperation: 'source-over',
       selectable: true,
       evented: true,
       cornerColor: '#FFC700',
