@@ -1216,6 +1216,17 @@ html {
                 class="w-full px-3 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition text-xs flex items-center justify-center gap-2">
                 <i class="fas fa-copy"></i> Duplicar Material
               </button>
+              <!-- Botón Aplicar Perspectiva -->
+<button id="btnAplicarPerspectiva"
+        class="w-full px-3 py-2 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition text-xs flex items-center justify-center gap-2">
+  <i class="fas fa-vector-square"></i> Aplicar Perspectiva
+</button>
+
+<!-- Botón Cancelar Perspectiva (oculto al inicio) -->
+<button id="btnCancelarPerspectiva"
+        class="hidden w-full px-3 py-2 bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-700 transition text-xs flex items-center justify-center gap-2">
+  <i class="fas fa-times"></i> Cancelar Perspectiva
+</button>
               <!-- Botón agregar al carrito desde catálogo -->
               <button id="btnAddSampleToCart"
                 class="w-full px-3 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition text-xs flex items-center justify-center gap-2">
@@ -1706,6 +1717,13 @@ html {
         var textureCache = {};
         var pendingAction = null;
         let capturedSamples = [];
+        // ==========================================
+// VARIABLES PARA MODO PERSPECTIVA (4 PUNTOS)
+// ==========================================
+let modoPerspectiva = false;          // ¿Estamos en modo perspectiva?
+let puntosPerspectiva = [];           // Array de los 4 puntos [ {x, y}, ... ]
+let marcadoresPerspectiva = [];       // Los círculos visuales en el canvas
+const MAX_PUNTOS = 4;                 // Número de puntos requeridos
         let cameraStream = null;
         let currentCapture = null;
         //Agregamos variables de capas siguiendo con el pequeño editor de photoshop
@@ -3562,6 +3580,189 @@ html {
               }
             });
           }
+
+// ==========================================
+// MODO PERSPECTIVA: CAPTURA DE 4 PUNTOS
+// ==========================================
+
+// Función para activar/desactivar el modo perspectiva
+function toggleModoPerspectiva() {
+  const btnAplicar = document.getElementById('btnAplicarPerspectiva');
+  const btnCancelar = document.getElementById('btnCancelarPerspectiva');
+  
+  if (modoPerspectiva) {
+    // Si ya está activo, no hacer nada (se cancela con el otro botón)
+    return;
+  }
+  
+  // Verificar que haya una imagen de material seleccionada
+  const activeObject = fabricCanvas ? fabricCanvas.getActiveObject() : null;
+  if (!activeObject || activeObject.type !== 'image') {
+    showNotification('️ Primero selecciona un material en el canvas');
+    return;
+  }
+  
+  // Activar modo perspectiva
+  modoPerspectiva = true;
+  puntosPerspectiva = [];
+  marcadoresPerspectiva = [];
+  
+  // Cambiar botones
+  if (btnAplicar) btnAplicar.classList.add('hidden');
+  if (btnCancelar) btnCancelar.classList.remove('hidden');
+  
+  // Cambiar cursor del canvas
+  fabricCanvas.defaultCursor = 'crosshair';
+  fabricCanvas.hoverCursor = 'crosshair';
+  
+  // Desactivar selección de objetos temporalmente
+  fabricCanvas.selection = false;
+  fabricCanvas.forEachObject(function(obj) {
+    obj.selectable = false;
+    obj.evented = false;
+  });
+  
+  actualizarEstadoFabric(' Modo Perspectiva: Toca 4 esquinas de la pared/piso (0/4)');
+  showNotification('🎯 Modo Perspectiva activado. Toca 4 esquinas.');
+}
+
+// Función para cancelar el modo perspectiva
+function cancelarModoPerspectiva() {
+  const btnAplicar = document.getElementById('btnAplicarPerspectiva');
+  const btnCancelar = document.getElementById('btnCancelarPerspectiva');
+  
+  modoPerspectiva = false;
+  puntosPerspectiva = [];
+  
+  // Eliminar marcadores visuales
+  marcadoresPerspectiva.forEach(function(marker) {
+    fabricCanvas.remove(marker);
+  });
+  marcadoresPerspectiva = [];
+  
+  // Restaurar botones
+  if (btnAplicar) btnAplicar.classList.remove('hidden');
+  if (btnCancelar) btnCancelar.classList.add('hidden');
+  
+  // Restaurar cursor
+  fabricCanvas.defaultCursor = 'default';
+  fabricCanvas.hoverCursor = 'move';
+  
+  // Reactivar selección de objetos
+  fabricCanvas.selection = true;
+  fabricCanvas.forEachObject(function(obj) {
+    if (obj !== fabricCanvas.backgroundImage) {
+      obj.selectable = true;
+      obj.evented = true;
+    }
+  });
+  
+  fabricCanvas.renderAll();
+  actualizarEstadoFabric('Modo Perspectiva cancelado');
+  showNotification('❌ Modo Perspectiva cancelado');
+}
+
+// Función para agregar un punto de perspectiva
+function agregarPuntoPerspectiva(x, y) {
+  if (!modoPerspectiva) return;
+  if (puntosPerspectiva.length >= MAX_PUNTOS) return;
+  
+  // Guardar el punto
+  puntosPerspectiva.push({ x: x, y: y });
+  const numero = puntosPerspectiva.length;
+  
+  // Crear marcador visual (círculo con número)
+  const marker = new fabric.Circle({
+    left: x - 15,
+    top: y - 15,
+    radius: 15,
+    fill: '#FFC700',
+    stroke: '#000',
+    strokeWidth: 2,
+    selectable: false,
+    evented: false,
+    originX: 'center',
+    originY: 'center'
+  });
+  
+  const text = new fabric.Text(numero.toString(), {
+    left: x,
+    top: y,
+    fontSize: 18,
+    fontWeight: 'bold',
+    fill: '#000',
+    selectable: false,
+    evented: false,
+    originX: 'center',
+    originY: 'center'
+  });
+  
+  // Agregar al canvas
+  fabricCanvas.add(marker);
+  fabricCanvas.add(text);
+  marcadoresPerspectiva.push(marker, text);
+  
+  fabricCanvas.renderAll();
+  
+  // Actualizar estado
+  actualizarEstadoFabric(`🎯 Modo Perspectiva: ${numero}/4 puntos seleccionados`);
+  
+  // Si completamos los 4 puntos, aplicar la transformación
+  if (puntosPerspectiva.length === MAX_PUNTOS) {
+    setTimeout(function() {
+      aplicarTransformacionPerspectiva();
+    }, 500);
+  }
+}
+
+// Función placeholder para aplicar la transformación (Fase 2)
+function aplicarTransformacionPerspectiva() {
+  actualizarEstadoFabric('✅ 4 puntos capturados. Preparando transformación...');
+  showNotification('✅ 4 puntos capturados. Aplicando perspectiva...');
+  
+  // Aquí irá el algoritmo de homografía en la FASE 2
+  // Por ahora, solo mostramos los puntos y cancelamos el modo
+  setTimeout(function() {
+    cancelarModoPerspectiva();
+    actualizarEstadoFabric('✅ Perspectiva lista (Fase 2 pendiente)');
+    showNotification('🎉 ¡4 puntos capturados! La transformación se aplicará en la Fase 2.');
+  }, 1500);
+}
+
+// ==========================================
+// EVENT LISTENERS PARA LOS BOTONES DE PERSPECTIVA
+// ==========================================
+const btnAplicarPerspectiva = document.getElementById('btnAplicarPerspectiva');
+if (btnAplicarPerspectiva) {
+  btnAplicarPerspectiva.addEventListener('click', function() {
+    toggleModoPerspectiva();
+  });
+}
+
+const btnCancelarPerspectiva = document.getElementById('btnCancelarPerspectiva');
+if (btnCancelarPerspectiva) {
+  btnCancelarPerspectiva.addEventListener('click', function() {
+    cancelarModoPerspectiva();
+  });
+}
+
+// ==========================================
+// CAPTURAR CLICS/TOQUES EN EL CANVAS CUANDO ESTÁ EN MODO PERSPECTIVA
+// ==========================================
+if (fabricCanvas) {
+  fabricCanvas.on('mouse:down', function(opt) {
+    if (!modoPerspectiva) return;
+    
+    const pointer = fabricCanvas.getPointer(opt.e);
+    const x = pointer.x;
+    const y = pointer.y;
+    
+    console.log('🎯 Punto capturado:', x.toFixed(0), y.toFixed(0), '- Total:', puntosPerspectiva.length + 1);
+    
+    agregarPuntoPerspectiva(x, y);
+  });
+}
+
           // ==========================================
           // EVENT LISTENER: DUPLICAR MATERIAL
           // ==========================================
