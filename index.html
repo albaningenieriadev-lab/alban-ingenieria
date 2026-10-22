@@ -4152,7 +4152,8 @@ function aplicarMaterialConIA(x, y) {
   console.log('📐 Puntos de perspectiva calculados:', puntosPerspectiva);
   
   // 7. Aplicar la transformación de perspectiva
-  aplicarPerspectivaAutomatica(puntosPerspectiva, materialParaIA);
+    aplicarPerspectivaAutomatica(puntosPerspectiva, materialParaIA, zone.type);
+
 }
 
 // Función para detectar zona usando flood-fill
@@ -4241,7 +4242,7 @@ function detectarZonaInteligente(imageData, startX, startY) {
 }
 
 // Función para aplicar perspectiva automáticamente
-function aplicarPerspectivaAutomatica(puntosPerspectiva, img) {
+function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   console.log(' Aplicando perspectiva automática...');
   
   // 1. Obtener las 4 esquinas de la imagen original (puntos origen)
