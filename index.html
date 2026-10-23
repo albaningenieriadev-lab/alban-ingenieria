@@ -4096,18 +4096,18 @@ function cancelarModoIA() {
   showNotification('❌ Modo IA cancelado');
 }
 
-// Función principal: aplicar material con IA (VERSIÓN SIMPLIFICADA)
+// Función principal: aplicar material con IA (VERSIÓN CORREGIDA CON COORDENADAS)
 function aplicarMaterialConIA(x, y) {
   if (!modoIA || !materialParaIA) return;
   
   console.log('🤖 Aplicando material con IA en:', x, y);
-  actualizarEstadoFabric('🔍 Detectando zona...');
+  actualizarEstadoFabric(' Detectando zona...');
   showNotification('🔍 Detectando zona automáticamente...');
   
   // 1. Obtener la imagen de fondo
   const bgImage = fabricCanvas.backgroundImage;
   if (!bgImage) {
-    showNotification('⚠️ No hay imagen de fondo cargada');
+    showNotification('️ No hay imagen de fondo cargada');
     cancelarModoIA();
     return;
   }
@@ -4120,21 +4120,52 @@ function aplicarMaterialConIA(x, y) {
     return;
   }
   
-  // 3. Crear canvas temporal para analizar la imagen
+  // ✅ 3. CONVERTIR COORDENADAS DE FABRIC.JS A COORDENADAS DE LA IMAGEN REAL
+  // Fabric.js puede tener zoom/escala, necesitamos las coordenadas relativas a la imagen
+  const bgWidth = bgImage.width * bgImage.scaleX;
+  const bgHeight = bgImage.height * bgImage.scaleY;
+  const bgLeft = bgImage.left - (bgImage.width * bgImage.scaleX) / 2;
+  const bgTop = bgImage.top - (bgImage.height * bgImage.scaleY) / 2;
+  
+  // Coordenadas relativas al canvas
+  const relativeX = x - bgLeft;
+  const relativeY = y - bgTop;
+  
+  // Escalar a las dimensiones reales de la imagen
+  const scaleX = bgElement.width / bgWidth;
+  const scaleY = bgElement.height / bgHeight;
+  
+  const imgX = Math.floor(relativeX * scaleX);
+  const imgY = Math.floor(relativeY * scaleY);
+  
+  console.log('📍 Coordenadas canvas:', x, y);
+  console.log('📍 Coordenadas relativas:', relativeX, relativeY);
+  console.log('📍 Coordenadas imagen real:', imgX, imgY, '(imagen:', bgElement.width, 'x', bgElement.height + ')');
+  
+  // Verificar que las coordenadas estén dentro de la imagen
+  if (imgX < 0 || imgX >= bgElement.width || imgY < 0 || imgY >= bgElement.height) {
+    console.error('❌ Coordenadas fuera de la imagen');
+    showNotification('⚠️ Haz clic dentro de la imagen del espacio');
+    cancelarModoIA();
+    return;
+  }
+  
+  // 4. Crear canvas temporal para analizar la imagen
   const tempCanvas = document.createElement('canvas');
   const tempCtx = tempCanvas.getContext('2d');
   tempCanvas.width = bgElement.width;
   tempCanvas.height = bgElement.height;
   tempCtx.drawImage(bgElement, 0, 0);
   
-  // 4. Obtener datos de píxeles
+  // 5. Obtener datos de píxeles
   const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
   
-  // 5. Detectar la zona
-  const zone = detectarZonaInteligente(imageData, x, y);
+  // 6. Detectar la zona con las coordenadas CORRECTAS
+  console.log('🔍 Buscando zona similar en:', imgX, imgY);
+  const zone = detectarZonaInteligente(imageData, imgX, imgY);
   
   if (!zone) {
-    showNotification('️ No se pudo detectar una zona válida. Intenta en otra área.');
+    showNotification('⚠️ No se pudo detectar una zona válida. Intenta en otra área.');
     cancelarModoIA();
     return;
   }
@@ -4143,7 +4174,7 @@ function aplicarMaterialConIA(x, y) {
   actualizarEstadoFabric('✅ Zona detectada: ' + zone.type + '. Aplicando material...');
   showNotification('✅ Zona detectada: ' + zone.type);
   
-  // 6. Calcular los 4 puntos de perspectiva
+  // 7. Calcular los 4 puntos de perspectiva
   const puntosPerspectiva = [
     { x: zone.bounds.minX, y: zone.bounds.minY },
     { x: zone.bounds.maxX, y: zone.bounds.minY },
@@ -4153,7 +4184,7 @@ function aplicarMaterialConIA(x, y) {
   
   console.log('📐 Puntos de perspectiva:', puntosPerspectiva);
   
-  // 7. Aplicar la transformación
+  // 8. Aplicar la transformación
   aplicarPerspectivaAutomatica(puntosPerspectiva, materialParaIA, zone.type);
 }
 // Función para detectar zona usando flood-fill (VERSIÓN MEJORADA)
