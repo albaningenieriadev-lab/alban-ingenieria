@@ -4284,7 +4284,7 @@ function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   // ✅ CORRECCIÓN: Pintar fondo blanco y NO limpiarlo
 tempCtx.fillStyle = '#FFFFFF';
 tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-tempCtx.globalAlpha = 1.0;
+tempCtx.globalAlpha = 1;
 //tempCtx.globalCompositeOperation = 'source-over';
 // ❌ ELIMINAR: tempCtx.clearRect(...)  ← ¡Esta línea borra el fondo blanco!
   
