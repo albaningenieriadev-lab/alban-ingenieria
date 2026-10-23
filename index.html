@@ -4243,33 +4243,31 @@ function detectarZonaInteligente(imageData, startX, startY) {
   };
 }
 
-// Función para aplicar perspectiva automáticamente
+// Función para aplicar perspectiva automáticamente (VERSIÓN CORREGIDA DEFINITIVA)
 function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
-  console.log(' Aplicando perspectiva automática...');
+  console.log('🔄 Aplicando perspectiva automática...');
   console.log('📐 Puntos destino:', puntosPerspectiva);
-  //console.log('🖼️ Imagen origen - width:', img.width, 'height:', img.height);
-  //console.log('📏 Escala actual - scaleX:', img.scaleX, 'scaleY:', img.scaleY);
   
-  // ✅ USAR DIMENSIONES REALES DE LA IMAGEN (sin escala)
+  // ✅ USAR DIMENSIONES REALES DE LA IMAGEN (no escaladas)
   const realWidth = img.width;
   const realHeight = img.height;
   
   console.log('🖼️ Imagen origen - width:', realWidth, 'height:', realHeight);
   
   const srcPoints = [
-    { x: 0, y: 0 },                      // Esquina superior-izquierda
-    { x: realWidth, y: 0 },              // Esquina superior-derecha
-    { x: realWidth, y: realHeight },     // Esquina inferior-derecha
-    { x: 0, y: realHeight }              // Esquina inferior-izquierda
+    { x: 0, y: 0 },
+    { x: realWidth, y: 0 },
+    { x: realWidth, y: realHeight },
+    { x: 0, y: realHeight }
   ];
   
   const dstPoints = puntosPerspectiva.slice();
-
+  
   // Calcular la matriz de homografía
-  console.log('🧮 Calculando homografía...');
+  console.log(' Calculando homografía...');
   const matriz = calcularHomografia(srcPoints, dstPoints);
   console.log('✅ Matriz calculada');
-
+  
   // Crear canvas temporal
   const tempCanvas = document.createElement('canvas');
   const tempCtx = tempCanvas.getContext('2d');
@@ -4285,22 +4283,15 @@ function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   
   console.log('🎨 Canvas temporal:', tempCanvas.width, 'x', tempCanvas.height);
   
-// ✅ Pintar fondo blanco opaco (SIN clearRect después)
+  // ✅ CORRECCIÓN DEFINITIVA: Pintar fondo blanco y NO borrarlo
   tempCtx.fillStyle = '#FFFFFF';
   tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
   tempCtx.globalAlpha = 1.0;
   tempCtx.globalCompositeOperation = 'source-over';
- 
-  // ✅ Verificar que el elemento de imagen esté cargado
+  // ❌ ELIMINAR: tempCtx.clearRect(...) - ¡Esta línea borra el fondo blanco!
+  
   const imgElement = img.getElement();
   console.log('🖼️ Elemento de imagen:', imgElement.width, 'x', imgElement.height);
- 
-  //if (!imgElement || imgElement.width === 0 || imgElement.height === 0) {
-  //  console.error(' El elemento de imagen no está cargado correctamente');
-  //  showNotification('⚠️ Error: La imagen del material no está cargada');
-  //  cancelarModoIA();
-  //  return;
-  //}
   
   // Dividir en 2 triángulos y transformar
   const srcTri1 = [srcPoints[0], srcPoints[1], srcPoints[2]];
@@ -4308,8 +4299,10 @@ function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   const srcTri2 = [srcPoints[0], srcPoints[2], srcPoints[3]];
   const dstTri2 = [dstPoints[0], dstPoints[2], dstPoints[3]];
   
-  console.log('🔺 Dibujando triángulos transformados...');
+  console.log('🔺 Dibujando triángulo 1...');
   dibujarTrianguloTransformado(tempCtx, imgElement, srcTri1, dstTri1, minX, minY, padding);
+  
+  console.log('🔺 Dibujando triángulo 2...');
   dibujarTrianguloTransformado(tempCtx, imgElement, srcTri2, dstTri2, minX, minY, padding);
   
   // Crear nueva imagen
@@ -4317,7 +4310,7 @@ function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   console.log('📦 DataURL generado');
   
   fabric.Image.fromURL(newDataUrl, function(newImg) {
-      newImg.set({
+    newImg.set({
       left: minX,
       top: minY,
       originX: 'left',
