@@ -4247,12 +4247,14 @@ function detectarZonaInteligente(imageData, startX, startY) {
 function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   console.log(' Aplicando perspectiva automática...');
   console.log('📐 Puntos destino:', puntosPerspectiva);
-  console.log('🖼️ Imagen origen - width:', img.width, 'height:', img.height);
-  console.log('📏 Escala actual - scaleX:', img.scaleX, 'scaleY:', img.scaleY);
+  //console.log('🖼️ Imagen origen - width:', img.width, 'height:', img.height);
+  //console.log('📏 Escala actual - scaleX:', img.scaleX, 'scaleY:', img.scaleY);
   
   // ✅ USAR DIMENSIONES REALES DE LA IMAGEN (sin escala)
   const realWidth = img.width;
   const realHeight = img.height;
+  
+  console.log('🖼️ Imagen origen - width:', realWidth, 'height:', realHeight);
   
   const srcPoints = [
     { x: 0, y: 0 },                      // Esquina superior-izquierda
