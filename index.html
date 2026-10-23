@@ -4156,83 +4156,105 @@ function aplicarMaterialConIA(x, y) {
   // 7. Aplicar la transformación
   aplicarPerspectivaAutomatica(puntosPerspectiva, materialParaIA, zone.type);
 }
-// Función para detectar zona usando rectángulo expansivo (MÁS CONFIABLE)
+// Función para detectar zona usando flood-fill (VERSIÓN MEJORADA)
 function detectarZonaInteligente(imageData, startX, startY) {
   const w = imageData.width;
   const h = imageData.height;
   const data = imageData.data;
   
-  // Obtener color del píxel donde se hizo clic
+  // Calcular índice del píxel inicial
   const startIdx = (startY * w + startX) * 4;
   const startR = data[startIdx];
   const startG = data[startIdx + 1];
   const startB = data[startIdx + 2];
   
-  const tolerance = 50; // Tolerancia de color
+  console.log('🎨 Color inicial:', startR, startG, startB);
   
-  // Función para verificar si un píxel es similar al color inicial
-  function esPixelSimilar(x, y) {
-    if (x < 0 || x >= w || y < 0 || y >= h) return false;
-    const idx = (y * w + x) * 4;
-    const r = data[idx];
-    const g = data[idx + 1];
-    const b = data[idx + 2];
+  // ✅ TOLERANCIA MÁS ALTA para imágenes reales
+  const tolerance = 80; // Aumentado de 40 a 80
+  
+  // Arrays para flood-fill
+  const visited = new Uint8Array(w * h);
+  const zone = [];
+  const stack = [[startX, startY]];
+  let count = 0;
+  const maxPixels = w * h * 0.3; // Máximo 30% de la imagen (reducido de 50%)
+  
+  // Flood-fill
+  while (stack.length > 0 && count < maxPixels) {
+    const pos = stack.pop();
+    const x = pos[0];
+    const y = pos[1];
+    const idx = y * w + x;
+    
+    if (visited[idx]) continue;
+    if (x < 0 || x >= w || y < 0 || y >= h) continue;
+    
+    const pIdx = idx * 4;
+    const r = data[pIdx];
+    const g = data[pIdx + 1];
+    const b = data[pIdx + 2];
+    
+    // Calcular distancia de color
     const dist = Math.sqrt(
       Math.pow(r - startR, 2) +
       Math.pow(g - startG, 2) +
       Math.pow(b - startB, 2)
     );
-    return dist <= tolerance;
+    
+    if (dist > tolerance) continue;
+    
+    visited[idx] = 1;
+    zone.push({ x: x, y: y });
+    count++;
+    
+    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
   }
   
-  // Expandir rectángulo desde el punto de clic
-  let minX = startX, maxX = startX;
-  let minY = startY, maxY = startY;
+  console.log('📊 Píxeles detectados:', zone.length);
   
-  // Expandir hacia arriba
-  while (minY > 0 && esPixelSimilar(startX, minY - 1)) minY--;
-  // Expandir hacia abajo
-  while (maxY < h - 1 && esPixelSimilar(startX, maxY + 1)) maxY++;
-  // Expandir hacia la izquierda
-  while (minX > 0 && esPixelSimilar(minX - 1, startY)) minX--;
-  // Expandir hacia la derecha
-  while (maxX < w - 1 && esPixelSimilar(maxX + 1, startY)) maxX++;
-  
-  // Verificar que la zona sea suficientemente grande (mínimo 100x100 píxeles)
-  const zoneW = maxX - minX;
-  const zoneH = maxY - minY;
-  
-  if (zoneW < 100 || zoneH < 100) {
-    console.log('️ Zona muy pequeña:', zoneW, 'x', zoneH);
+  // ✅ REDUCIR EL MÍNIMO de píxeles requeridos
+  if (zone.length < 50) { // Reducido de 100 a 50
+    console.log('️ Zona muy pequeña:', zone.length, 'píxeles');
     return null;
   }
   
-  // Limitar el tamaño máximo (no más del 60% de la imagen)
-  const maxZoneW = w * 0.6;
-  const maxZoneH = h * 0.6;
-  if (zoneW > maxZoneW || zoneH > maxZoneH) {
-    console.log('️ Zona muy grande:', zoneW, 'x', zoneH);
+  // Calcular bounds
+  let minX = w, maxX = 0, minY = h, maxY = 0;
+  for (let i = 0; i < zone.length; i++) {
+    if (zone[i].x < minX) minX = zone[i].x;
+    if (zone[i].x > maxX) maxX = zone[i].x;
+    if (zone[i].y < minY) minY = zone[i].y;
+    if (zone[i].y > maxY) maxY = zone[i].y;
+  }
+  
+  const zoneW = maxX - minX;
+  const zoneH = maxY - minY;
+  
+  console.log('📐 Zona detectada:', zoneW, 'x', zoneH, 'píxeles');
+  
+  // ✅ VALIDACIÓN MÁS FLEXIBLE
+  if (zoneW < 20 || zoneH < 20) { // Reducido de 100 a 20
+    console.log('⚠️ Zona muy pequeña:', zoneW, 'x', zoneH);
     return null;
   }
   
   // Determinar tipo de zona
   const aspectRatio = zoneW / zoneH;
   let zoneType = 'Zona';
-  if (aspectRatio > 2.0 && zoneH < h * 0.3) zoneType = 'Techo';
+  if (aspectRatio > 2.5 && zoneH < h * 0.3) zoneType = 'Techo';
   else if (aspectRatio > 1.5 && zoneH < h * 0.4) zoneType = 'Pared horizontal';
   else if (zoneH > h * 0.5 && zoneW < w * 0.5) zoneType = 'Pared vertical';
   else if (zoneH > h * 0.4 && zoneW > w * 0.6) zoneType = 'Piso';
   else if (zoneW > w * 0.7 && zoneH > h * 0.5) zoneType = 'Pared principal';
   
-  console.log('✅ Zona detectada:', zoneType, '- Tamaño:', zoneW, 'x', zoneH);
-  
   return {
+    pixels: zone,
     bounds: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
     type: zoneType,
-    size: zoneW * zoneH
+    size: zone.length
   };
 }
-
 // Función para aplicar perspectiva automáticamente (VERSIÓN FINAL)
 function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   console.log('🔄 Aplicando perspectiva automática...');
