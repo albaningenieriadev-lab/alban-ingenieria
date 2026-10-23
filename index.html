@@ -4247,26 +4247,28 @@ function detectarZonaInteligente(imageData, startX, startY) {
 function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   console.log(' Aplicando perspectiva automática...');
   console.log('📐 Puntos destino:', puntosPerspectiva);
-  console.log('️ Imagen origen:', img.width, 'x', img.height, 'escala:', img.scaleX, 'x', img.scaleY);
+  console.log('🖼️ Imagen origen - width:', img.width, 'height:', img.height);
+  console.log('📏 Escala actual - scaleX:', img.scaleX, 'scaleY:', img.scaleY);
   
-  // 1. Obtener las 4 esquinas de la imagen original (puntos origen)
-  const w = img.width * img.scaleX;
-  const h = img.height * img.scaleY;
+  // ✅ USAR DIMENSIONES REALES DE LA IMAGEN (sin escala)
+  const realWidth = img.width;
+  const realHeight = img.height;
   
   const srcPoints = [
-    { x: 0, y: 0 },
-    { x: w, y: 0 },
-    { x: w, y: h },
-    { x: 0, y: h }
+    { x: 0, y: 0 },                      // Esquina superior-izquierda
+    { x: realWidth, y: 0 },              // Esquina superior-derecha
+    { x: realWidth, y: realHeight },     // Esquina inferior-derecha
+    { x: 0, y: realHeight }              // Esquina inferior-izquierda
   ];
   
   const dstPoints = puntosPerspectiva.slice();
-  
-  // 2. Calcular la matriz de homografía
-  const matriz = calcularHomografia(srcPoints, dstPoints);
-  console.log('✅ Matriz de homografía calculada:', matriz);
 
-  // 3. Crear canvas temporal
+  // Calcular la matriz de homografía
+  console.log('🧮 Calculando homografía...');
+  const matriz = calcularHomografia(srcPoints, dstPoints);
+  console.log('✅ Matriz calculada');
+
+  // Crear canvas temporal
   const tempCanvas = document.createElement('canvas');
   const tempCtx = tempCanvas.getContext('2d');
   
@@ -4281,35 +4283,42 @@ function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   
   console.log('🎨 Canvas temporal:', tempCanvas.width, 'x', tempCanvas.height);
   
-  // ✅ CORRECCIÓN: Pintar fondo blanco y NO limpiarlo
-tempCtx.fillStyle = '#FFFFFF';
-tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-tempCtx.globalAlpha = 1;
-//tempCtx.globalCompositeOperation = 'source-over';
-// ❌ ELIMINAR: tempCtx.clearRect(...)  ← ¡Esta línea borra el fondo blanco!
-  
+// ✅ Pintar fondo blanco opaco (SIN clearRect después)
+  tempCtx.fillStyle = '#FFFFFF';
+  tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+  tempCtx.globalAlpha = 1.0;
+  tempCtx.globalCompositeOperation = 'source-over';
+ 
+  // ✅ Verificar que el elemento de imagen esté cargado
   const imgElement = img.getElement();
-  console.log('🖼️ Elemento de imagen obtenido:', imgElement.width, 'x', imgElement.height);
+  if (!imgElement || imgElement.width === 0 || imgElement.height === 0) {
+    console.error(' El elemento de imagen no está cargado correctamente');
+    showNotification('⚠️ Error: La imagen del material no está cargada');
+    cancelarModoIA();
+    return;
+  }
   
-  // 4. Dividir en 2 triángulos y transformar
+  console.log('🖼️ Elemento de imagen:', imgElement.width, 'x', imgElement.height);
+   
+  // Dividir en 2 triángulos y transformar
   const srcTri1 = [srcPoints[0], srcPoints[1], srcPoints[2]];
   const dstTri1 = [dstPoints[0], dstPoints[1], dstPoints[2]];
   const srcTri2 = [srcPoints[0], srcPoints[2], srcPoints[3]];
   const dstTri2 = [dstPoints[0], dstPoints[2], dstPoints[3]];
   
-   console.log('🔺 Dibujando triángulo 1...');
+  console.log('🔺 Dibujando triángulo 1...');
   dibujarTrianguloTransformado(tempCtx, imgElement, srcTri1, dstTri1, minX, minY, padding);
   
   console.log('🔺 Dibujando triángulo 2...');
   dibujarTrianguloTransformado(tempCtx, imgElement, srcTri2, dstTri2, minX, minY, padding);
-
-  // 5. Crear nueva imagen
+  
+  // Crear nueva imagen
   const newDataUrl = tempCanvas.toDataURL('image/png');
   console.log('📦 DataURL generado, longitud:', newDataUrl.length);
-
+  
   fabric.Image.fromURL(newDataUrl, function(newImg) {
     console.log('✅ Nueva imagen creada en Fabric');
-   
+    
     newImg.set({
       left: minX,
       top: minY,
@@ -4328,11 +4337,15 @@ tempCtx.globalAlpha = 1;
       name: img.name || 'Material_IA'
     });
     
-    // Reemplazar la imagen original
+    console.log('🔄 Reemplazando imagen original...');
     fabricCanvas.remove(img);
     fabricCanvas.add(newImg);
     fabricCanvas.setActiveObject(newImg);
     fabricCanvas.renderAll();
+    console.log('✅ Imagen reemplazada con éxito');
+    
+    // Limpiar referencia global
+    window.materialParaPerspectiva = null;
     
     // Cancelar modo IA
     cancelarModoIA();
@@ -4344,7 +4357,6 @@ tempCtx.globalAlpha = 1;
     setTimeout(broadcastToScreen, 500);
   });
 }
-
 // ==========================================
 // EVENT LISTENER PARA EL BOTÓN "APLICAR CON IA"
 // ==========================================
