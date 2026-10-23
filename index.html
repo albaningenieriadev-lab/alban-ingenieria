@@ -4293,35 +4293,31 @@ function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
  
   // ✅ Verificar que el elemento de imagen esté cargado
   const imgElement = img.getElement();
-  if (!imgElement || imgElement.width === 0 || imgElement.height === 0) {
-    console.error(' El elemento de imagen no está cargado correctamente');
-    showNotification('⚠️ Error: La imagen del material no está cargada');
-    cancelarModoIA();
-    return;
-  }
-  
   console.log('🖼️ Elemento de imagen:', imgElement.width, 'x', imgElement.height);
-   
+ 
+  //if (!imgElement || imgElement.width === 0 || imgElement.height === 0) {
+  //  console.error(' El elemento de imagen no está cargado correctamente');
+  //  showNotification('⚠️ Error: La imagen del material no está cargada');
+  //  cancelarModoIA();
+  //  return;
+  //}
+  
   // Dividir en 2 triángulos y transformar
   const srcTri1 = [srcPoints[0], srcPoints[1], srcPoints[2]];
   const dstTri1 = [dstPoints[0], dstPoints[1], dstPoints[2]];
   const srcTri2 = [srcPoints[0], srcPoints[2], srcPoints[3]];
   const dstTri2 = [dstPoints[0], dstPoints[2], dstPoints[3]];
   
-  console.log('🔺 Dibujando triángulo 1...');
+  console.log('🔺 Dibujando triángulos transformados...');
   dibujarTrianguloTransformado(tempCtx, imgElement, srcTri1, dstTri1, minX, minY, padding);
-  
-  console.log('🔺 Dibujando triángulo 2...');
   dibujarTrianguloTransformado(tempCtx, imgElement, srcTri2, dstTri2, minX, minY, padding);
   
   // Crear nueva imagen
   const newDataUrl = tempCanvas.toDataURL('image/png');
-  console.log('📦 DataURL generado, longitud:', newDataUrl.length);
+  console.log('📦 DataURL generado');
   
   fabric.Image.fromURL(newDataUrl, function(newImg) {
-    console.log('✅ Nueva imagen creada en Fabric');
-    
-    newImg.set({
+      newImg.set({
       left: minX,
       top: minY,
       originX: 'left',
