@@ -4276,11 +4276,12 @@ function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   tempCanvas.width = (maxX - minX) + padding * 2;
   tempCanvas.height = (maxY - minY) + padding * 2;
   
-  // ✅ Limpiar con fondo blanco opaco (no transparente)
+  // ✅ CORRECCIÓN: Pintar fondo blanco y NO limpiarlo
 tempCtx.fillStyle = '#FFFFFF';
 tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-tempCtx.globalAlpha = 1;  // ✅ Forzar opacidad total al dibujar
-tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+tempCtx.globalAlpha = 1.0;
+tempCtx.globalCompositeOperation = 'source-over';
+// ❌ ELIMINAR: tempCtx.clearRect(...)  ← ¡Esta línea borra el fondo blanco!
   
   const imgElement = img.getElement();
   
