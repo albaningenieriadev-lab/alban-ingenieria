@@ -4246,6 +4246,8 @@ function detectarZonaInteligente(imageData, startX, startY) {
 // Función para aplicar perspectiva automáticamente
 function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   console.log(' Aplicando perspectiva automática...');
+  console.log('📐 Puntos destino:', puntosPerspectiva);
+  console.log('️ Imagen origen:', img.width, 'x', img.height, 'escala:', img.scaleX, 'x', img.scaleY);
   
   // 1. Obtener las 4 esquinas de la imagen original (puntos origen)
   const w = img.width * img.scaleX;
@@ -4262,7 +4264,8 @@ function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   
   // 2. Calcular la matriz de homografía
   const matriz = calcularHomografia(srcPoints, dstPoints);
-  
+  console.log('✅ Matriz de homografía calculada:', matriz);
+
   // 3. Crear canvas temporal
   const tempCanvas = document.createElement('canvas');
   const tempCtx = tempCanvas.getContext('2d');
@@ -4276,6 +4279,8 @@ function aplicarPerspectivaAutomatica(puntosPerspectiva, img, zoneType) {
   tempCanvas.width = (maxX - minX) + padding * 2;
   tempCanvas.height = (maxY - minY) + padding * 2;
   
+  console.log('🎨 Canvas temporal:', tempCanvas.width, 'x', tempCanvas.height);
+  
   // ✅ CORRECCIÓN: Pintar fondo blanco y NO limpiarlo
 tempCtx.fillStyle = '#FFFFFF';
 tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
@@ -4284,6 +4289,7 @@ tempCtx.globalCompositeOperation = 'source-over';
 // ❌ ELIMINAR: tempCtx.clearRect(...)  ← ¡Esta línea borra el fondo blanco!
   
   const imgElement = img.getElement();
+  console.log('🖼️ Elemento de imagen obtenido:', imgElement.width, 'x', imgElement.height);
   
   // 4. Dividir en 2 triángulos y transformar
   const srcTri1 = [srcPoints[0], srcPoints[1], srcPoints[2]];
@@ -4291,19 +4297,25 @@ tempCtx.globalCompositeOperation = 'source-over';
   const srcTri2 = [srcPoints[0], srcPoints[2], srcPoints[3]];
   const dstTri2 = [dstPoints[0], dstPoints[2], dstPoints[3]];
   
+   console.log('🔺 Dibujando triángulo 1...');
   dibujarTrianguloTransformado(tempCtx, imgElement, srcTri1, dstTri1, minX, minY, padding);
-  dibujarTrianguloTransformado(tempCtx, imgElement, srcTri2, dstTri2, minX, minY, padding);
   
+  console.log('🔺 Dibujando triángulo 2...');
+  dibujarTrianguloTransformado(tempCtx, imgElement, srcTri2, dstTri2, minX, minY, padding);
+
   // 5. Crear nueva imagen
   const newDataUrl = tempCanvas.toDataURL('image/png');
-  
+  console.log('📦 DataURL generado, longitud:', newDataUrl.length);
+
   fabric.Image.fromURL(newDataUrl, function(newImg) {
+    console.log('✅ Nueva imagen creada en Fabric');
+   
     newImg.set({
       left: minX,
       top: minY,
       originX: 'left',
       originY: 'top',
-      opacity: 1,
+      opacity: 1.0,
       globalCompositeOperation: 'source-over',
       selectable: true,
       evented: true,
