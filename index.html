@@ -4096,23 +4096,20 @@ function cancelarModoIA() {
   showNotification('❌ Modo IA cancelado');
 }
 
-// Función principal: aplicar material con IA (VERSIÓN CORREGIDA CON COORDENADAS)
+// Función principal: aplicar material con IA (VERSIÓN CORREGIDA CON MAPEO DE COORDENADAS)
 function aplicarMaterialConIA(x, y) {
   if (!modoIA || !materialParaIA) return;
   
-  console.log('🤖 Aplicando material con IA en:', x, y);
-  actualizarEstadoFabric(' Detectando zona...');
-  showNotification('🔍 Detectando zona automáticamente...');
+  console.log('🤖 Clic en canvas:', x.toFixed(0), y.toFixed(0));
   
   // 1. Obtener la imagen de fondo
   const bgImage = fabricCanvas.backgroundImage;
   if (!bgImage) {
-    showNotification('️ No hay imagen de fondo cargada');
+    showNotification('⚠️ No hay imagen de fondo cargada');
     cancelarModoIA();
     return;
   }
   
-  // 2. Obtener el elemento de la imagen de fondo
   const bgElement = bgImage.getElement();
   if (!bgElement) {
     showNotification('⚠️ No se puede acceder a la imagen de fondo');
@@ -4120,48 +4117,39 @@ function aplicarMaterialConIA(x, y) {
     return;
   }
   
-  // ✅ 3. CONVERTIR COORDENADAS DE FABRIC.JS A COORDENADAS DE LA IMAGEN REAL
-  // Fabric.js puede tener zoom/escala, necesitamos las coordenadas relativas a la imagen
-  const bgWidth = bgImage.width * bgImage.scaleX;
-  const bgHeight = bgImage.height * bgImage.scaleY;
-  const bgLeft = bgImage.left - (bgImage.width * bgImage.scaleX) / 2;
-  const bgTop = bgImage.top - (bgImage.height * bgImage.scaleY) / 2;
+  // ✅ CORRECCIÓN CLAVE: Mapear coordenadas del canvas a coordenadas de la imagen original
+  // Fabric escala la imagen de fondo con scaleX y scaleY
+  const imgScaleX = bgImage.scaleX || 1;
+  const imgScaleY = bgImage.scaleY || 1;
   
-  // Coordenadas relativas al canvas
-  const relativeX = x - bgLeft;
-  const relativeY = y - bgTop;
+  // Las coordenadas (x, y) vienen del canvas de Fabric
+  // Necesitamos convertirlas a coordenadas de la imagen original
+  const imgX = Math.floor(x / imgScaleX);
+  const imgY = Math.floor(y / imgScaleY);
   
-  // Escalar a las dimensiones reales de la imagen
-  const scaleX = bgElement.width / bgWidth;
-  const scaleY = bgElement.height / bgHeight;
+  console.log(' Coordenadas canvas:', x.toFixed(0), y.toFixed(0));
+  console.log(' Coordenadas imagen:', imgX, imgY);
+  console.log(' Escala imagen:', imgScaleX.toFixed(3), 'x', imgScaleY.toFixed(3));
+  console.log('📐 Tamaño imagen original:', bgElement.width, 'x', bgElement.height);
   
-  const imgX = Math.floor(relativeX * scaleX);
-  const imgY = Math.floor(relativeY * scaleY);
-  
-  console.log('📍 Coordenadas canvas:', x, y);
-  console.log('📍 Coordenadas relativas:', relativeX, relativeY);
-  console.log('📍 Coordenadas imagen real:', imgX, imgY, '(imagen:', bgElement.width, 'x', bgElement.height + ')');
-  
-  // Verificar que las coordenadas estén dentro de la imagen
+  // Validar que las coordenadas estén dentro de la imagen
   if (imgX < 0 || imgX >= bgElement.width || imgY < 0 || imgY >= bgElement.height) {
-    console.error('❌ Coordenadas fuera de la imagen');
-    showNotification('⚠️ Haz clic dentro de la imagen del espacio');
-    cancelarModoIA();
+    console.error('❌ Coordenadas fuera de la imagen:', imgX, imgY);
+    showNotification('⚠️ Clic fuera de la imagen');
     return;
   }
   
-  // 4. Crear canvas temporal para analizar la imagen
+  // 2. Crear canvas temporal para analizar la imagen
   const tempCanvas = document.createElement('canvas');
   const tempCtx = tempCanvas.getContext('2d');
   tempCanvas.width = bgElement.width;
   tempCanvas.height = bgElement.height;
   tempCtx.drawImage(bgElement, 0, 0);
   
-  // 5. Obtener datos de píxeles
+  // 3. Obtener datos de píxeles
   const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
   
-  // 6. Detectar la zona con las coordenadas CORRECTAS
-  console.log('🔍 Buscando zona similar en:', imgX, imgY);
+  // 4. Detectar la zona usando las coordenadas MAPEADAS
   const zone = detectarZonaInteligente(imageData, imgX, imgY);
   
   if (!zone) {
@@ -4171,22 +4159,24 @@ function aplicarMaterialConIA(x, y) {
   }
   
   console.log('✅ Zona detectada:', zone.type, '- Tamaño:', zone.size, 'píxeles');
+  console.log('📐 Bounds:', zone.bounds);
   actualizarEstadoFabric('✅ Zona detectada: ' + zone.type + '. Aplicando material...');
   showNotification('✅ Zona detectada: ' + zone.type);
   
-  // 7. Calcular los 4 puntos de perspectiva
+  // 5. ✅ MAPEAR los bounds de vuelta a coordenadas del canvas
   const puntosPerspectiva = [
-    { x: zone.bounds.minX, y: zone.bounds.minY },
-    { x: zone.bounds.maxX, y: zone.bounds.minY },
-    { x: zone.bounds.maxX, y: zone.bounds.maxY },
-    { x: zone.bounds.minX, y: zone.bounds.maxY }
+    { x: zone.bounds.minX * imgScaleX, y: zone.bounds.minY * imgScaleY },
+    { x: zone.bounds.maxX * imgScaleX, y: zone.bounds.minY * imgScaleY },
+    { x: zone.bounds.maxX * imgScaleX, y: zone.bounds.maxY * imgScaleY },
+    { x: zone.bounds.minX * imgScaleX, y: zone.bounds.maxY * imgScaleY }
   ];
   
-  console.log('📐 Puntos de perspectiva:', puntosPerspectiva);
+  console.log('📐 Puntos de perspectiva (en canvas):', puntosPerspectiva);
   
-  // 8. Aplicar la transformación
+  // 6. Aplicar la transformación
   aplicarPerspectivaAutomatica(puntosPerspectiva, materialParaIA, zone.type);
 }
+
 // Función para detectar zona usando flood-fill (VERSIÓN MEJORADA)
 function detectarZonaInteligente(imageData, startX, startY) {
   const w = imageData.width;
